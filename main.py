@@ -24,7 +24,7 @@ def draw_board(win):
 
 def is_occupied(boards, pos):
     y, x = pos
-    bit_position = coord_to_bit(x, y)
+    bit_position = coord_to_bit(y, x)
     for board in boards:
         if (board >> bit_position) & 1:
             return True
@@ -51,7 +51,7 @@ def display_board(player1, player2):
             else:
                 row_display.append('.')
         print(' '.join(row_display))
-        print("---------------")
+    print("---------------")
 
 def main():
     py.init()
@@ -70,7 +70,8 @@ def main():
             if event.type == py.MOUSEBUTTONDOWN:
                 pos = find_mouse_pos(py.mouse.get_pos())
                 if pos and not is_occupied(boards, (pos[1], pos[0])):
-                    boards[turn] = place_piece(boards[turn], pos[0], pos[1])
+                    # handle_move(boards)
+                    boards[turn] = place_piece(boards[turn], pos[1], pos[0])
                     display_board(boards[0], boards[1])
                     pyd.circle(win, BLACK if not turn else WHITE, ((pos[0] + 1) * SIZE / 19 , (pos[1] + 1) * SIZE / 19), SIZE / 19 / 3)
                     turn = not turn
