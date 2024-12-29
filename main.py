@@ -1,0 +1,49 @@
+import pygame as py
+import pygame.draw as pyd
+
+SIZE = 1080
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+
+def find_mouse_pos(pos):
+    x, y = pos
+    size = SIZE / 19
+    x = round(x / size)
+    y = round(y / size)
+    if x == 0 or x == 19 or y == 0 or y == 19:
+        return None
+    return ((pos, (x - 1, y - 1)))
+
+def draw_board(win):
+    win.fill((163, 112, 23))
+    for i in range(0, 18):
+        pyd.line(win, (0, 0, 0), (i * SIZE / 19, 0), (i * SIZE / 19, SIZE), width=2)
+        pyd.line(win, (0, 0, 0), (0, i * SIZE / 19), (SIZE, i * SIZE / 19), width=2)
+    pyd.line(win, (0, 0, 0), (18 * SIZE / 19 - 2, 0), (18 * SIZE / 19 - 2, SIZE), width=2)
+    pyd.line(win, (0, 0, 0), (0, 18 * SIZE / 19 - 2), (SIZE, 18 * SIZE / 19 - 2), width=2)
+    
+def main():
+    py.init()
+    turn = 0
+    win = py.display.set_mode((SIZE, SIZE))
+    py.display.set_caption("Gomoku")
+    draw_board(win)
+    py.display.update()
+    running = True
+    while running:
+        for event in py.event.get():
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_ESCAPE:
+                    running = False
+            if event.type == py.MOUSEBUTTONDOWN:
+                pos = find_mouse_pos(py.mouse.get_pos())
+                if pos:
+                    pyd.circle(win, BLACK if not turn else WHITE, ((pos[1][0] + 1) * SIZE / 19 , (pos[1][1] + 1) * SIZE / 19), SIZE / 19 / 3)
+                    turn = not turn
+                    py.display.update()
+
+
+
+if __name__ == '__main__':
+    main()
+
