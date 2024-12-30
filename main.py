@@ -1,9 +1,11 @@
 import pygame as py
 import pygame.draw as pyd
 
-SIZE = 1000
+WIDTH = 1000
+SIZE = 21
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+
 class coordinate:
     def __init__(self, pos):
         self.co = pos
@@ -26,6 +28,7 @@ class coordinate:
                 result.append(i * other)
             return tuple(result)
         return NotImplemented
+
     def __sub__(self, other):
         result = []
         if isinstance(other, tuple):
@@ -53,7 +56,7 @@ class gomoku:
     def __init__(self):
         self.boards = [[0], [0]]
         self.turn = 0
-        self.win = py.display.set_mode((SIZE, SIZE))
+        self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
         self.running = True
 
@@ -82,20 +85,19 @@ def check_capture(boards, move, turn, captures, clear=True):
 
 def find_mouse_pos(pos):
     x, y = pos
-    size = SIZE / 19
-    x = round(x / size)
-    y = round(y / size)
-    if x == 0 or x == 19 or y == 0 or y == 19:
+    w = WIDTH / SIZE
+    if x < w - 15 or x > WIDTH - w + 15 or y < w - 15 or y > WIDTH - w + 15:
         return None
+    x = round(x / w)
+    y = round(y / w)
     return ((x - 1, y - 1))
 
 def draw_board(win):
     win.fill((163, 112, 23))
-    for i in range(0, 18):
-        pyd.line(win, (0, 0, 0), (i * SIZE / 19, 0), (i * SIZE / 19, SIZE), width=2)
-        pyd.line(win, (0, 0, 0), (0, i * SIZE / 19), (SIZE, i * SIZE / 19), width=2)
-    pyd.line(win, (0, 0, 0), (18 * SIZE / 19 - 2, 0), (18 * SIZE / 19 - 2, SIZE), width=2)
-    pyd.line(win, (0, 0, 0), (0, 18 * SIZE / 19 - 2), (SIZE, 18 * SIZE / 19 - 2), width=2)
+    square = WIDTH / SIZE
+    for i in range(1, SIZE):
+        pyd.line(win, (0, 0, 0), (i * square, square), (i * square, WIDTH - square), width=2)
+        pyd.line(win, (0, 0, 0), (square, i * square), (WIDTH - square, i * square), width=2)
 
 def is_occupied(board, pos):
     bit_position = coord_to_bit(pos)
@@ -103,10 +105,10 @@ def is_occupied(board, pos):
 
 def coord_to_bit(move):
     row, col = move
-    return row * 17 + col
+    return row * (SIZE - 1) + col
 
 def bit_to_coord(bit):
-    return divmod(bit, 17)
+    return divmod(bit, SIZE - 1)
 
 def place_piece(bitboard, move, set_bit=True):
     bit_position = coord_to_bit(move)
@@ -116,9 +118,9 @@ def place_piece(bitboard, move, set_bit=True):
         bitboard[0] &= ~(1 << bit_position)
 
 def display_board(player1, player2):
-    for row in range(17):
+    for row in range(SIZE - 1):
         row_display = []
-        for col in range(17):
+        for col in range(SIZE - 1):
             if is_occupied(player1, (row, col)):
                 row_display.append('X')
             elif is_occupied(player2, (row, col)):
@@ -131,7 +133,7 @@ def display_board(player1, player2):
 def winning_line(board):
     directions = [
         [(0, 1), (1, 0), (1, 1), (1, -1)],
-        [(17, 13), (13, 17), (13, 13), (13, 13)]
+        [((SIZE - 1), SIZE - 5), (SIZE - 5, (SIZE - 1)), (SIZE - 5, SIZE - 5), (SIZE - 5, SIZE - 5)]
     ]
     
     for d, bounds in zip(directions[0], directions[1]):
@@ -189,13 +191,13 @@ def update_board(boards, win):
         while b[0]:
             if b[0] & 1:
 
-                x = pos % 17
-                y = pos // 17
+                x = pos % (SIZE - 1)
+                y = pos // (SIZE - 1)
 
-                px = (x + 1) * SIZE / 19
-                py = (y + 1) * SIZE / 19
+                px = (x + 1) * WIDTH / SIZE
+                py = (y + 1) * WIDTH / SIZE
                 color = (0, 0, 0) if player == 0 else (255, 255, 255)
-                pyd.circle(win, color, (px, py), SIZE / 19 / 3)
+                pyd.circle(win, color, (px, py), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1
 
@@ -222,7 +224,7 @@ def main():
                     if update:
                         update_board(game.boards, game.win)
                     else:
-                        pyd.circle(game.win, BLACK if not game.turn else WHITE, ((pos[0] + 1) * SIZE / 19 , (pos[1] + 1) * SIZE / 19), SIZE / 19 / 3)
+                        pyd.circle(game.win, BLACK if not game.turn else WHITE, ((pos[0] + 1) * WIDTH / SIZE , (pos[1] + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
                     # print(game.captures)
                     # display_board(game.boards[0], game.boards[1])
                     game.turn = not game.turn
