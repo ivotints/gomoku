@@ -5,8 +5,8 @@ from render import draw_board, update_board, find_mouse_pos
 from board import coordinate, SIZE, WIDTH
 from game import handle_move, is_occupied
 import argparse
-from ai import generate_legal_moves
-import random
+from ai import bot_play
+import copy
 
 class gomoku:
     def __init__(self, players):
@@ -16,6 +16,7 @@ class gomoku:
         self.captures = [0, 0]
         self.running = True
         self.solo = players
+        self.thinking = False
 
         py.display.set_caption("Gomoku")
         draw_board(self.win)
@@ -23,7 +24,7 @@ class gomoku:
 
 def handle_turn(game, result, update, move):
     if result is None:
-        return
+        return False
     if result:
         print("GG")
         exit(0)
@@ -33,10 +34,7 @@ def handle_turn(game, result, update, move):
         pyd.circle(game.win, BLACK if not game.turn else WHITE, ((move.co[1] + 1) * WIDTH / SIZE , (move.co[0] + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
     game.turn = not game.turn
     py.display.update()
-
-def bot_play(boards, turn, captures):
-    moves = generate_legal_moves(boards, turn, captures)
-    return moves[random.randint(0, len(moves) - 1)]
+    return True
 
 def main():
     parse = argparse.ArgumentParser()
@@ -45,25 +43,25 @@ def main():
     py.init()
     game = gomoku(args.player - 1)
     while game.running:
-        for event in py.event.get():
-            if event.type == py.QUIT:
-                game.running = False
-            if event.type == py.KEYDOWN:
-                if event.key == py.K_ESCAPE:
-                    game.running = False
-            if event.type == py.MOUSEBUTTONDOWN:
-                pos = find_mouse_pos(py.mouse.get_pos()) # (x, y)
-                if pos is None:
-                    continue
-                move = coordinate((pos[1], pos[0]))
-                if not is_occupied(game.boards[0], move.co) and not is_occupied(game.boards[1], move.co):
-                    result, update = handle_move(game.boards, game.turn, move, game.captures)
-                    handle_turn(game, result, update, move)
-
-                if not game.solo:
-                    move = bot_play(game.boards, game.turn, game.captures[game.turn])
-                    result, update = handle_move(game.boards, game.turn, move, game.captures)
-                    handle_turn(game, result, update, move)
+        if not game.thinking:
+            for event in py.event.get():
+                if event.type == py.KEYDOWN:
+                    if event.key == py.K_ESCAPE:
+                        game.running = False
+                if event.type == py.MOUSEBUTTONDOWN:
+                    pos = find_mouse_pos(py.mouse.get_pos())
+                    if pos is None:
+                        continue
+                    move = coordinate((pos[1], pos[0]))
+                    if not is_occupied(game.boards[0], move.co) and not is_occupied(game.boards[1], move.co):
+                        result, update = handle_move(game.boards, game.turn, move, game.captures)
+                        legal = handle_turn(game, result, update, move)
+                        if legal and not game.solo:
+                            game.thinking = True
+                            move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+                            result, update = handle_move(game.boards, game.turn, move, game.captures)
+                            handle_turn(game, result, update, move)
+                            game.thinking = False
 
 if __name__ == '__main__':
     main()

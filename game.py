@@ -1,6 +1,19 @@
 from macro import DIRECTIONS, THREE, DIRECTION_MIN
 from board import coordinate, out_of_bounds, coord_to_bit, SIZE
 
+def display_board(player1, player2):
+    for row in range(SIZE - 1):
+        row_display = []
+        for col in range(SIZE - 1):
+            if is_occupied(player1, (row, col)):
+                row_display.append('X')
+            elif is_occupied(player2, (row, col)):
+                row_display.append('O')
+            else:
+                row_display.append('.')
+        print(' '.join(row_display))
+    print("---------------")
+
 def check_capture(boards, move, turn):
     capture = 0
     capture_positions = []
@@ -125,5 +138,8 @@ def handle_move(boards, turn, move, captures):
         for p in pos:
             place_piece(boards[not turn], p, False)
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
+        print("capture: ", captures)
+        print("won: ", is_won(boards, turn, captures[not turn]))
+        display_board(boards[0], boards[1])
         return True, capture
     return False, capture
