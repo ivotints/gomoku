@@ -46,11 +46,13 @@ def main():
     game = gomoku(args.player - 1)
     while game.running:
         for event in py.event.get():
+            if event.type == py.QUIT:
+                game.running = False
             if event.type == py.KEYDOWN:
                 if event.key == py.K_ESCAPE:
                     game.running = False
             if event.type == py.MOUSEBUTTONDOWN:
-                pos = find_mouse_pos(py.mouse.get_pos())
+                pos = find_mouse_pos(py.mouse.get_pos()) # (x, y)
                 if pos is None:
                     continue
                 move = coordinate((pos[1], pos[0]))
