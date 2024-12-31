@@ -5,6 +5,8 @@ from render import draw_board, update_board, find_mouse_pos
 from board import coordinate, SIZE, WIDTH
 from game import handle_move, is_occupied
 import argparse
+from ai import generate_legal_moves
+import random
 
 class gomoku:
     def __init__(self, players):
@@ -32,8 +34,9 @@ def handle_turn(game, result, update, move):
     game.turn = not game.turn
     py.display.update()
 
-def bot_play(boards, turn):
-    pass
+def bot_play(boards, turn, captures):
+    moves = generate_legal_moves(boards, turn, captures)
+    return moves[random.randint(0, len(moves) - 1)]
 
 def main():
     parse = argparse.ArgumentParser()
@@ -56,11 +59,9 @@ def main():
                     handle_turn(game, result, update, move)
 
                 if not game.solo:
-                    move = bot_play(game.boards, game.turn)
+                    move = bot_play(game.boards, game.turn, game.captures[game.turn])
                     result, update = handle_move(game.boards, game.turn, move, game.captures)
-                    handle_turn(game, result, update)
-
-
+                    handle_turn(game, result, update, move)
 
 if __name__ == '__main__':
     main()
