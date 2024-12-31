@@ -40,22 +40,17 @@ def is_occupied(board, pos):
     return (board[0] >> bit_position) & 1
 
 def winning_line(board):
-    directions = [
-        [(0, 1), (1, 0), (1, 1), (1, -1)],
-        [((SIZE - 1), SIZE - 5), (SIZE - 5, (SIZE - 1)), (SIZE - 5, SIZE - 5), (SIZE - 5, SIZE - 5)]
-    ]
-    
-    for d, bounds in zip(directions[0], directions[1]):
-        di, dj = d
-        bound_i, bound_j = bounds
-        
-        for i in range(bound_i):
-            j = 0
-            while j < bound_j:
-                if all(is_occupied(board, (i + k*di, j + k*dj)) 
-                      for k in range(5)):
-                    return ((i,j), (i + 1*di, j + 1*dj), (i + 2*di, j + 2*dj), (i + 3*di, j + 3*dj), (i + 4*di, j + 4*dj))
-                j += 1
+    size = SIZE - 1
+
+    for i in range(size):
+        for j in range(size):
+            pos = (i, j)
+            if not is_occupied(board, pos):
+                continue
+            for direction in DIRECTION_MIN:
+                di, dj = direction.co
+                if all(0 <= i + k*di < size and 0 <= j + k*dj < size and is_occupied(board, (i + k*di, j + k*dj)) for k in range(5)):
+                    return ((i, j), (i + 1*di, j + 1*dj), (i + 2*di, j + 2*dj), (i + 3*di, j + 3*dj), (i + 4*di, j + 4*dj))
     return None
 
 def is_eatable(boards, pos, direction, turn):
@@ -138,8 +133,5 @@ def handle_move(boards, turn, move, captures):
         for p in pos:
             place_piece(boards[not turn], p, False)
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
-        print("capture: ", captures)
-        print("won: ", is_won(boards, turn, captures[not turn]))
-        display_board(boards[0], boards[1])
         return True, capture
     return False, capture
