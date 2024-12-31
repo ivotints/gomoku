@@ -4,22 +4,43 @@ from macro import BLACK, WHITE
 from render import draw_board, update_board, find_mouse_pos
 from board import coordinate, SIZE, WIDTH
 from game import handle_move, is_occupied
+import argparse
 
 class gomoku:
-    def __init__(self):
+    def __init__(self, players):
         self.boards = [[0], [0]]
         self.turn = 0
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
         self.running = True
+        self.solo = players
 
         py.display.set_caption("Gomoku")
         draw_board(self.win)
         py.display.update()
 
+def handle_turn(game, result, update, move):
+    if result is None:
+        return
+    if result:
+        print("GG")
+        exit(0)
+    if update:
+        update_board(game.boards, game.win)
+    else:
+        pyd.circle(game.win, BLACK if not game.turn else WHITE, ((move.co[1] + 1) * WIDTH / SIZE , (move.co[0] + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
+    game.turn = not game.turn
+    py.display.update()
+
+def bot_play(boards, turn):
+    pass
+
 def main():
+    parse = argparse.ArgumentParser()
+    parse.add_argument("player", type=int, choices=[1, 2], help="Choose amount of player 1 or 2")
+    args = parse.parse_args()
     py.init()
-    game = gomoku()
+    game = gomoku(args.player - 1)
     while game.running:
         for event in py.event.get():
             if event.type == py.KEYDOWN:
@@ -32,19 +53,12 @@ def main():
                 move = coordinate((pos[1], pos[0]))
                 if not is_occupied(game.boards[0], move.co) and not is_occupied(game.boards[1], move.co):
                     result, update = handle_move(game.boards, game.turn, move, game.captures)
-                    if result is None:
-                        continue
-                    if result:
-                        print("GG")
-                        exit(0)
-                    if update:
-                        update_board(game.boards, game.win)
-                    else:
-                        pyd.circle(game.win, BLACK if not game.turn else WHITE, ((pos[0] + 1) * WIDTH / SIZE , (pos[1] + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
-                    # print(game.captures)
-                    # display_board(game.boards[0], game.boards[1])
-                    game.turn = not game.turn
-                    py.display.update()
+                    handle_turn(game, result, update, move)
+
+                if not game.solo:
+                    move = bot_play(game.boards, game.turn)
+                    result, update = handle_move(game.boards, game.turn, move, game.captures)
+                    handle_turn(game, result, update)
 
 
 

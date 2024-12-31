@@ -1,8 +1,9 @@
 from macro import DIRECTIONS, THREE, DIRECTION_MIN
 from board import coordinate, out_of_bounds, coord_to_bit, SIZE
 
-def check_capture(boards, move, turn, captures, clear=True):
+def check_capture(boards, move, turn):
     capture = 0
+    capture_positions = []
     for pos in DIRECTIONS:
         if out_of_bounds(move + pos * 3):
             continue
@@ -10,11 +11,9 @@ def check_capture(boards, move, turn, captures, clear=True):
             continue
         if is_occupied(boards[not turn], move + pos * 2) and is_occupied(boards[not turn], move + pos):
             capture += 1
-            if clear:
-                place_piece(boards[not turn], move + pos * 2, False)
-                place_piece(boards[not turn], move + pos, False)
-    captures[turn] += capture
-    return capture
+            capture_positions.append(move + pos * 2)
+            capture_positions.append(move + pos)
+    return capture, capture_positions
 
 def place_piece(bitboard, move, set_bit=True):
     bit_position = coord_to_bit(move)
@@ -109,14 +108,22 @@ def check_double_three(board, move, turn):
             return True
     place_piece(board[turn], move.co, False)
     return False
-        
 
+def is_legal(captures, boards, move, turn):
+    capture, pos = check_capture(boards, move, turn)
+    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, move, turn)):
+        return False, capture, pos
+    return True, capture, pos
 
-def handle_move(boards, turn, move, captures, true_move=True):
-    capture = check_capture(boards, move, turn, captures)
-    if not capture and ((captures[turn] == 4 and winning_line(boards[not turn])) or check_double_three(boards, move, turn)):
+def handle_move(boards, turn, move, captures):
+    legal, capture, pos = is_legal(captures[turn], boards, move, turn)
+    if not legal:
         return None, capture
+    captures[turn] += capture
     place_piece(boards[turn], move.co)
+    if capture:
+        for p in pos:
+            place_piece(boards[not turn], p, False)
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
         return True, capture
     return False, capture
