@@ -1,6 +1,6 @@
 
 WIDTH = 1000
-SIZE = 21
+SIZE = 20
 
 class coordinate:
     def __init__(self, pos):
@@ -38,7 +38,7 @@ class coordinate:
         return NotImplemented
     
 def out_of_bounds(move):
-    return move[0] < 0 or move[0] >= 17 or move[1] < 0 or move[1] >= 17
+    return move[0] < 0 or move[0] >= SIZE - 1 or move[1] < 0 or move[1] >= SIZE - 1
 
 def coord_to_bit(move):
     row, col = move

@@ -1,4 +1,4 @@
-from macro import DIRECTIONS
+from macro import DIRECTIONS, THREE, DIRECTION_MIN
 from board import coordinate, out_of_bounds, coord_to_bit, SIZE
 
 def check_capture(boards, move, turn, captures, clear=True):
@@ -71,9 +71,50 @@ def is_won(boards, turn, capture):
         return False
     return True
 
+def check_double_three(board, move, turn):
+
+    def extract_segment(start, direction):
+        segment = 0
+        for i in range(pattern_width):
+            current = start + direction * i
+            if out_of_bounds(current):
+                return -1
+            bit_position = coord_to_bit(current)
+            if (opponent_board[0] >> bit_position) & 1:
+                return -1
+            segment |= ((current_board[0] >> bit_position) & 1) << i
+        return segment
+
+    def matches_pattern():
+        count = 0
+        for direction in DIRECTION_MIN:
+            for offset in range(-pattern_width + 2, 0):
+                start = move + direction * offset
+                segment = extract_segment(coordinate(start), direction)
+                if segment == pattern_int:
+                    count += 1
+                    break
+        return count
+
+    place_piece(board[turn], move.co)
+    current_board = board[turn]
+    opponent_board = board[not turn]
+
+    count = 0
+
+    for pattern_int, pattern_width in THREE:
+        count +=  matches_pattern()
+        if count >= 2:
+            place_piece(board[turn], move.co, False)
+            return True
+    place_piece(board[turn], move.co, False)
+    return False
+        
+
+
 def handle_move(boards, turn, move, captures, true_move=True):
     capture = check_capture(boards, move, turn, captures)
-    if captures[turn] == 4 and not capture and winning_line(boards[not turn]):
+    if not capture and ((captures[turn] == 4 and winning_line(boards[not turn])) or check_double_three(boards, move, turn)):
         return None, capture
     place_piece(boards[turn], move.co)
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
