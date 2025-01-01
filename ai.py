@@ -1,6 +1,7 @@
 from board import coordinate, SIZE
 from game import is_legal, is_occupied, check_capture, place_piece, is_won
 import copy
+from macro import PAIR_PATTERNS, THREE_PATTERNS, FOUR_PATTERNS
 
 def handle_move_bot(boards, turn, move, captures):
     capture, pos = check_capture(boards, move, turn)
@@ -27,68 +28,43 @@ def generate_legal_moves(boards, turn, capture):
 
 def evaluate_board(boards, turn, capture, result):
     def count_patterns(board):
-        def has_potential_five(start_i, start_j, di, dj):
-            # Check if there's enough space and no opponent pieces to make 5 in this direction
-            empty_or_own = 0
-            for k in range(-4, 5):  # Check 9 positions (-4 to 4) to allow for different 5-piece alignments
+        def get_line_bits(start_i, start_j, di, dj, length):
+            bits = 0
+            for k in range(length):
                 i, j = start_i + k*di, start_j + k*dj
                 if i < 0 or i >= SIZE - 1 or j < 0 or j >= SIZE - 1:
-                    continue
-                if is_occupied(board, (i, j)) or not is_occupied(boards[not turn], (i, j)):
-                    empty_or_own += 1
-                    if empty_or_own >= 5:
-                        return True
-            return False
+                    return -1
+                if is_occupied(boards[not turn], (i, j)):
+                    return -1
+                bits |= (is_occupied(board, (i, j)) << k)
+            return bits
 
         pairs = 0
-        threes = 0 
+        threes = 0
         fours = 0
         size = SIZE - 1
 
-        # For each pattern check, first verify there's potential for 5 in a row
-        # [Rest of the counting logic remains similar but with the additional check]
-        # Example for horizontal patterns:
+        # Check patterns in all directions
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
         for i in range(size):
-            for j in range(size - 2):
-                if has_potential_five(i, j, 0, 1):  # Check horizontal potential
-                    if is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)):
-                        pairs += 1
-                    if j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)):
-                        threes += 1
-                    if j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)) and is_occupied(board, (i, j + 3)):
-                        fours += 1
-
-        # Check vertical patterns
-        for i in range(size - 2):
             for j in range(size):
-                if has_potential_five(i, j, 1, 0):  # Check vertical potential
-                    if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)):
+                for di, dj in directions:
+                    # Check for 5-window patterns
+                    window = get_line_bits(i, j, di, dj, 5)
+                    if window == -1:
+                        continue
+                    
+                    # Check pair patterns (4-bit window)
+                    pair_window = window & 0b11111
+                    if pair_window in PAIR_PATTERNS:
                         pairs += 1
-                    if i < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)):
+                    
+                    # Check three patterns (5-bit window)
+                    if window in THREE_PATTERNS:
                         threes += 1
-                    if i < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)) and is_occupied(board, (i + 3, j)):
-                        fours += 1
-
-        # Check diagonal patterns (top-left to bottom-right)
-        for i in range(size - 2):
-            for j in range(size - 2):
-                if has_potential_five(i, j, 1, 1):  # Check diagonal potential
-                    if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)):
-                        pairs += 1
-                    if i < size - 2 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)):
-                        threes += 1
-                    if i < size - 3 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)) and is_occupied(board, (i + 3, j + 3)):
-                        fours += 1
-
-        # Check diagonal patterns (bottom-left to top-right)
-        for i in range(2, size):
-            for j in range(size - 2):
-                if has_potential_five(i, j, -1, 1):  # Check diagonal potential
-                    if is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)):
-                        pairs += 1
-                    if i > 1 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)):
-                        threes += 1
-                    if i > 2 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)) and is_occupied(board, (i - 3, j + 3)):
+                    
+                    # Check four patterns (5-bit window)
+                    if window in FOUR_PATTERNS:
                         fours += 1
 
         return pairs, threes, fours
