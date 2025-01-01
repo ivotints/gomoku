@@ -48,6 +48,8 @@ def main():
                 if event.type == py.KEYDOWN:
                     if event.key == py.K_ESCAPE:
                         game.running = False
+                if event.type == py.QUIT:
+                    game.running = False
                 if event.type == py.MOUSEBUTTONDOWN:
                     pos = find_mouse_pos(py.mouse.get_pos())
                     if pos is None:
