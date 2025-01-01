@@ -1,6 +1,5 @@
 from board import coordinate, SIZE
 from game import is_legal, is_occupied, check_capture, place_piece, is_won
-import random
 import copy
 
 def handle_move_bot(boards, turn, move, captures):
@@ -28,56 +27,76 @@ def generate_legal_moves(boards, turn, capture):
 
 def evaluate_board(boards, turn, capture, result):
     def count_patterns(board):
+        def has_potential_five(start_i, start_j, di, dj):
+            # Check if there's enough space and no opponent pieces to make 5 in this direction
+            empty_or_own = 0
+            for k in range(-4, 5):  # Check 9 positions (-4 to 4) to allow for different 5-piece alignments
+                i, j = start_i + k*di, start_j + k*dj
+                if i < 0 or i >= SIZE - 1 or j < 0 or j >= SIZE - 1:
+                    continue
+                if is_occupied(board, (i, j)) or not is_occupied(boards[not turn], (i, j)):
+                    empty_or_own += 1
+                    if empty_or_own >= 5:
+                        return True
+            return False
+
         pairs = 0
-        threes = 0
+        threes = 0 
         fours = 0
         size = SIZE - 1
 
-        # Check horizontal patterns
+        # For each pattern check, first verify there's potential for 5 in a row
+        # [Rest of the counting logic remains similar but with the additional check]
+        # Example for horizontal patterns:
         for i in range(size):
             for j in range(size - 2):
-                if is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)):
-                    pairs += 1
-                if j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)):
-                    threes += 1
-                if j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)) and is_occupied(board, (i, j + 3)):
-                    fours += 1
+                if has_potential_five(i, j, 0, 1):  # Check horizontal potential
+                    if is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)):
+                        pairs += 1
+                    if j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)):
+                        threes += 1
+                    if j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)) and is_occupied(board, (i, j + 3)):
+                        fours += 1
 
         # Check vertical patterns
         for i in range(size - 2):
             for j in range(size):
-                if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)):
-                    pairs += 1
-                if i < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)):
-                    threes += 1
-                if i < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)) and is_occupied(board, (i + 3, j)):
-                    fours += 1
+                if has_potential_five(i, j, 1, 0):  # Check vertical potential
+                    if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)):
+                        pairs += 1
+                    if i < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)):
+                        threes += 1
+                    if i < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)) and is_occupied(board, (i + 3, j)):
+                        fours += 1
 
         # Check diagonal patterns (top-left to bottom-right)
         for i in range(size - 2):
             for j in range(size - 2):
-                if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)):
-                    pairs += 1
-                if i < size - 2 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)):
-                    threes += 1
-                if i < size - 3 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)) and is_occupied(board, (i + 3, j + 3)):
-                    fours += 1
+                if has_potential_five(i, j, 1, 1):  # Check diagonal potential
+                    if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)):
+                        pairs += 1
+                    if i < size - 2 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)):
+                        threes += 1
+                    if i < size - 3 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)) and is_occupied(board, (i + 3, j + 3)):
+                        fours += 1
 
         # Check diagonal patterns (bottom-left to top-right)
         for i in range(2, size):
             for j in range(size - 2):
-                if is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)):
-                    pairs += 1
-                if i > 1 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)):
-                    threes += 1
-                if i > 2 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)) and is_occupied(board, (i - 3, j + 3)):
-                    fours += 1
+                if has_potential_five(i, j, -1, 1):  # Check diagonal potential
+                    if is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)):
+                        pairs += 1
+                    if i > 1 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)):
+                        threes += 1
+                    if i > 2 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)) and is_occupied(board, (i - 3, j + 3)):
+                        fours += 1
 
         return pairs, threes, fours
 
     current_board = boards[turn]
     pairs, threes, fours = count_patterns(current_board)
-    return pairs + 5 * threes + 10 * fours
+    capture_reward = 50 * (2 ** capture) if capture > 0 else 0
+    return pairs + 10 * threes + 100 * fours + 1000 * result + capture_reward
 
 def bot_play(boards, turn, captures):
     moves = generate_legal_moves(boards, turn, captures)

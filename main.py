@@ -7,6 +7,7 @@ from game import handle_move, is_occupied
 import argparse
 from ai import bot_play
 import copy
+import time
 
 class gomoku:
     def __init__(self, players):
@@ -67,9 +68,11 @@ def main():
                         legal = handle_turn(game, result, update, move)
                         if legal and not game.solo:
                             game.thinking = True
+                            start = time.time()
                             move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
                             result, update = handle_move(game.boards, game.turn, move, game.captures)
                             handle_turn(game, result, update, move)
+                            print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
 
 if __name__ == '__main__':
