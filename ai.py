@@ -27,52 +27,57 @@ def generate_legal_moves(boards, turn, capture):
     return legal_moves
 
 def evaluate_board(boards, turn, capture, result):
-    def count_pairs(board):
-        count = 0
+    def count_patterns(board):
+        pairs = 0
+        threes = 0
+        fours = 0
         size = SIZE - 1
 
-        # Check horizontal pairs
+        # Check horizontal patterns
         for i in range(size):
-            for j in range(size - 1):
+            for j in range(size - 2):
                 if is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)):
-                    count += 1
+                    pairs += 1
+                if j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)):
+                    threes += 1
+                if j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i, j + 1)) and is_occupied(board, (i, j + 2)) and is_occupied(board, (i, j + 3)):
+                    fours += 1
 
-        # Check vertical pairs
-        for i in range(size - 1):
+        # Check vertical patterns
+        for i in range(size - 2):
             for j in range(size):
                 if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)):
-                    count += 1
+                    pairs += 1
+                if i < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)):
+                    threes += 1
+                if i < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j)) and is_occupied(board, (i + 2, j)) and is_occupied(board, (i + 3, j)):
+                    fours += 1
 
-        # Check diagonal pairs (top-left to bottom-right)
-        for i in range(size - 1):
-            for j in range(size - 1):
+        # Check diagonal patterns (top-left to bottom-right)
+        for i in range(size - 2):
+            for j in range(size - 2):
                 if is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)):
-                    count += 1
+                    pairs += 1
+                if i < size - 2 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)):
+                    threes += 1
+                if i < size - 3 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i + 1, j + 1)) and is_occupied(board, (i + 2, j + 2)) and is_occupied(board, (i + 3, j + 3)):
+                    fours += 1
 
-        # Check diagonal pairs (bottom-left to top-right)
-        for i in range(1, size):
-            for j in range(size - 1):
+        # Check diagonal patterns (bottom-left to top-right)
+        for i in range(2, size):
+            for j in range(size - 2):
                 if is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)):
-                    count += 1
+                    pairs += 1
+                if i > 1 and j < size - 2 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)):
+                    threes += 1
+                if i > 2 and j < size - 3 and is_occupied(board, (i, j)) and is_occupied(board, (i - 1, j + 1)) and is_occupied(board, (i - 2, j + 2)) and is_occupied(board, (i - 3, j + 3)):
+                    fours += 1
 
-        return count
+        return pairs, threes, fours
 
     current_board = boards[turn]
-    return count_pairs(current_board)
-
-def bot_play(boards, turn, captures):
-    moves = generate_legal_moves(boards, turn, captures)
-    curr_choices = None
-    best_points = float('-inf')
-    for move in moves:
-        result, capture = handle_move_bot(copy.deepcopy(boards), turn, move, captures)
-        points = evaluate_board(boards, turn, capture, result)
-        if points > best_points:
-            best_points = points
-            curr_choices = move
-    return moves[random.randint(0, len(moves) - 1)]
-    return curr_choices
-
+    pairs, threes, fours = count_patterns(current_board)
+    return pairs + 5 * threes + 10 * fours
 
 def bot_play(boards, turn, captures):
     moves = generate_legal_moves(boards, turn, captures)

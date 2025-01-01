@@ -26,7 +26,14 @@ def handle_turn(game, result, update, move):
     if result is None:
         return False
     if result:
+        message = "You {}!".format("win" if not game.turn else "lose")
+        font = py.font.Font(None, 74)
+        text = font.render(message, True, (30, 30, 30))
+        text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
+        game.win.blit(text, text_rect)
         print("GG")
+        py.display.update()
+        py.time.wait(500)  # Wait for 0.5 seconds
         exit(0)
     if update:
         update_board(game.boards, game.win)
