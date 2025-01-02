@@ -28,26 +28,6 @@ THREE = {
     (0b011010, 6)
 }
 
-PAIR_PATTERNS = {
-    (0b11, 2),
-    (0b101, 3),
-}
-
-THREE_PATTERNS = {
-    (0b01110, 5),
-    (0b01101, 5),
-    (0b11010, 5),
-    (0b10110, 5),
-    (0b10101, 5),
-}
-
-FOUR_PATTERNS = {
-    (0b1111, 4),
-    (0b11101, 5),
-    (0b11011, 5),
-    (0b10111, 5),
-}
-
 # 31 pattern and its value
 PATTERN = {
     # single pieces (value 0)
