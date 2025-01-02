@@ -13,18 +13,41 @@ def handle_move_bot(boards, turn, move, captures):
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
         return True, capture
     return False, capture
-
-def generate_legal_moves(boards, turn, capture):
-    legal_moves = []
+import time
+def generate_legal_moves(boards, turn, capture, t):
+    start = time.time()
+    legal_moves = set()  # Use set to avoid duplicates
+    directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
+    
+    # Find existing pieces
     for row in range(SIZE - 1):
         for col in range(SIZE - 1):
-            move = coordinate((row, col))
-            if is_occupied(boards[0], move.co) or is_occupied(boards[1], move.co):
-                continue
-            legal, _, _ = is_legal(capture, boards, move, turn)
-            if legal:
-                legal_moves.append(move)
-    return legal_moves
+            # If piece exists (either color)
+            if (boards[0][0] >> (row * (SIZE-1) + col) & 1) or \
+               (boards[1][0] >> (row * (SIZE-1) + col) & 1):
+                # Generate moves in 2-square radius
+                for d_row in range(-1, 2):
+                    for d_col in range(-1, 2):
+                        new_row = row + d_row
+                        new_col = col + d_col
+                        
+                        # Skip if out of bounds
+                        if new_row < 0 or new_row >= SIZE - 1 or \
+                           new_col < 0 or new_col >= SIZE - 1:
+                            continue
+                            
+                        move = coordinate((new_row, new_col))
+                        # Skip if occupied
+                        if is_occupied(boards[0], move.co) or \
+                           is_occupied(boards[1], move.co):
+                            continue
+                            
+                        # Check if legal
+                        legal, _, _ = is_legal(capture, boards, move, turn)
+                        if legal:
+                            legal_moves.add(move)
+    t[0] += time.time() - start
+    return list(legal_moves)
 
 def bitwise_heuristic(boards, turn, capture):
     ROW_SIZE = 19
@@ -99,21 +122,77 @@ def bitwise_heuristic(boards, turn, capture):
 
     return 16 * (2 ** capture) + value
 
-# turn is 1
-def bot_play(boards, turn, captures):
-    moves = generate_legal_moves(boards, turn, captures)
-    best_move = None
-    best_points = float('-inf')
+def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
+    
+    if depth == 0:
+        count[0] += 1
+        return bitwise_heuristic(boards, turn, captures[turn])
+    
+    moves = generate_legal_moves(boards, turn, captures[turn], t)
+    if maximizing_player:
+        max_eval = float('-inf')
+        for move in moves:
+            new_boards = copy.deepcopy(boards)
+            # new_captures = copy.deepcopy(captures)
+            result, capture = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+            
+            if result:  # Win found
+                return float('inf')
+                
+            eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t)
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break  # Beta cut-off
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for move in moves:
+            new_boards = copy.deepcopy(boards)
+            # new_captures = copy.deepcopy(captures)
+            result, capture = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+            
+            if result:  # Loss found
+                return float('-inf')
+                
+            eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
+            min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break  # Alpha cut-off
+        return min_eval
 
+def bot_play(boards, turn, captures):
+    t = [0]
+    moves = generate_legal_moves(boards, turn, captures[turn], t)
+    best_move = moves[0]  # Default to first move
+    best_eval = float('-inf')
+    alpha = float('-inf')
+    beta = float('inf')
+    count = [0]
+    
+    # First check for winning moves
     for move in moves:
         new_boards = copy.deepcopy(boards)
-        result, capture = handle_move_bot(new_boards, turn, move, captures)
-        if result:
+        result, capture = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+        
+        if result:  # Winning move found
+            print("Found winning move")
             return move
-        points = bitwise_heuristic(new_boards, turn, capture)
-        if points > best_points:
-            best_points = points
-            best_move = move
-    import random
-    return best_move # I commented it because with depth it will be not needed #if best_points > 0 else moves[random.randint(0, len(moves) - 1)]
+
+    # If no winning move, do minimax search    
+    for move in moves:
+        new_boards = copy.deepcopy(boards)
+        result, _ = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+        
+        if not result:  # Only evaluate non-winning moves
+            eval = minimax(new_boards, 2, alpha, beta, False, not turn, captures, count, t)
+            if eval > best_eval:
+                best_eval = eval
+                best_move = move
+            alpha = max(alpha, eval)
+    
+    print(f"Evaluated {count[0]} positions")
+    print(f"Time spent generating moves: {t[0]:.2f}s") 
+    return best_move
 
