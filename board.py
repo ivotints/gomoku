@@ -3,8 +3,8 @@ WIDTH = 1000
 SIZE = 20
 
 class coordinate:
-    def __init__(self, pos):
-        self.co = pos
+    def __init__(self, pos): #(y, x)
+        self.co = pos #(y, x)
     def __add__(self, other):
         result = []
         if isinstance(other, tuple):
@@ -36,7 +36,7 @@ class coordinate:
                 result.append(i - j)
             return tuple(result)
         return NotImplemented
-    
+
 def out_of_bounds(move):
     return move[0] < 0 or move[0] >= SIZE - 1 or move[1] < 0 or move[1] >= SIZE - 1
 
