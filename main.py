@@ -11,7 +11,7 @@ import time
 
 class gomoku:
     def __init__(self, players):
-        self.boards = [[0], [0]]
+        self.boards = [[0], [0]] # its working in opozite way. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = 0
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
@@ -60,6 +60,7 @@ def main():
                     game.running = False
                 if event.type == py.MOUSEBUTTONDOWN:
                     pos = find_mouse_pos(py.mouse.get_pos()) #(x, y) from 0 to 18
+                    print("mouse pos:", pos)
                     if pos is None:
                         continue
                     move = coordinate((pos[1], pos[0]))

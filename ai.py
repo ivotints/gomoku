@@ -2,6 +2,7 @@ from board import coordinate, SIZE, out_of_bounds
 from game import is_legal, is_occupied, check_capture, place_piece, is_won
 import copy
 from macro import PATTERN
+import time
 
 def handle_move_bot(boards, turn, move, captures):
     capture, pos = check_capture(boards, move, turn)
@@ -13,7 +14,7 @@ def handle_move_bot(boards, turn, move, captures):
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
         return True, capture
     return False, capture
-import time
+
 def generate_legal_moves(boards, turn, capture, t):
     start = time.time()
     legal_moves = set()  # Use set to avoid duplicates
@@ -49,6 +50,80 @@ def generate_legal_moves(boards, turn, capture, t):
     t[0] += time.time() - start
     return list(legal_moves)
 
+def generate_legal_moves(boards, turn, capture, t):
+    start_time = time.time()
+    legal_moves = set()
+    
+    ROW_SIZE = 19
+    union_board = boards[0][0] | boards[1][0]
+    ROW_MASK = (1 << ROW_SIZE) - 1 # 0b1111111111111111111    
+    # 1) Find top bound
+    top = 0
+    while top < ROW_SIZE: # 0 to 18
+        row_bits = (union_board >> (top * ROW_SIZE)) & ROW_MASK
+        if row_bits != 0:
+            break
+        top += 1
+
+    # 2) Find bottom bound
+    bottom = ROW_SIZE - 1
+    while bottom >= 0:
+        row_bits = (union_board >> (bottom * ROW_SIZE)) & ROW_MASK
+        if row_bits != 0:
+            break
+        bottom -= 1
+
+    # 3) Find left bound
+    left = 0
+    while left < ROW_SIZE:
+        col_mask = 0
+        # Build mask for column 'left'
+        for row in range(top, bottom + 1):
+            col_mask |= ((union_board >> (row * ROW_SIZE + left)) & 1)
+        if col_mask != 0:
+            break
+        left += 1
+
+    # 4) Find right bound
+    right = ROW_SIZE - 1
+    while right >= 0:
+        col_mask = 0
+        for row in range(top, bottom + 1):
+            col_mask |= ((union_board >> (row * ROW_SIZE + right)) & 1)
+        if col_mask != 0:
+            break
+        right -= 1
+    #print (top, bottom, left, right)
+
+    # Optionally expand bounding box by 1 or 2 squares:
+    expand = 1
+    top = max(0, top - expand)
+    bottom = min(ROW_SIZE - 1, bottom + expand)
+    left = max(0, left - expand)
+    right = min(ROW_SIZE - 1, right + expand)
+    #print (top, bottom, left, right)
+
+    # need another logic here
+
+# i need another logic for generating children. i want create a sliding wimdow 3 by 3inside of bounding boz. it will move throu each dot in the bounding box, cheking if int, which we created from sliding window 3 by 3 is not 0 than generate this move. it should increase speed of function becouse will use only bitwise operations an will not use set.
+
+    # 5) Generate all moves within bounding box
+    for row in range(top, bottom + 1):
+        for col in range(left, right + 1):
+            bit_pos = row * ROW_SIZE + col
+            # If this board position is not occupied:
+            if not ((union_board >> bit_pos) & 1):
+                move = coordinate((row, col))
+                # Check if legal
+                legal, _, _ = is_legal(capture, boards, move, turn)
+                if legal:
+                    legal_moves.add(move)
+
+    # Record time
+    t[0] += time.time() - start_time
+    return list(legal_moves)
+
+
 def bitwise_heuristic(boards, turn, capture):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
@@ -76,7 +151,7 @@ def bitwise_heuristic(boards, turn, capture):
         current_row_opponent = (boards[not turn][0] >> row_shift) & ROW_MASK
         value += scan_window(current_row, current_row_opponent)
 
-    # Vertical scan .It will go from last 361 position to the top 19. goes from down to up
+    # Vertical scan
     for col in range(ROW_SIZE): # 0 to 18
         vertical_bits = 0
         vertical_opponent = 0

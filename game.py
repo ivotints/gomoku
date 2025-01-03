@@ -1,5 +1,6 @@
 from macro import DIRECTIONS, THREE, DIRECTION_MIN
 from board import coordinate, out_of_bounds, coord_to_bit, SIZE
+BOARD_SIZE = SIZE - 1
 
 def display_board(player1, player2):
     for row in range(SIZE - 1):
@@ -35,12 +36,13 @@ def place_piece(bitboard, move, set_bit=True):
     else:
         bitboard[0] &= ~(1 << bit_position)
 
-def is_occupied(board, pos):
-    bit_position = coord_to_bit(pos)
+def is_occupied(board, pos): # y, x
+    y, x = pos
+    bit_position = y * BOARD_SIZE + x # y * 19 + x
     return (board[0] >> bit_position) & 1
 
 def winning_line(board):
-    size = SIZE - 1
+    size = BOARD_SIZE
 
     for i in range(size):
         for j in range(size):
