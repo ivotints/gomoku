@@ -1,4 +1,7 @@
-import pygame as py
+import os
+import contextlib
+with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
+    import pygame as py
 import pygame.draw as pyd
 from macro import BLACK, WHITE
 from render import draw_board, update_board, find_mouse_pos
@@ -8,11 +11,17 @@ import argparse
 from ai import bot_play
 import copy
 import time
+BLACK_PLAYER = 0
+WHITE_PLAYER = 1
 
 class gomoku:
     def __init__(self, players):
-        self.boards = [[0], [0]] # its working in opozite way. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
-        self.turn = 0
+        #100
+        #000
+        #000
+        # will be encoded like 0b000000001
+        self.boards = [[0], [0]] # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
+        self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
         self.running = True
@@ -34,7 +43,7 @@ def handle_turn(game, result, update, move):
         game.win.blit(text, text_rect)
         print("GG")
         py.display.update()
-        py.time.wait(500)  # Wait for 0.5 seconds
+        py.time.wait(1000)  # Wait for 1 second
         exit(0)
     if update:
         update_board(game.boards, game.win)
@@ -48,7 +57,8 @@ def main():
     parse = argparse.ArgumentParser()
     parse.add_argument("--player", type=int, choices=[1, 2], help="Choose amount of player 1 or 2", nargs='?', default=1)
     args = parse.parse_args()
-    py.init()
+    with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
+        py.init()
     game = gomoku(args.player - 1)
     while game.running:
         if not game.thinking:
@@ -60,11 +70,13 @@ def main():
                     game.running = False
                 if event.type == py.MOUSEBUTTONDOWN:
                     pos = find_mouse_pos(py.mouse.get_pos()) #(x, y) from 0 to 18
-                    print("mouse pos:", pos)
+                    # print("mouse pos:", pos)
                     if pos is None:
                         continue
                     move = coordinate((pos[1], pos[0]))
-                    if not is_occupied(game.boards[0], move.co) and not is_occupied(game.boards[1], move.co):
+                    if not is_occupied(game.boards[BLACK_PLAYER], move.co) and not is_occupied(game.boards[WHITE_PLAYER], move.co):
+                        # we go here after mouse click and if it was not occupied
+                        # turn is 0 for now because it is black's turn
                         result, update = handle_move(game.boards, game.turn, move, game.captures)
                         legal = handle_turn(game, result, update, move)
                         if legal and not game.solo:

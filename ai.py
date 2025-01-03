@@ -68,7 +68,7 @@ def generate_legal_moves(boards, turn, capture, t):
                 bit_pos = row * ROW_SIZE + col
                 if not ((union_board >> bit_pos) & 1):  # If not occupied
                     move = coordinate((row, col))
-                    legal, _, _ = 1, 1, 1
+                    legal, _, _ = is_legal(capture, boards, move, turn)
 
                     if legal:
                         legal_moves.append(move)

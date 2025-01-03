@@ -15,18 +15,23 @@ def display_board(player1, player2):
         print(' '.join(row_display))
     print("---------------")
 
+# boards, (y, x), 0
 def check_capture(boards, move, turn):
     capture = 0
     capture_positions = []
     for pos in DIRECTIONS:
+        # check for out of bounds
         if out_of_bounds(move + pos * 3):
             continue
+        # check for players piece if present
         if not is_occupied(boards[turn], move + pos * 3):
             continue
+        # check for opponent piece to eat
         if is_occupied(boards[not turn], move + pos * 2) and is_occupied(boards[not turn], move + pos):
             capture += 1
             capture_positions.append(move + pos * 2)
             capture_positions.append(move + pos)
+
     return capture, capture_positions
 
 def place_piece(bitboard, move, set_bit=True):
@@ -79,12 +84,12 @@ def is_won(boards, turn, capture):
     if line is None or (capture == 4 and is_line_capture(boards, line, turn)):
         return False
     return True
-
+# boards, (y, x), 0
 def check_double_three(board, move, turn): # make it efficient
 
-    def extract_segment(start, direction):
+    def extract_segment(start, direction): #very unoptimized
         segment = 0
-        for i in range(pattern_width):
+        for i in range(pattern_width): # 0, 1, 2, 3, 4
             current = start + direction * i
             if out_of_bounds(current):
                 return -1
@@ -96,36 +101,43 @@ def check_double_three(board, move, turn): # make it efficient
 
     def matches_pattern():
         count = 0
-        for direction in DIRECTION_MIN:
-            for offset in range(-pattern_width + 2, 0):
-                start = move + direction * offset
+        for direction in DIRECTION_MIN: # (0, 1), (1, 0), (1, 1), (1, -1) right, down, right down, right up 
+            for offset in range(-pattern_width + 2, 0): # -3, -2, -1
+                start = move + direction * offset # (9, 6)
                 segment = extract_segment(coordinate(start), direction)
                 if segment == pattern_int:
                     count += 1
                     break
         return count
 
-    place_piece(board[turn], move.co)
-    current_board = board[turn]
+    place_piece(board[turn], move.co) # place piece on the board
+    current_board = board[turn] #unnecessary creations
     opponent_board = board[not turn]
 
     count = 0
 
-    for pattern_int, pattern_width in THREE:
+    for pattern_int, pattern_width in THREE: # (0b01110, 5)
         count +=  matches_pattern()
-        if count >= 2:
+        if count > 1:
             place_piece(board[turn], move.co, False)
             return True
     place_piece(board[turn], move.co, False)
     return False
 
+# 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
-    capture, pos = check_capture(boards, move, turn)
+    capture, pos = check_capture(boards, move, turn) # will return 0, [] if no capture otherwise 1, [pos1, pos2] where pos1 and pos2 are the positions to remove (y, x)
     if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, move, turn)):
         return False, capture, pos
     return True, capture, pos
 
+# our 2 boards
+# which turn
+# move that was made
+# current captures for both players
 def handle_move(boards, turn, move, captures):
+    # turbn is 0 for black
+    # 0, boards, (y, x), 0
     legal, capture, pos = is_legal(captures[turn], boards, move, turn)
     if not legal:
         return None, capture
