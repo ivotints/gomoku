@@ -80,7 +80,7 @@ def is_won(boards, turn, capture):
         return False
     return True
 
-def check_double_three(board, move, turn):
+def check_double_three(board, move, turn): # make it efficient
 
     def extract_segment(start, direction):
         segment = 0

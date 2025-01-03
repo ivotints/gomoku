@@ -46,7 +46,7 @@ def handle_turn(game, result, update, move):
 
 def main():
     parse = argparse.ArgumentParser()
-    parse.add_argument("player", type=int, choices=[1, 2], help="Choose amount of player 1 or 2", nargs='?', default=1)
+    parse.add_argument("--player", type=int, choices=[1, 2], help="Choose amount of player 1 or 2", nargs='?', default=1)
     args = parse.parse_args()
     py.init()
     game = gomoku(args.player - 1)

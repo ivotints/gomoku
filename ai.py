@@ -15,143 +15,7 @@ def handle_move_bot(boards, turn, move, captures):
         return True, capture
     return False, capture
 
-def generate_legal_moves(boards, turn, capture, t):
-    start = time.time()
-    legal_moves = set()  # Use set to avoid duplicates
-    directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
-    
-    # Find existing pieces
-    for row in range(SIZE - 1):
-        for col in range(SIZE - 1):
-            # If piece exists (either color)
-            if (boards[0][0] >> (row * (SIZE-1) + col) & 1) or \
-               (boards[1][0] >> (row * (SIZE-1) + col) & 1):
-                # Generate moves in 2-square radius
-                for d_row in range(-1, 2):
-                    for d_col in range(-1, 2):
-                        new_row = row + d_row
-                        new_col = col + d_col
-                        
-                        # Skip if out of bounds
-                        if new_row < 0 or new_row >= SIZE - 1 or \
-                           new_col < 0 or new_col >= SIZE - 1:
-                            continue
-                            
-                        move = coordinate((new_row, new_col))
-                        # Skip if occupied
-                        if is_occupied(boards[0], move.co) or \
-                           is_occupied(boards[1], move.co):
-                            continue
-                            
-                        # Check if legal
-                        legal, _, _ = is_legal(capture, boards, move, turn)
-                        if legal:
-                            legal_moves.add(move)
-    t[0] += time.time() - start
-    return list(legal_moves)
 
-
-
-def generate_legal_moves(boards, turn, capture, t):
-    start_time = time.time()
-    legal_moves = set()
-    
-    ROW_SIZE = 19
-    union_board = boards[0][0] | boards[1][0]
-    ROW_MASK = (1 << ROW_SIZE) - 1 # 0b1111111111111111111    
-    # 1) Find top bound
-    top = 0
-    while top < ROW_SIZE: # 0 to 18
-        row_bits = (union_board >> (top * ROW_SIZE)) & ROW_MASK
-        if row_bits != 0:
-            break
-        top += 1
-
-    # 2) Find bottom bound
-    bottom = ROW_SIZE - 1
-    while bottom >= 0:
-        row_bits = (union_board >> (bottom * ROW_SIZE)) & ROW_MASK
-        if row_bits != 0:
-            break
-        bottom -= 1
-
-    # 3) Find left bound
-    left = 0
-    while left < ROW_SIZE:
-        col_mask = 0
-        # Build mask for column 'left'
-        for row in range(top, bottom + 1):
-            col_mask |= ((union_board >> (row * ROW_SIZE + left)) & 1)
-        if col_mask != 0:
-            break
-        left += 1
-
-    # 4) Find right bound
-    right = ROW_SIZE - 1
-    while right >= 0:
-        col_mask = 0
-        for row in range(top, bottom + 1):
-            col_mask |= ((union_board >> (row * ROW_SIZE + right)) & 1)
-        if col_mask != 0:
-            break
-        right -= 1
-    #print (top, bottom, left, right)
-
-    # Optionally expand bounding box by 1 or 2 squares:
-    expand = 1
-    top = max(0, top - expand)
-    bottom = min(ROW_SIZE - 1, bottom + expand)
-    left = max(0, left - expand)
-    right = min(ROW_SIZE - 1, right + expand)
-    #print (top, bottom, left, right)
-
-    # need another logic here
-
-# i need another logic for generating children. i want create a sliding wimdow 3 by 3inside of bounding boz. it will move throu each dot in the bounding box, cheking if int, which we created from sliding window 3 by 3 is not 0 than generate this move. it should increase speed of function becouse will use only bitwise operations an will not use set.
-
-    moves = []
-    # 5) 3×3 sliding window
-    for row in range(top, bottom - 1): # 8, 11
-        for col in range(left, right - 1): # 8, 11
-            # Extract 3×3 block bits
-            block = 0
-            for i in range(3):
-                shift_pos = (row + i) * ROW_SIZE + col
-                row_bits |= (union_board >> shift_pos) & 0b111  # 3 bits
-            # If block == 0 => no pieces in this 3×3 window
-            if block == 0:
-                continue
-            # Check each cell in that 3×3
-            for i in range(3):
-                for j in range(3):
-                    r = row + i
-                    c = col + j
-                    bit_pos = r * ROW_SIZE + c
-                    # If position is unoccupied
-                    if not ((union_board >> bit_pos) & 1):
-                        m = coordinate((r, c))
-                        legal, _, _ = is_legal(capture, boards, m, turn)
-                        if legal:
-                            moves.append(m)
-
-    # # 5) Generate all moves within bounding box
-    # for row in range(top, bottom + 1):
-    #     for col in range(left, right + 1):
-    #         bit_pos = row * ROW_SIZE + col
-    #         # If this board position is not occupied:
-    #         if not ((union_board >> bit_pos) & 1):
-    #             move = coordinate((row, col))
-    #             # Check if legal
-    #             legal, _, _ = is_legal(capture, boards, move, turn)
-    #             if legal:
-    #                 legal_moves.add(move)
-
-    # Record time
-    t[0] += time.time() - start_time
-    return list(moves)
-
-
-# new faster version
 def generate_legal_moves(boards, turn, capture, t):
     start_time = time.time()
     legal_moves = []
@@ -198,23 +62,14 @@ def generate_legal_moves(boards, turn, capture, t):
                     continue
                 shift_pos = (row + i) * ROW_SIZE + col - 1
                 window_mask |= (union_board >> shift_pos) & 0b111  # 3 bits
-
-            # # Check 3x3 window centered at (row, col)
-            # window_mask = 0
-            # for d_row in range(-1, 2):
-            #     for d_col in range(-1, 2):
-            #         n_row = row + d_row
-            #         n_col = col + d_col
-            #         if 0 <= n_row < ROW_SIZE and 0 <= n_col < ROW_SIZE:
-            #             bit_pos = n_row * ROW_SIZE + n_col
-            #             window_mask |= ((union_board >> bit_pos) & 1)
             
             # If the sliding window is not empty, check legality of center position
             if window_mask != 0:
                 bit_pos = row * ROW_SIZE + col
                 if not ((union_board >> bit_pos) & 1):  # If not occupied
                     move = coordinate((row, col))
-                    legal, _, _ = is_legal(capture, boards, move, turn) # it is too slow!! fix it
+                    legal, _, _ = 1, 1, 1
+
                     if legal:
                         legal_moves.append(move)
 
@@ -354,13 +209,13 @@ def bot_play(boards, turn, captures):
             print("Found winning move")
             return move
 
-    # If no winning move, do minimax search    
+    # If no winning move, do minimax search
     for move in moves:
         new_boards = copy.deepcopy(boards)
         result, _ = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
         
         if not result:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, 3, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, 4, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
