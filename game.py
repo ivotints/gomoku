@@ -124,6 +124,60 @@ def check_double_three(board, move, turn): # make it efficient
     place_piece(board[turn], move.co, False)
     return False
 
+
+def check_double_three(board, move, turn): # read and check for efficiency!!!!!!!!!!!!!!!!!!!!!11
+    BOARD_SIZE = 19  # Adjust as needed
+    row, col = move.co
+    margin = 4
+    DIRECTION_MIN = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+    row_min = max(0, row - margin)
+    row_max = min(BOARD_SIZE - 1, row + margin)
+    col_min = max(0, col - margin)
+    col_max = min(BOARD_SIZE - 1, col + margin)
+
+    place_piece(board[turn], move.co)
+    current_board = board[turn]
+    opponent_board = board[not turn]
+
+    def extract_segment(start, direction, pattern_width):
+        segment = 0
+        for i in range(pattern_width):
+            r = start[0] + direction[0] * i
+            c = start[1] + direction[1] * i
+            if not (row_min <= r <= row_max and col_min <= c <= col_max):
+                return -1
+            if out_of_bounds((r, c)):
+                return -1
+            bit_pos = coord_to_bit((r, c))
+            if (opponent_board[0] >> bit_pos) & 1:
+                return -1
+            segment |= ((current_board[0] >> bit_pos) & 1) << i
+        return segment
+
+    def matches_pattern(pattern_int, pattern_width):
+        count = 0
+        for row_dir, col_dir in DIRECTION_MIN:
+            for offset in range(-pattern_width + 2, 1):
+                start = (row + row_dir * offset, col + col_dir * offset)
+                if extract_segment(start, (row_dir, col_dir), pattern_width) == pattern_int:
+                    count += 1
+                    if count > 1:
+                        return count
+        return count
+
+    total = 0
+    for pattern_int, pattern_width in THREE:
+        total += matches_pattern(pattern_int, pattern_width)
+        if total > 1:
+            place_piece(board[turn], move.co, False)
+            return True
+
+    place_piece(board[turn], move.co, False)
+    return False
+
+
+
 # 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
     capture, pos = check_capture(boards, move, turn) # will return 0, [] if no capture otherwise 1, [pos1, pos2] where pos1 and pos2 are the positions to remove (y, x)
