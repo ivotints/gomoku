@@ -50,6 +50,8 @@ def generate_legal_moves(boards, turn, capture, t):
     t[0] += time.time() - start
     return list(legal_moves)
 
+
+
 def generate_legal_moves(boards, turn, capture, t):
     start_time = time.time()
     legal_moves = set()
@@ -107,21 +109,118 @@ def generate_legal_moves(boards, turn, capture, t):
 
 # i need another logic for generating children. i want create a sliding wimdow 3 by 3inside of bounding boz. it will move throu each dot in the bounding box, cheking if int, which we created from sliding window 3 by 3 is not 0 than generate this move. it should increase speed of function becouse will use only bitwise operations an will not use set.
 
-    # 5) Generate all moves within bounding box
-    for row in range(top, bottom + 1):
-        for col in range(left, right + 1):
-            bit_pos = row * ROW_SIZE + col
-            # If this board position is not occupied:
-            if not ((union_board >> bit_pos) & 1):
-                move = coordinate((row, col))
-                # Check if legal
-                legal, _, _ = is_legal(capture, boards, move, turn)
-                if legal:
-                    legal_moves.add(move)
+    moves = []
+    # 5) 3×3 sliding window
+    for row in range(top, bottom - 1): # 8, 11
+        for col in range(left, right - 1): # 8, 11
+            # Extract 3×3 block bits
+            block = 0
+            for i in range(3):
+                shift_pos = (row + i) * ROW_SIZE + col
+                row_bits |= (union_board >> shift_pos) & 0b111  # 3 bits
+            # If block == 0 => no pieces in this 3×3 window
+            if block == 0:
+                continue
+            # Check each cell in that 3×3
+            for i in range(3):
+                for j in range(3):
+                    r = row + i
+                    c = col + j
+                    bit_pos = r * ROW_SIZE + c
+                    # If position is unoccupied
+                    if not ((union_board >> bit_pos) & 1):
+                        m = coordinate((r, c))
+                        legal, _, _ = is_legal(capture, boards, m, turn)
+                        if legal:
+                            moves.append(m)
+
+    # # 5) Generate all moves within bounding box
+    # for row in range(top, bottom + 1):
+    #     for col in range(left, right + 1):
+    #         bit_pos = row * ROW_SIZE + col
+    #         # If this board position is not occupied:
+    #         if not ((union_board >> bit_pos) & 1):
+    #             move = coordinate((row, col))
+    #             # Check if legal
+    #             legal, _, _ = is_legal(capture, boards, move, turn)
+    #             if legal:
+    #                 legal_moves.add(move)
 
     # Record time
     t[0] += time.time() - start_time
-    return list(legal_moves)
+    return list(moves)
+
+
+# new faster version
+def generate_legal_moves(boards, turn, capture, t):
+    start_time = time.time()
+    legal_moves = []
+
+    ROW_SIZE = 19
+    union_board = boards[0][0] | boards[1][0]
+
+    # 1) Define the bounding box
+    ROW_MASK = (1 << ROW_SIZE) - 1
+    top = 0
+    while top < ROW_SIZE and ((union_board >> (top * ROW_SIZE)) & ROW_MASK) == 0:
+        top += 1
+    bottom = ROW_SIZE - 1
+    while bottom >= 0 and ((union_board >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
+        bottom -= 1
+    left = 0
+    while left < ROW_SIZE and not any((union_board >> (row * ROW_SIZE + left)) & 1 for row in range(top, bottom + 1)):
+        left += 1
+    right = ROW_SIZE - 1
+    while right >= 0 and not any((union_board >> (row * ROW_SIZE + right)) & 1 for row in range(top, bottom + 1)):
+        right -= 1
+
+    # Optionally expand bounding box
+    expand = 1
+    top = max(0, top - expand)
+    bottom = min(ROW_SIZE - 1, bottom + expand)
+    left = max(0, left - expand)
+    right = min(ROW_SIZE - 1, right + expand)
+
+
+    # 2) Iterate through the bounding box with a 3x3 sliding window
+    for row in range(top, bottom + 1): # 8, 11
+        for col in range(left, right + 1):
+
+
+            window_mask = 0
+            for i in range(-1, 2): # -1, 0, 1
+                check_row = row + i
+                check_col = col - 1
+                # Skip if out of bounds or if extracting 3 bits would overflow
+                if check_row < 0 or check_row >= ROW_SIZE:
+                    continue
+                if check_col < 0 or (check_col + 2) >= ROW_SIZE:
+                    continue
+                shift_pos = (row + i) * ROW_SIZE + col - 1
+                window_mask |= (union_board >> shift_pos) & 0b111  # 3 bits
+
+            # # Check 3x3 window centered at (row, col)
+            # window_mask = 0
+            # for d_row in range(-1, 2):
+            #     for d_col in range(-1, 2):
+            #         n_row = row + d_row
+            #         n_col = col + d_col
+            #         if 0 <= n_row < ROW_SIZE and 0 <= n_col < ROW_SIZE:
+            #             bit_pos = n_row * ROW_SIZE + n_col
+            #             window_mask |= ((union_board >> bit_pos) & 1)
+            
+            # If the sliding window is not empty, check legality of center position
+            if window_mask != 0:
+                bit_pos = row * ROW_SIZE + col
+                if not ((union_board >> bit_pos) & 1):  # If not occupied
+                    move = coordinate((row, col))
+                    legal, _, _ = is_legal(capture, boards, move, turn) # it is too slow!! fix it
+                    if legal:
+                        legal_moves.append(move)
+
+    # Record time
+    t[0] += time.time() - start_time
+    return legal_moves
 
 
 def bitwise_heuristic(boards, turn, capture):
@@ -261,7 +360,7 @@ def bot_play(boards, turn, captures):
         result, _ = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
         
         if not result:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, 2, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, 3, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
