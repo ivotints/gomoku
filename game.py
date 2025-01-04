@@ -84,91 +84,91 @@ def is_won(boards, turn, capture):
     if line is None or (capture == 4 and is_line_capture(boards, line, turn)):
         return False
     return True
-# boards, (y, x), 0
-def check_double_three(board, move, turn): # make it efficient
 
-    def extract_segment(start, direction): #very unoptimized
-        segment = 0
-        for i in range(pattern_width): # 0, 1, 2, 3, 4
-            current = start + direction * i
-            if out_of_bounds(current):
-                return -1
-            bit_position = coord_to_bit(current)
-            if (opponent_board[0] >> bit_position) & 1:
-                return -1
-            segment |= ((current_board[0] >> bit_position) & 1) << i
-        return segment
+# # boards, (y, x), 0
+# def check_double_three(board, move, turn): # make it efficient
 
-    def matches_pattern():
-        count = 0
-        for direction in DIRECTION_MIN: # (0, 1), (1, 0), (1, 1), (1, -1) right, down, right down, right up 
-            for offset in range(-pattern_width + 2, 0): # -3, -2, -1
-                start = move + direction * offset # (9, 6)
-                segment = extract_segment(coordinate(start), direction)
-                if segment == pattern_int:
-                    count += 1
-                    break
-        return count
+#     def extract_segment(start, direction): #very unoptimized
+#         segment = 0
+#         for i in range(pattern_width): # 0, 1, 2, 3, 4
+#             current = start + direction * i
+#             if out_of_bounds(current):
+#                 return -1
+#             bit_position = coord_to_bit(current)
+#             if (opponent_board[0] >> bit_position) & 1:
+#                 return -1
+#             segment |= ((current_board[0] >> bit_position) & 1) << i
+#         return segment
 
-    place_piece(board[turn], move.co) # place piece on the board
-    current_board = board[turn] #unnecessary creations
-    opponent_board = board[not turn]
+#     def matches_pattern():
+#         count = 0
+#         for direction in DIRECTION_MIN: # (0, 1), (1, 0), (1, 1), (1, -1) right, down, right down, right up 
+#             for offset in range(-pattern_width + 2, 0): # -3, -2, -1
+#                 start = move + direction * offset # (9, 6)
+#                 segment = extract_segment(coordinate(start), direction)
+#                 if segment == pattern_int:
+#                     count += 1
+#                     break
+#         return count
 
-    count = 0
+#     place_piece(board[turn], move.co) # place piece on the board
+#     current_board = board[turn] #unnecessary creations
+#     opponent_board = board[not turn]
 
-    for pattern_int, pattern_width in THREE: # (0b01110, 5)
-        count +=  matches_pattern()
-        if count > 1:
-            place_piece(board[turn], move.co, False)
-            return True
-    place_piece(board[turn], move.co, False)
-    return False
+#     count = 0
+
+#     for pattern_int, pattern_width in THREE: # (0b01110, 5)
+#         count +=  matches_pattern()
+#         if count > 1:
+#             place_piece(board[turn], move.co, False)
+#             return True
+#     place_piece(board[turn], move.co, False)
+#     return False
 
 
 def check_double_three(board, move, turn): # read and check for efficiency!!!!!!!!!!!!!!!!!!!!!11
     BOARD_SIZE = 19  # Adjust as needed
-    row, col = move.co
+    y, x = move.co # 9, 9
     margin = 4
-    DIRECTION_MIN = [(0, 1), (1, 0), (1, 1), (1, -1)]
 
-    row_min = max(0, row - margin)
-    row_max = min(BOARD_SIZE - 1, row + margin)
-    col_min = max(0, col - margin)
-    col_max = min(BOARD_SIZE - 1, col + margin)
+    y_min = max(0, y - margin) # 5
+    y_max = min(BOARD_SIZE - 1, y + margin) # 13
+    x_min = max(0, x - margin) # 5
+    x_max = min(BOARD_SIZE - 1, x + margin) # 13
 
     place_piece(board[turn], move.co)
     current_board = board[turn]
     opponent_board = board[not turn]
 
-    def extract_segment(start, direction, pattern_width):
+    def extract_segment(y_start, x_start, y_dir, x_dir):
         segment = 0
-        for i in range(pattern_width):
-            r = start[0] + direction[0] * i
-            c = start[1] + direction[1] * i
-            if not (row_min <= r <= row_max and col_min <= c <= col_max):
+        for i in range(pattern_width): # 0, 1, 2, 3, 4
+            r = y_start + y_dir * i
+            c = x_start + x_dir * i
+            if not (y_min <= r <= y_max and x_min <= c <= x_max): # this checks for out of bounds
                 return -1
-            if out_of_bounds((r, c)):
-                return -1
-            bit_pos = coord_to_bit((r, c))
+            # if out_of_bounds((r, c)):
+            #     return -1
+            bit_pos = r * BOARD_SIZE + c
             if (opponent_board[0] >> bit_pos) & 1:
                 return -1
             segment |= ((current_board[0] >> bit_pos) & 1) << i
         return segment
 
-    def matches_pattern(pattern_int, pattern_width):
+    def matches_pattern():
         count = 0
-        for row_dir, col_dir in DIRECTION_MIN:
-            for offset in range(-pattern_width + 2, 1):
-                start = (row + row_dir * offset, col + col_dir * offset)
-                if extract_segment(start, (row_dir, col_dir), pattern_width) == pattern_int:
+        for y_dir, x_dir in [(0, 1), (1, 0), (1, 1), (1, -1)]: # right, down, right down, left down
+            for offset in range(-pattern_width + 2, 1): # -3, -2, -1, 0
+                y_start, x_start = (y + y_dir * offset, x + x_dir * offset)
+                if extract_segment(y_start, x_start, y_dir, x_dir) == pattern_int:
                     count += 1
                     if count > 1:
-                        return count
+                       return count
         return count
 
     total = 0
     for pattern_int, pattern_width in THREE:
-        total += matches_pattern(pattern_int, pattern_width)
+        total += matches_pattern()
         if total > 1:
             place_piece(board[turn], move.co, False)
             return True

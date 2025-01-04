@@ -36,7 +36,7 @@ def handle_turn(game, result, update, move):
     if result is None:
         return False
     if result:
-        message = "You {}!".format("win" if not game.turn else "lose")
+        message = "{} win!".format("Black" if not game.turn else "White")
         font = py.font.Font(None, 74)
         text = font.render(message, True, (30, 30, 30))
         text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
