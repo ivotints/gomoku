@@ -119,18 +119,62 @@ def is_occupied(board, pos): # y, x
     return (board[0] >> bit_position) & 1
 
 def winning_line(board):
-    size = BOARD_SIZE
+    BOARD_SIZE = 19
+    directions = [(0,1), (1,1), (1,0), (1,-1)]  # 4 directions for efficiency
 
-    for i in range(size):
-        for j in range(size):
-            pos = (i, j)
-            if not is_occupied(board, pos):
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            bit_pos = i * BOARD_SIZE + j
+            if not ((board[0] >> bit_pos) & 1):  # inline is_occupied
                 continue
-            for direction in DIRECTION_MIN:
-                di, dj = direction.co
-                if all(0 <= i + k*di < size and 0 <= j + k*dj < size and is_occupied(board, (i + k*di, j + k*dj)) for k in range(5)):
-                    return ((i, j), (i + 1*di, j + 1*dj), (i + 2*di, j + 2*dj), (i + 3*di, j + 3*dj), (i + 4*di, j + 4*dj))
+            
+            for dy, dx in directions:
+                valid = True
+                for k in range(1, 5):  # check next 4 positions
+                    y, x = i + k*dy, j + k*dx
+                    if not (0 <= y < BOARD_SIZE and 0 <= x < BOARD_SIZE):
+                        valid = False
+                        break
+                    new_bit_pos = y * BOARD_SIZE + x
+                    if not ((board[0] >> new_bit_pos) & 1):
+                        valid = False
+                        break
+                if valid:
+                    return ((i,j), (i+dy,j+dx), (i+2*dy,j+2*dx), (i+3*dy,j+3*dx), (i+4*dy,j+4*dx))
     return None
+
+def has_winning_line(board):
+    BOARD_SIZE = 19
+    directions = [(0,1), (1,1), (1,0), (1,-1)]
+    
+    # Pre-calculate bounds to avoid repeated checks
+    for i in range(BOARD_SIZE - 4):  # No need to check last 4 rows
+        for j in range(BOARD_SIZE):
+            bit_pos = i * BOARD_SIZE + j
+            
+            # Skip if current position is empty
+            if not (board & (1 << bit_pos)):
+                continue
+                
+            for dy, dx in directions:
+                # Early bounds check
+                end_y, end_x = i + 4*dy, j + 4*dx
+                if (end_y >= BOARD_SIZE or end_y < 0 or 
+                    end_x >= BOARD_SIZE or end_x < 0):
+                    continue
+                
+                # Check all 5 positions in one go
+                valid = True
+                for k in range(1, 5):
+                    next_pos = (i + k*dy) * BOARD_SIZE + (j + k*dx)
+                    if not (board & (1 << next_pos)):
+                        valid = False
+                        break
+                        
+                if valid:
+                    return True
+                    
+    return False
 
 def is_eatable(boards, pos, direction, turn):
     if not is_occupied(boards[turn], pos + direction):
@@ -362,8 +406,7 @@ def check_double_three(board, y, x, turn):
     return count > 1
 
 def is_legal_lite(captures, boards, y, x, turn):
-    capture = is_capture(boards, y, x, turn) 
-    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, y, x, turn)):
+    if not is_capture(boards, y, x, turn) and (captures == 4 and has_winning_line(boards[not turn][0])) or check_double_three(boards, y, x, turn):
         return False
     return True
 
