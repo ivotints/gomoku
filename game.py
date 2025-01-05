@@ -177,71 +177,76 @@ def check_double_three(board, move, turn): # read and check for efficiency!!!!!!
     return False
 
 # now i want to start check_double_three() from beginning. lets for now check only horizontal direction for pattern 0b01110. your goal is to extract from map 5 to 7 bits,  (pattern size is 5) depends on a how close to border we are. if we are on it we dont even check on nothing. We first calculate bits_space which is 5 to 7 bits depends on how close we to the border. than we take mask of that size and check if there is a opponent point in thet area. if result is != 0, we stop. then we take mask of  bits_space bits and apply it to current map. then we take its first  5 bits with mask and we compare it to pattern PATTERN_1. if it is same, we stop and do count as 1. if not, we continue by shifting one bit and
+
+
+
 def check_double_three(board, move, turn):
+    y, x = move.co # 3, 3
     BOARD_SIZE = 19
-    y, x = move.co
     PATTERN_1 = 0b01110
-    PATTERN_2 = 0b010110
-    PATTERN_3 = 0b011010
-    PATTERN_1_L = 5
-    PATTERN_2_3_L = 6
     MASK_5 = 0b11111
-    MASK_6 = 0b111111
-    MASK_7 = 0b1111111
-    MASK_8 = 0b11111111
-
-
-
-
-    return False
-
-def check_double_three(board, move, turn):
-    BOARD_SIZE = 19
-    y, x = move.co
-    
-    PATTERN_1 = 0b01110
     PATTERN_1_LEN = 5
-    MASK_5 = 0b11111
     MAX_EXTRA = 3
 
+    place_piece(board[turn], move.co) ## later change it on piece of code.
 
+    count = 0
+    
     # Calculate horizontal space
-    left_space = min(x, MAX_EXTRA)
-    right_space = min((BOARD_SIZE - 1) - x, MAX_EXTRA)
+    left_space = min(x, MAX_EXTRA) # 3
+    right_space = min((BOARD_SIZE - 1) - x, MAX_EXTRA) # 3
     bits_space = left_space + right_space + 1
-    if bits_space < PATTERN_1_LEN:
-        return False
+    if bits_space >= PATTERN_1_LEN:
+        # Build mask
+        mask = 0
+        if bits_space == 7:
+            mask = 0b1111111
+        elif bits_space == 6:
+            mask = 0b111111
+        elif bits_space == 5:
+            mask = 0b11111
+        start_col = x - left_space # 0
+        # Get full row data for both players
+        current_row = (board[turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)
+        opponent_row = (board[not turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)
 
-    # Build mask ##complete shit from that moment. FIX IT!!!!!!!!!!!!
-    start_col = x - left_space
-    mask = 0
-    for i in range(bits_space): # 0, 1, 2, 3, 4, 5, 6, 7
-        bit_pos = y * BOARD_SIZE + (start_col + i)
-        mask |= 1 << bit_pos
+        # Extract bits_space bits
+        extracted_self = (current_row >> start_col) & mask
+        extracted_opp  = (opponent_row >> start_col) & mask
+        while bits_space >= PATTERN_1_LEN:
+            if extracted_opp & MASK_5 == 0:
+                if extracted_self & MASK_5 == PATTERN_1:
+                    count += 1
+                    break
+            bits_space -= 1
+            extracted_self >>= 1
+            extracted_opp >>= 1
+    
+    # vertical direction
+    top_space = min(y, MAX_EXTRA)
+    bottom_space = min((BOARD_SIZE - 1) - y, MAX_EXTRA)
+    v_bits_space = top_space + bottom_space + 1
+    start_row = y - top_space
+    extracted_self_v = 0
+    extracted_opp_v = 0
+    
+    for i in range(v_bits_space):
+        bit_pos = (start_row + i) * BOARD_SIZE + x
+        extracted_self_v |= ((board[turn][0] >> bit_pos) & 1) << i
+        extracted_opp_v |= ((board[not turn][0] >> bit_pos) & 1) << i
+    
+    while v_bits_space >= PATTERN_1_LEN:
+        if (extracted_opp_v & MASK_5) == 0:
+            if (extracted_self_v & MASK_5) == PATTERN_1:
+                count += 1
+                break
+        v_bits_space -= 1
+        extracted_self_v >>= 1
+        extracted_opp_v >>= 1
+        
 
-    # # Build mask
-    # start_col = x - left_space # 0
-    # mask = 0
-    # for i in range(bits_space + 1 - PATTERN_1_LEN): # 5, 6, 7
-    #     bit_pos = y * BOARD_SIZE + start_col + i
-    #     segment = (board[turn][0] >> bit_pos) & MASK_5
-    #     if segment == PATTERN_1:
-            
-
-    # Check if opponent occupies any bit in this range
-    if board[not turn][0] & mask:
-        return False
-
-    # Extract this horizontal slice
-    current_bits = (board[turn][0] & mask) >> (y * BOARD_SIZE + start_col)
-
-    # Slide a 5-bit window to detect PATTERN_1
-    for shift in range(bits_space - PATTERN_1_LEN + 1):
-        segment = (current_bits >> shift) & 0b11111
-        if segment == PATTERN_1:
-            return True
-
-    return False
+    place_piece(board[turn], move.co, False)
+    return count > 1
 
 
 # 0, boards, (y, x), 0

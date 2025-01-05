@@ -215,7 +215,7 @@ def bot_play(boards, turn, captures):
         result, _ = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
         
         if not result:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, 4, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, 5, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
