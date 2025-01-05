@@ -89,8 +89,7 @@ def is_won(boards, turn, capture):
 # now i want to start check_double_three() from beginning. lets for now check only horizontal direction for pattern 0b01110. your goal is to extract from map 5 to 7 bits,  (pattern size is 5) depends on a how close to border we are. if we are on it we dont even check on nothing. We first calculate bits_space which is 5 to 7 bits depends on how close we to the border. than we take mask of that size and check if there is a opponent point in thet area. if result is != 0, we stop. then we take mask of  bits_space bits and apply it to current map. then we take its first  5 bits with mask and we compare it to pattern PATTERN_1. if it is same, we stop and do count as 1. if not, we continue by shifting one bit and
 
 # this is readable version. but not the fastest. 
-def check_double_three(board, move, turn):
-    y, x = move.co
+def check_double_three(board, y, x, turn):
     BOARD_SIZE = 19
     PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
     MASKS = {5: 0b11111, 6: 0b111111}
@@ -178,8 +177,7 @@ def check_double_three(board, move, turn):
 
 
 # this is unreadable version. but the fastest.
-def check_double_three(board, move, turn):
-    y, x = move.co
+def check_double_three(board, y, x, turn):
     BOARD_SIZE = 19
     PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
     MASKS = {5: 0b11111, 6: 0b111111}
@@ -240,8 +238,6 @@ def check_double_three(board, move, turn):
                         count += 1
                         break
 
-
-
         # Diagonal (\)
         max_extra = pattern_len - 2
         d_left = y if (y <= x and y <= max_extra) else (x if x <= max_extra else max_extra)
@@ -299,8 +295,9 @@ def check_double_three(board, move, turn):
 
 # 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
+    y, x = move.co
     capture, pos = check_capture(boards, move, turn) # will return 0, [] if no capture otherwise 1, [pos1, pos2] where pos1 and pos2 are the positions to remove (y, x)
-    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, move, turn)):
+    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, y, x, turn)):
         return False, capture, pos
     return True, capture, pos
 
