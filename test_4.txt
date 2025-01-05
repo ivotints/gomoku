@@ -1,0 +1,18 @@
+Evaluated 88433 positions
+Time spent generating moves: 8.86s
+Time taken: 41.14
+
+Evaluated 88433 positions
+Time spent generating moves: 9.16s
+Time taken: 41.57
+Evaluated 88433 positions
+Time spent generating moves: 9.09s
+Time taken: 41.33
+
+Evaluated 88433 positions
+Time spent generating moves: 9.13s
+Time taken: 41.41
+
+Evaluated 88433 positions
+Time spent generating moves: 9.08s
+Time taken: 41.25

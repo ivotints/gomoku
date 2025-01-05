@@ -1,50 +1,19 @@
+History of improvements
+
 Evaluated 6043 positions
 Time spent generating moves: 2.10s
 Time taken: 4.29
-Evaluated 6043 positions
-Time spent generating moves: 2.10s
-Time taken: 4.30
-Evaluated 6043 positions
-Time spent generating moves: 2.13s
-Time taken: 4.31
 
 Evaluated 6043 positions
 Time spent generating moves: 1.53s
 Time taken: 3.71
 Evaluated 6043 positions
-Time spent generating moves: 1.55s
-Time taken: 3.73
-Evaluated 6043 positions
-Time spent generating moves: 1.54s
-Time taken: 3.73
 
 Evaluated 6043 positions
 Time spent generating moves: 1.32s
 Time taken: 3.52
 Evaluated 6043 positions
-Time spent generating moves: 1.30s
-Time taken: 3.50
-Evaluated 6043 positions
-Time spent generating moves: 1.32s
-Time taken: 3.55
 
-Evaluated 6043 positions # result with not fully made check 2:3 function
-Time spent generating moves: 0.26s
-Time taken: 2.44
 Evaluated 6043 positions
-Time spent generating moves: 0.27s
-Time taken: 2.46
-Evaluated 6043 positions
-Time spent generating moves: 0.27s
-Time taken: 2.51
-
-Evaluated 88433 positions
-Time spent generating moves: 4.38s
-Time taken: 36.57
-
-Evaluated 88433 positions
-Time spent generating moves: 4.45s
-Time taken: 37.04
-Evaluated 88433 positions
-Time spent generating moves: 4.39s
-Time taken: 36.68
+Time spent generating moves: 0.53s
+Time taken: 2.71
