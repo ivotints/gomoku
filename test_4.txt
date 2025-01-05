@@ -16,3 +16,55 @@ Time taken: 41.41
 Evaluated 88433 positions
 Time spent generating moves: 9.08s
 Time taken: 41.25
+
+Evaluated 88433 positions
+Time spent generating moves: 8.97s
+Time taken: 41.29
+
+# beautifull code
+Evaluated 88433 positions
+Time spent generating moves: 9.07s
+Time taken: 41.33
+Evaluated 88433 positions
+Time spent generating moves: 9.21s
+Time taken: 42.42
+Evaluated 88433 positions
+Time spent generating moves: 8.92s
+Time taken: 41.11
+Evaluated 88433 positions
+Time spent generating moves: 9.08s
+Time taken: 42.10
+
+Evaluated 88433 positions
+Time spent generating moves: 9.03s
+Time taken: 41.24
+
+Evaluated 88433 positions
+Time spent generating moves: 8.68s
+Time taken: 41.07
+Evaluated 88433 positions
+Time spent generating moves: 8.54s
+Time taken: 40.83
+
+# this is unreadable but fast version of double_tree_check()
+Evaluated 88433 positions
+Time spent generating moves: 8.19s
+Time taken: 40.30
+Evaluated 88433 positions
+Time spent generating moves: 8.17s
+Time taken: 40.19
+Evaluated 88433 positions
+Time spent generating moves: 8.18s
+Time taken: 40.24
+
+# this is readable but not fast version of double_tree_check()
+Evaluated 88433 positions
+Time spent generating moves: 8.91s
+Time taken: 41.64
+Evaluated 88433 positions
+Time spent generating moves: 8.93s
+Time taken: 41.09
+Evaluated 88433 positions
+Time spent generating moves: 9.07s
+Time taken: 41.55
+
