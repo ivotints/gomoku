@@ -15,8 +15,7 @@ def display_board(player1, player2):
         print(' '.join(row_display))
     print("---------------")
 
-# boards, (y, x), 0
-def check_capture(boards, move, turn):
+def check_capture_old(boards, move, turn):
     capture = 0
     capture_positions = []
     for pos in DIRECTIONS:
@@ -34,13 +33,85 @@ def check_capture(boards, move, turn):
 
     return capture, capture_positions
 
-def place_piece(bitboard, move, set_bit=True):
+def is_capture(boards, y, x, turn):
+    BOARD_SIZE = 19
+    directions = [(0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)]
+
+    for dy, dx in directions:
+        y3, x3 = y + dy*3, x + dx*3       # own piece
+        if (x3 < 0 or x3 >= BOARD_SIZE or y3 < 0 or y3 >= BOARD_SIZE):
+            continue
+
+        # Calculate bit positions
+        bit1 = (y + dy) * BOARD_SIZE + (x + dx)
+        bit2 = (y + dy*2) * BOARD_SIZE + (x + dx*2)
+        bit3 = y3 * BOARD_SIZE + x3
+
+        # Check if pattern matches: empty->opponent->opponent->player
+        if ((boards[turn][0] >> bit3) & 1) and \
+           ((boards[not turn][0] >> bit2) & 1) and \
+           ((boards[not turn][0] >> bit1) & 1):
+            return True
+
+    return False
+
+def check_capture(boards, y, x, turn):
+    BOARD_SIZE = 19
+    capture = 0
+    positions = []
+    
+    # Each direction - right, down-right, down, down-left, left, up-left, up, up-right
+    directions = [
+        (0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)
+    ]
+
+    for dy, dx in directions:
+        # Calculate positions for 3 pieces in line
+        y1, x1 = y + dy, x + dx           # first adjacent
+        y2, x2 = y + dy*2, x + dx*2       # second adjacent  
+        y3, x3 = y + dy*3, x + dx*3       # own piece
+
+        # Check bounds for all positions
+        if (x3 < 0 or x3 >= BOARD_SIZE or y3 < 0 or y3 >= BOARD_SIZE):
+            continue
+
+        # Calculate bit positions
+        bit1 = y1 * BOARD_SIZE + x1
+        bit2 = y2 * BOARD_SIZE + x2  
+        bit3 = y3 * BOARD_SIZE + x3
+
+        # Check if pattern matches: empty->opponent->opponent->player
+        if ((boards[turn][0] >> bit3) & 1) and \
+           ((boards[not turn][0] >> bit2) & 1) and \
+           ((boards[not turn][0] >> bit1) & 1):
+            capture += 1
+            positions.extend([bit1, bit2])
+
+    return capture, positions
+
+
+def place_piece_old(bitboard, move, set_bit=True):
     row, col = move
     bit_position = row * BOARD_SIZE + col
     if set_bit:
         bitboard[0] |= (1 << bit_position)
     else:
         bitboard[0] &= ~(1 << bit_position)
+
+def place_piece(bitboard, move, set_bit=True):
+    if isinstance(move, tuple):
+        # Handle (row, col) coordinates
+        row, col = move
+        bit_position = row * BOARD_SIZE + col
+    else:
+        # Handle bit position directly
+        bit_position = move
+
+    if set_bit:
+        bitboard[0] |= (1 << bit_position)
+    else:
+        bitboard[0] &= ~(1 << bit_position)
+
 
 def is_occupied(board, pos): # y, x
     y, x = pos
@@ -290,13 +361,17 @@ def check_double_three(board, y, x, turn):
     board[turn][0] &= ~(1 << bit_position)  # Unset bit
     return count > 1
 
-
+def is_legal_lite(captures, boards, y, x, turn):
+    capture = is_capture(boards, y, x, turn) 
+    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, y, x, turn)):
+        return False
+    return True
 
 
 # 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
     y, x = move.co
-    capture, pos = check_capture(boards, move, turn) # will return 0, [] if no capture otherwise 1, [pos1, pos2] where pos1 and pos2 are the positions to remove (y, x)
+    capture, pos = check_capture(boards, y, x, turn) 
     if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, y, x, turn)):
         return False, capture, pos
     return True, capture, pos

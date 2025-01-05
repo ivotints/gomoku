@@ -1,11 +1,12 @@
-from board import coordinate, SIZE, out_of_bounds
-from game import is_legal, is_occupied, check_capture, place_piece, is_won
+from board import coordinate
+from game import check_capture, place_piece, is_won, is_legal_lite
 import copy
 from macro import PATTERN
 import time
 
 def handle_move_bot(boards, turn, move, captures):
-    capture, pos = check_capture(boards, move, turn)
+    y, x = move.co
+    capture, pos = check_capture(boards, y, x, turn)
     captures[turn] += capture
     place_piece(boards[turn], move.co)
     if capture:
@@ -68,9 +69,8 @@ def generate_legal_moves(boards, turn, capture, t):
                 bit_pos = row * ROW_SIZE + col
                 if not ((union_board >> bit_pos) & 1):  # If not occupied
                     move = coordinate((row, col))
-                    legal, _, _ = is_legal(capture, boards, move, turn)
 
-                    if legal:
+                    if is_legal_lite(capture, boards, row, col, turn):
                         legal_moves.append(move)
 
     # Record time

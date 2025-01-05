@@ -25,3 +25,11 @@ Time taken: 40.24
 Evaluated 88433 positions
 Time spent generating moves: 8.23s
 Time taken: 40.57
+
+#lite version of is_capture()
+Evaluated 88433 positions
+Time spent generating moves: 5.97s
+Time taken: 37.56
+Evaluated 88433 positions
+Time spent generating moves: 5.98s
+Time taken: 37.59
