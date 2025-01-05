@@ -177,122 +177,122 @@ def check_double_three(board, move, turn):
 
 
 
-# # this is unreadable version. but the fastest.
-# def check_double_three(board, move, turn):
-#     y, x = move.co
-#     BOARD_SIZE = 19
-#     PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
-#     MASKS = {5: 0b11111, 6: 0b111111}
+# this is unreadable version. but the fastest.
+def check_double_three(board, move, turn):
+    y, x = move.co
+    BOARD_SIZE = 19
+    PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
+    MASKS = {5: 0b11111, 6: 0b111111}
 
-#     # Inline place_piece
-#     bit_position = y * BOARD_SIZE + x
-#     board[turn][0] |= (1 << bit_position)  # Set bit
-#     count = 0
+    # Inline place_piece
+    bit_position = y * BOARD_SIZE + x
+    board[turn][0] |= (1 << bit_position)  # Set bit
+    count = 0
 
-#     # Check all directions
-#     for pattern_len in [5, 6]:
-#         # Horizontal
-#         max_extra = pattern_len - 2
-#         left = x if x < max_extra else max_extra
-#         right = 18 - x if 18 - x < max_extra else max_extra
-#         bits_space = left + right + 1
+    # Check all directions
+    for pattern_len in [5, 6]:
+        # Horizontal
+        max_extra = pattern_len - 2
+        left = x if x < max_extra else max_extra
+        right = 18 - x if 18 - x < max_extra else max_extra
+        bits_space = left + right + 1
 
-#         if bits_space >= pattern_len:           
-#             # Extract relevant bits
-#             extracted_self = (((board[turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)) >> (x - left)) & ((1 << bits_space) - 1)
-#             extracted_opp = ((board[not turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1) >> (x - left)) & ((1 << bits_space) - 1)
+        if bits_space >= pattern_len:           
+            # Extract relevant bits
+            extracted_self = (((board[turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)) >> (x - left)) & ((1 << bits_space) - 1)
+            extracted_opp = ((board[not turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1) >> (x - left)) & ((1 << bits_space) - 1)
 
-#             # Inline check_pattern
-#             pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
-#             pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
-#             mask = MASKS[pattern_len]
+            # Inline check_pattern
+            pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
+            pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
+            mask = MASKS[pattern_len]
 
-#             for shift in range(bits_space - pattern_len + 1):
-#                 if ((extracted_opp >> shift) & mask) == 0:
-#                     chunk = (extracted_self >> shift) & mask
-#                     if chunk == pattern or chunk == pattern2:
-#                         count += 1
-#                         break
+            for shift in range(bits_space - pattern_len + 1):
+                if ((extracted_opp >> shift) & mask) == 0:
+                    chunk = (extracted_self >> shift) & mask
+                    if chunk == pattern or chunk == pattern2:
+                        count += 1
+                        break
 
-#         # Vertical
-#         max_extra = pattern_len - 2  
-#         top =  y if y < max_extra else max_extra
-#         bottom = 18 - y if 18 - y < max_extra else max_extra
-#         v_bits_space = top + bottom + 1
+        # Vertical
+        max_extra = pattern_len - 2  
+        top =  y if y < max_extra else max_extra
+        bottom = 18 - y if 18 - y < max_extra else max_extra
+        v_bits_space = top + bottom + 1
 
-#         if v_bits_space >= pattern_len:
-#             # Extract vertical slice
-#             extracted_self = extracted_opp = 0
-#             for i in range(v_bits_space):
-#                 bit_pos = (y - top + i) * BOARD_SIZE + x
-#                 extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-#                 extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
+        if v_bits_space >= pattern_len:
+            # Extract vertical slice
+            extracted_self = extracted_opp = 0
+            for i in range(v_bits_space):
+                bit_pos = (y - top + i) * BOARD_SIZE + x
+                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
+                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
 
-#             # Check patterns
-#             pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
-#             pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
-#             mask = MASKS[pattern_len]
+            # Check patterns
+            pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
+            pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
+            mask = MASKS[pattern_len]
                     
-#             for shift in range(v_bits_space - pattern_len + 1):
-#                 if ((extracted_opp >> shift) & mask) == 0:
-#                     chunk = (extracted_self >> shift) & mask
-#                     if chunk == pattern or chunk == pattern2:
-#                         count += 1
-#                         break
+            for shift in range(v_bits_space - pattern_len + 1):
+                if ((extracted_opp >> shift) & mask) == 0:
+                    chunk = (extracted_self >> shift) & mask
+                    if chunk == pattern or chunk == pattern2:
+                        count += 1
+                        break
 
 
 
-#         # Diagonal (\)
-#         max_extra = pattern_len - 2
-#         d_left = y if (y <= x and y <= max_extra) else (x if x <= max_extra else max_extra)
-#         d_right = (BOARD_SIZE-1-y) if ((BOARD_SIZE-1-y) <= (BOARD_SIZE-1-x) and (BOARD_SIZE-1-y) <= max_extra) else ((BOARD_SIZE-1-x) if (BOARD_SIZE-1-x) <= max_extra else max_extra)
-#         d_bits_space = d_left + d_right + 1
+        # Diagonal (\)
+        max_extra = pattern_len - 2
+        d_left = y if (y <= x and y <= max_extra) else (x if x <= max_extra else max_extra)
+        d_right = (BOARD_SIZE-1-y) if ((BOARD_SIZE-1-y) <= (BOARD_SIZE-1-x) and (BOARD_SIZE-1-y) <= max_extra) else ((BOARD_SIZE-1-x) if (BOARD_SIZE-1-x) <= max_extra else max_extra)
+        d_bits_space = d_left + d_right + 1
 
-#         if d_bits_space >= pattern_len:
-#             extracted_self = extracted_opp = 0
-#             for i in range(d_bits_space):
-#                 bit_pos = (y - d_left + i) * BOARD_SIZE + (x - d_left + i)
-#                 extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-#                 extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
+        if d_bits_space >= pattern_len:
+            extracted_self = extracted_opp = 0
+            for i in range(d_bits_space):
+                bit_pos = (y - d_left + i) * BOARD_SIZE + (x - d_left + i)
+                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
+                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
 
-#             # Check patterns
-#             pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
-#             pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
-#             mask = MASKS[pattern_len]
+            # Check patterns
+            pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
+            pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
+            mask = MASKS[pattern_len]
             
-#             for shift in range(d_bits_space - pattern_len + 1):
-#                 if ((extracted_opp >> shift) & mask) == 0:
-#                     chunk = (extracted_self >> shift) & mask
-#                     if chunk == pattern or chunk == pattern2:
-#                         count += 1
-#                         break
+            for shift in range(d_bits_space - pattern_len + 1):
+                if ((extracted_opp >> shift) & mask) == 0:
+                    chunk = (extracted_self >> shift) & mask
+                    if chunk == pattern or chunk == pattern2:
+                        count += 1
+                        break
 
-#         # Diagonal (/)
-#         d_down = (BOARD_SIZE-1-y) if ((BOARD_SIZE-1-y) <= x and (BOARD_SIZE-1-y) <= max_extra) else (x if x <= max_extra else max_extra)
-#         d_up = y if (y <= (BOARD_SIZE-1-x) and y <= max_extra) else ((BOARD_SIZE-1-x) if (BOARD_SIZE-1-x) <= max_extra else max_extra)
-#         d2_bits_space = d_down + d_up + 1
+        # Diagonal (/)
+        d_down = (BOARD_SIZE-1-y) if ((BOARD_SIZE-1-y) <= x and (BOARD_SIZE-1-y) <= max_extra) else (x if x <= max_extra else max_extra)
+        d_up = y if (y <= (BOARD_SIZE-1-x) and y <= max_extra) else ((BOARD_SIZE-1-x) if (BOARD_SIZE-1-x) <= max_extra else max_extra)
+        d2_bits_space = d_down + d_up + 1
 
-#         if d2_bits_space >= pattern_len:
-#             extracted_self = extracted_opp = 0
-#             for i in range(d2_bits_space):
-#                 bit_pos = (y + d_down - i) * BOARD_SIZE + (x - d_down + i)
-#                 extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-#                 extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
+        if d2_bits_space >= pattern_len:
+            extracted_self = extracted_opp = 0
+            for i in range(d2_bits_space):
+                bit_pos = (y + d_down - i) * BOARD_SIZE + (x - d_down + i)
+                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
+                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
 
-#             # Check patterns
-#             pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
-#             pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
-#             mask = MASKS[pattern_len]
+            # Check patterns
+            pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
+            pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
+            mask = MASKS[pattern_len]
             
-#             for shift in range(d2_bits_space - pattern_len + 1):
-#                 if ((extracted_opp >> shift) & mask) == 0:
-#                     chunk = (extracted_self >> shift) & mask
-#                     if chunk == pattern or chunk == pattern2:
-#                         count += 1
-#                         break
+            for shift in range(d2_bits_space - pattern_len + 1):
+                if ((extracted_opp >> shift) & mask) == 0:
+                    chunk = (extracted_self >> shift) & mask
+                    if chunk == pattern or chunk == pattern2:
+                        count += 1
+                        break
 
-#     board[turn][0] &= ~(1 << bit_position)  # Unset bit
-#     return count > 1
+    board[turn][0] &= ~(1 << bit_position)  # Unset bit
+    return count > 1
 
 
 

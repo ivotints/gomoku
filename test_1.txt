@@ -1,9 +1,27 @@
-Evaluated 6043 positions
-Time spent generating moves: 3.35s
-Time taken: 5.53
-Evaluated 6043 positions
-Time spent generating moves: 3.33s
-Time taken: 5.50
-Evaluated 6043 positions
-Time spent generating moves: 3.33s
-Time taken: 5.52
+# this is readable but not fast version of double_three_check()
+Evaluated 88433 positions
+Time spent generating moves: 8.91s
+Time taken: 41.64
+Evaluated 88433 positions
+Time spent generating moves: 8.93s
+Time taken: 41.09
+Evaluated 88433 positions
+Time spent generating moves: 9.07s
+Time taken: 41.55
+Evaluated 88433 positions
+Time spent generating moves: 8.91s
+Time taken: 41.16
+
+# this is unreadable but fast version of double_three_check()
+Evaluated 88433 positions
+Time spent generating moves: 8.19s
+Time taken: 40.30
+Evaluated 88433 positions
+Time spent generating moves: 8.17s
+Time taken: 40.19
+Evaluated 88433 positions
+Time spent generating moves: 8.18s
+Time taken: 40.24
+Evaluated 88433 positions
+Time spent generating moves: 8.23s
+Time taken: 40.57
