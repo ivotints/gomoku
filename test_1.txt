@@ -2,35 +2,34 @@
 Evaluated 88433 positions
 Time spent generating moves: 8.91s
 Time taken: 41.64
-Evaluated 88433 positions
-Time spent generating moves: 8.93s
-Time taken: 41.09
-Evaluated 88433 positions
-Time spent generating moves: 9.07s
-Time taken: 41.55
-Evaluated 88433 positions
-Time spent generating moves: 8.91s
-Time taken: 41.16
 
 # this is unreadable but fast version of double_three_check()
 Evaluated 88433 positions
 Time spent generating moves: 8.19s
 Time taken: 40.30
-Evaluated 88433 positions
-Time spent generating moves: 8.17s
-Time taken: 40.19
-Evaluated 88433 positions
-Time spent generating moves: 8.18s
-Time taken: 40.24
-Evaluated 88433 positions
-Time spent generating moves: 8.23s
-Time taken: 40.57
 
-#lite version of is_capture()
+# lite version of is_capture()
 Evaluated 88433 positions
 Time spent generating moves: 5.97s
 Time taken: 37.56
+
+# after new check for winning line
 Evaluated 88433 positions
-Time spent generating moves: 5.98s
-Time taken: 37.59
+Time spent generating moves: 6.07s
+Time taken: 35.31
+
+# after deletion of coordinate() class
+Evaluated 88433 positions
+Time spent generating moves: 5.90s
+Time taken: 34.62
+
+# after deletion of min() function in generate_legal_moves()
+Evaluated 88433 positions
+Time spent generating moves: 5.90s
+Time taken: 34.67
+
+# after new heuristic with not optimized window
+Evaluated 84097 positions
+Time spent generating moves: 4.64s
+Time taken: 19.77
 

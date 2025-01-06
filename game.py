@@ -197,7 +197,7 @@ def is_line_capture(boards, line, turn):
 
 def is_won(boards, turn, capture):
     line = winning_line(boards[turn])
-    if line is None or (capture == 4 and is_line_capture(boards, line, turn)):
+    if line is None or (capture == 4 and is_line_capture(boards, line, turn)): # if opponent has 4 captures and he can eat one more during the event where we have 5 in a row 
         return False
     return True
 
@@ -413,7 +413,8 @@ def is_legal_lite(captures, boards, y, x, turn):
 
 # 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
-    y, x = move.co
+    y = move // 19
+    x = move % 19
     capture, pos = check_capture(boards, y, x, turn) 
     if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards, y, x, turn)):
         return False, capture, pos
@@ -426,14 +427,14 @@ def is_legal(captures, boards, move, turn):
 def handle_move(boards, turn, move, captures):
     # turbn is 0 for black
     # 0, boards, (y, x), 0
-    legal, capture, pos = is_legal(captures[turn], boards, move, turn)
+    legal, has_capture, pos = is_legal(captures[turn], boards, move, turn)
     if not legal:
-        return None, capture
-    captures[turn] += capture
-    place_piece(boards[turn], move.co)
-    if capture:
+        return None, has_capture
+    captures[turn] += has_capture
+    boards[turn][0] |= (1 << move)
+    if has_capture:
         for p in pos:
-            place_piece(boards[not turn], p, False)
+            boards[not turn][0] &= ~(1 << p)
     if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
-        return True, capture
-    return False, capture
+        return True, has_capture
+    return False, has_capture
