@@ -33,3 +33,11 @@ Evaluated 84097 positions
 Time spent generating moves: 4.64s
 Time taken: 19.77
 
+# optimised heuristic window, for vertical and horisontal directions
+Evaluated 84097 positions
+Time spent generating moves: 4.63s
+Time taken: 18.26
+
+Evaluated 77433 positions
+Time spent generating moves: 4.20s
+Time taken: 12.65

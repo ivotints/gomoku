@@ -1,7 +1,7 @@
 from board import coordinate
 from game import check_capture, is_won, is_legal_lite, has_winning_line
 import copy
-from macro import PATTERN
+from macro import PATTERN, DEPTH
 import time
 
 def handle_move_bot(boards, turn, move, captures):
@@ -152,11 +152,11 @@ def bitwise_heuristic(boards, turn, capture):
     return 16 * (2 ** capture) + value
 
 # my goal is to write new lighter heuristic. I whant you not to scan aa the map, but at first create a bounding square like it is done in generate_legal_moves. First you create such a cube, then you go back on 4 lines, to start the 5 bit window and than you do same as in heuristic but this time bounds are smaller, sio it shold take less time.
-
+#NEW
 def bitwise_heuristic(boards, turn, capture):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
-    ROW_MASK = (1 << ROW_SIZE) - 1
+    ROW_MASK = 0b1111111111111111111
     WINDOW_MASK = (1 << WINDOW_SIZE) - 1
     value = 0
 
@@ -173,18 +173,12 @@ def bitwise_heuristic(boards, turn, capture):
     right = ROW_SIZE - 1
     while right >= 0 and not any((boards[turn][0] >> (row * ROW_SIZE + right)) & 1 for row in range(top, bottom + 1)):
         right -= 1
-
-    # expand = WINDOW_SIZE - 1
-    # top = max(0, top - expand)
-    # bottom = min(ROW_SIZE - 1, bottom + expand)
-    # left = max(0, left - expand)
-    # right = min(ROW_SIZE - 1, right + expand)
-
+    
     expand = WINDOW_SIZE - 1
-    top = 0 if top - expand < 0 else top - expand
-    bottom = ROW_SIZE - 1 if bottom + expand >= ROW_SIZE else bottom + expand
-    left = 0 if left - expand < 0 else left - expand
-    right = ROW_SIZE - 1 if right + expand >= ROW_SIZE else right + expand
+    top_exp = 0 if top - expand < 0 else top - expand
+    bottom_exp = ROW_SIZE - 1 if bottom + expand >= ROW_SIZE else bottom + expand
+    left_exp = 0 if left - expand < 0 else left - expand
+    right_exp = ROW_SIZE - 1 if right + expand >= ROW_SIZE else right + expand
 
     def scan_window(current_bits, opponent_bits, size):
         local_value = 0
@@ -202,34 +196,35 @@ def bitwise_heuristic(boards, turn, capture):
         return local_value
 
     # Horizontal scan
-    for row in range(top, bottom + 1):
+    for row in range(top, bottom + 1): # 5 to 13 
         row_shift = row * ROW_SIZE
-        current_row = (boards[turn][0] >> row_shift) & ((1 << (right + 1)) - (1 << left))
-        current_row_opponent = (boards[not turn][0] >> row_shift) & ((1 << (right + 1)) - (1 << left))
-        value += scan_window(current_row, current_row_opponent, right - left + 1)
+        current_row = (boards[turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
+        current_row_opponent = (boards[not turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
+        value += scan_window(current_row, current_row_opponent, right_exp - left_exp + 1)
 
     # Vertical scan
     for col in range(left, right + 1):
         vertical_bits = 0
         vertical_opponent = 0
-        for row in range(top, bottom + 1):
+        for row in range(top_exp, bottom_exp + 1):
             bit_pos = row * ROW_SIZE + col
-            vertical_bits |= ((boards[turn][0] >> bit_pos) & 1) << (row - top)
-            vertical_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << (row - top)
-        value += scan_window(vertical_bits, vertical_opponent,  bottom - top + 1)
+            vertical_bits |= ((boards[turn][0] >> bit_pos) & 1) << (row - top_exp)
+            vertical_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << (row - top_exp)
+        value += scan_window(vertical_bits, vertical_opponent,  bottom_exp - top_exp + 1)
 
     # Main diagonal scan (↘)
-    for start_row in range(top, bottom + 1):
-        for start_col in range(left, right + 1):
+
+    for start_row in range(top_exp, top_exp - (bottom - top)):
+        for start_col in range(left_exp, left_exp + (right - left)):
             diagonal_bits = 0
             diagonal_opponent = 0
-            length = bottom - start_row + 1 if bottom - start_row + 1 < right - start_col + 1 else right - start_col + 1
-            
+            length = bottom_exp - start_row + 1 if bottom_exp - start_row + 1 < right_exp - start_col + 1 else right_exp - start_col + 1
+
             if length >= WINDOW_SIZE:
                 for i in range(length):
                     row = start_row + i
                     col = start_col + i
-                    if row > bottom or col > right:
+                    if row > bottom_exp or col > right_exp:
                         break
                     bit_pos = row * ROW_SIZE + col
                     diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
@@ -237,17 +232,17 @@ def bitwise_heuristic(boards, turn, capture):
                 value += scan_window(diagonal_bits, diagonal_opponent, length)
 
     # Anti-diagonal scan (↙)
-    for start_row in range(top, bottom + 1):
-        for start_col in range(right, left - 1, -1):
+    for start_row in range(top_exp, bottom_exp + 1):
+        for start_col in range(right_exp, left_exp - 1, -1):
             anti_diagonal_bits = 0
             anti_diagonal_opponent = 0
-            length = bottom - start_row + 1 if bottom - start_row + 1 < start_col - left + 1 else start_col - left + 1
+            length = bottom_exp - start_row + 1 if bottom_exp - start_row + 1 < start_col - left_exp + 1 else start_col - left_exp + 1
             
             if length >= WINDOW_SIZE:
                 for i in range(length):
                     row = start_row + i
                     col = start_col - i
-                    if row > bottom or col < left:
+                    if row > bottom_exp or col < left_exp:
                         break
                     bit_pos = row * ROW_SIZE + col
                     anti_diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
@@ -260,11 +255,12 @@ def bitwise_heuristic(boards, turn, capture):
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
     
-    if depth == 0:
+    if depth == 0:#maybe one
         count[0] += 1
         return bitwise_heuristic(boards, turn, captures[turn])
     
     moves = generate_legal_moves(boards, turn, captures[turn], t)
+
     if maximizing_player:
         max_eval = float('-inf')
         for move in moves:
@@ -286,9 +282,12 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
         for move in moves:
             new_boards = copy.deepcopy(boards)
             # new_captures = copy.deepcopy(captures)
+
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
-            
+
+
             if result:  # Loss found
+
                 return float('-inf')
                 
             eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
@@ -331,10 +330,15 @@ def bot_play(boards, turn, captures):
     # If no winning move, do minimax search
     for move in moves:
         new_boards = copy.deepcopy(boards)
+
+
+
         result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+
+
         
         if not result:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, 5, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, DEPTH - 1, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
