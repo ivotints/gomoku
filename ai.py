@@ -76,6 +76,8 @@ def generate_legal_moves(boards, turn, capture, t):
     t[0] += time.time() - start_time
     return legal_moves
 
+
+
 def bitwise_heuristic(boards, turn, capture):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
@@ -133,26 +135,25 @@ def bitwise_heuristic(boards, turn, capture):
                 diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
             value += scan_window(diagonal_bits, diagonal_opponent)
 
-    # # Anti-diagonal scan (↙)
-    # for start in range(2 * ROW_SIZE - 1):
-    #     anti_diagonal_bits = 0
-    #     anti_diagonal_opponent = 0
-    #     start_row = max(0, start - ROW_SIZE + 1)
-    #     start_col = min(ROW_SIZE - 1, start)
-    #     length = min(start_col + 1, ROW_SIZE - start_row)
+    # Anti-diagonal scan (↙)
+    for start in range(2 * ROW_SIZE - 1):
+        anti_diagonal_bits = 0
+        anti_diagonal_opponent = 0
+        start_row = max(0, start - ROW_SIZE + 1)
+        start_col = min(ROW_SIZE - 1, start)
+        length = min(start_col + 1, ROW_SIZE - start_row)
 
-    #     if length >= WINDOW_SIZE:
-    #         for i in range(length):
-    #             row = start_row + i
-    #             col = start_col - i
-    #             bit_pos = row * ROW_SIZE + col
-    #             anti_diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-    #             anti_diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-    #         value += scan_window(anti_diagonal_bits, anti_diagonal_opponent)
+        if length >= WINDOW_SIZE:
+            for i in range(length):
+                row = start_row + i
+                col = start_col - i
+                bit_pos = row * ROW_SIZE + col
+                anti_diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
+                anti_diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+            value += scan_window(anti_diagonal_bits, anti_diagonal_opponent)
 
     return 16 * (2 ** capture) + value
 
-# my goal is to write new lighter heuristic. I whant you not to scan aa the map, but at first create a bounding square like it is done in generate_legal_moves. First you create such a cube, then you go back on 4 lines, to start the 5 bit window and than you do same as in heuristic but this time bounds are smaller, sio it shold take less time.
 #NEW
 def bitwise_heuristic(boards, turn, capture):
     ROW_SIZE = 19
@@ -175,17 +176,11 @@ def bitwise_heuristic(boards, turn, capture):
     while right >= 0 and not any((boards[turn][0] >> (row * ROW_SIZE + right)) & 1 for row in range(top, bottom + 1)):
         right -= 1
 
-    # print(f"Bounding box: ({top}, {left}) to ({bottom}, {right})")
-    # time.sleep(1000)
-
     expand = WINDOW_SIZE - 1
     top_exp = 0 if top - expand < 0 else top - expand
     bottom_exp = ROW_SIZE - 1 if bottom + expand >= ROW_SIZE else bottom + expand
     left_exp = 0 if left - expand < 0 else left - expand
     right_exp = ROW_SIZE - 1 if right + expand >= ROW_SIZE else right + expand
-
-    # print(f"Expanded box: ({top_exp}, {left_exp}) to ({bottom_exp}, {right_exp})")
-    # time.sleep(1000)
 
     def scan_window(current_bits, opponent_bits, size):
         local_value = 0
@@ -219,115 +214,50 @@ def bitwise_heuristic(boards, turn, capture):
             vertical_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << (row - top_exp)
         value += scan_window(vertical_bits, vertical_opponent,  bottom_exp - top_exp + 1)
 
-
-
-
-
     # Main diagonal scan (↘)
-    n = bottom - top + 1 # 3
-    m = right - left + 1 # 1
-    n_long = bottom_exp - top_exp + 1 #
-    m_long = right_exp - left_exp + 1 #
+    n = bottom - top + 1
+    m = right - left + 1
 
-    for k in range(n + m - 1):  # 0 to 2
+    for k in range(n + m - 1):  # 
         # Calculate start and end rows for this diagonal
-        start_row = max(top_exp + n - k - 1, top_exp) # 14
-        start_col = max(left_exp - n + k + 1, left_exp)  #
-        length = min(left_exp - start_col + 1, start_row - bottom_exp + 1) #
-        # k + 9, n_long, m_long, (n_long + m_long - 1) - k,
-        diagonal_bits = 0
-        diagonal_opponent = 0
+        start_row = max(top_exp + n - k - 1, top_exp) 
+        start_col = max(left_exp - n + k + 1, left_exp) 
+        length = min(bottom_exp - start_row + 1, right_exp - start_col + 1)
 
         if length >= WINDOW_SIZE:
-            for i in range(length): # 0 to
+            diagonal_bits = 0
+            diagonal_opponent = 0
+            for i in range(length):
                 row = start_row + i
                 col = start_col + i
                 bit_pos = row * ROW_SIZE + col
                 diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
                 diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-
-            if diagonal_bits:  # Skip empty diagonals
+            
+            if diagonal_bits:
                 value += scan_window(diagonal_bits, diagonal_opponent, length)
 
-
-
-
-    # Main diagonal scan (↘)
-    n = bottom - top + 1 # 1
-    m = right - left + 1 # 5
-    n_long = bottom_exp - top_exp + 1 # 9
-    m_long = right_exp - left_exp + 1 # 9
-
-    for k in range(n + m - 1):  # 0 to 4
-        # Calculate start and end rows for this diagonal
-        start_row = max(top_exp + n - k - 1, top_exp) #
-        start_col = max(left_exp - n + k + 1, left_exp)  #
-        length = min(left_exp - start_col + 1, start_row - bottom_exp + 1) #
-        # k + 9, n_long, m_long, (n_long + m_long - 1) - k,
-        diagonal_bits = 0
-        diagonal_opponent = 0
+    # Anti-diagonal scan (↙)
+    for k in range(n + m - 1):
+        # Similar logic to main diagonal, but columns go in reverse
+        start_row = max(top_exp + n - k - 1, top_exp)
+        start_col = min(right_exp + n - k - 1, right_exp)
+        length = min(bottom_exp - start_row + 1, start_col - left_exp + 1)
 
         if length >= WINDOW_SIZE:
-            for i in range(length): # 0 to
+            anti_bits = 0
+            anti_opponent = 0
+            for i in range(length):
                 row = start_row + i
-                col = start_col + i
+                col = start_col - i
                 bit_pos = row * ROW_SIZE + col
-                diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-                diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+                anti_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
+                anti_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
 
-            if diagonal_bits:  # Skip empty diagonals
-                value += scan_window(diagonal_bits, diagonal_opponent, length)
-
-    # # Main diagonal scan (↘)
-    # n = bottom - top + 1 # 5
-    # m = right - left + 1 # 5
-    # n_long = bottom_exp - top_exp + 1 # 13
-    # m_long = right_exp - left_exp + 1 # 13
-
-    # for k in range(n + m - 1):  # 0 to 9
-    #     # Calculate start and end rows for this diagonal
-    #     start_row = max(top_exp + top - k, top_exp) # 4, 3, 2, 1, 0, 0, 0, 0, 0
-    #     start_col = max(left_exp, left_exp - left + k)  # 0, 0, 0, 0, 0, 1, 2, 3, 4
-    #     length = min(k + 9, n_long, m_long, (n_long + m_long - 1) - k) # 9, 10, 11, 12, 13, 12, 11, 10, 9
-
-    #     diagonal_bits = 0
-    #     diagonal_opponent = 0
-
-    #     if length >= WINDOW_SIZE:
-    #         for i in range(length): # 0 to 9
-    #             row = start_row + i
-    #             col = start_col + i
-    #             bit_pos = row * ROW_SIZE + col
-    #             diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-    #             diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-
-    #         if diagonal_bits:  # Skip empty diagonals
-    #             value += scan_window(diagonal_bits, diagonal_opponent, length)
-
-
-    # # Anti-diagonal scan (↙)
-    # for k in range(n + m - 1):  # 0 to 2
-    #     start_row = min(top_exp, top_exp + k - m + 1)
-    #     start_col = min(right_exp, right_exp - k + m - 1)
-    #     length = min(k + 9, n_long, m_long, (n_long + m_long - 1) - k)
-
-    #     anti_diagonal_bits = 0
-    #     anti_diagonal_opponent = 0
-
-    #     if length >= WINDOW_SIZE:
-    #         for i in range(length):
-    #             row = start_row + i
-    #             col = start_col - i
-    #             bit_pos = row * ROW_SIZE + col
-    #             anti_diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-    #             anti_diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-
-    #         if anti_diagonal_bits:
-    #             value += scan_window(anti_diagonal_bits, anti_diagonal_opponent, length)
+            if anti_bits:
+                value += scan_window(anti_bits, anti_opponent, length)
 
     return 16 * (2 ** capture) + value
-
-
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
 

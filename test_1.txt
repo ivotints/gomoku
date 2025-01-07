@@ -41,3 +41,8 @@ Time taken: 18.26
 Evaluated 77433 positions
 Time spent generating moves: 4.20s
 Time taken: 12.65
+
+# NEW HEURISTIC
+Evaluated 65266 positions
+Time spent generating moves: 4.28s
+Time taken: 9.48
