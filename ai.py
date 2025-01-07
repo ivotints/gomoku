@@ -64,7 +64,7 @@ def generate_legal_moves(boards, turn, capture, t):
                     continue
                 shift_pos = (row + i) * ROW_SIZE + col - 1
                 window_mask |= (union_board >> shift_pos) & 0b111  # 3 bits
-            
+
             # If the sliding window is not empty, check legality of center position
             if window_mask != 0:
                 bit_pos = row * ROW_SIZE + col
@@ -115,6 +115,7 @@ def bitwise_heuristic(boards, turn, capture):
             vertical_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << row
         value += scan_window(vertical_bits, vertical_opponent)
 
+
         # Main diagonal scan (↘)
     for start in range(2 * ROW_SIZE - 1): # 0 to 37
         diagonal_bits = 0
@@ -122,7 +123,7 @@ def bitwise_heuristic(boards, turn, capture):
         start_row = max(0, start - ROW_SIZE + 1)
         start_col = max(0, ROW_SIZE - 1 - start)
         length = min(ROW_SIZE - start_col, ROW_SIZE - start_row)
-        
+
         if length >= WINDOW_SIZE:
             for i in range(length):
                 row = start_row + i
@@ -139,7 +140,7 @@ def bitwise_heuristic(boards, turn, capture):
     #     start_row = max(0, start - ROW_SIZE + 1)
     #     start_col = min(ROW_SIZE - 1, start)
     #     length = min(start_col + 1, ROW_SIZE - start_row)
-        
+
     #     if length >= WINDOW_SIZE:
     #         for i in range(length):
     #             row = start_row + i
@@ -173,7 +174,7 @@ def bitwise_heuristic(boards, turn, capture):
     right = ROW_SIZE - 1
     while right >= 0 and not any((boards[turn][0] >> (row * ROW_SIZE + right)) & 1 for row in range(top, bottom + 1)):
         right -= 1
-    
+
     # print(f"Bounding box: ({top}, {left}) to ({bottom}, {right})")
     # time.sleep(1000)
 
@@ -202,7 +203,7 @@ def bitwise_heuristic(boards, turn, capture):
         return local_value
 
     # Horizontal scan
-    for row in range(top, bottom + 1): # 5 to 13 
+    for row in range(top, bottom + 1): # 5 to 13
         row_shift = row * ROW_SIZE
         current_row = (boards[turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
         current_row_opponent = (boards[not turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
@@ -220,6 +221,37 @@ def bitwise_heuristic(boards, turn, capture):
 
 
 
+
+
+    # Main diagonal scan (↘)
+    n = bottom - top + 1 # 3
+    m = right - left + 1 # 1
+    n_long = bottom_exp - top_exp + 1 #
+    m_long = right_exp - left_exp + 1 #
+
+    for k in range(n + m - 1):  # 0 to 2
+        # Calculate start and end rows for this diagonal
+        start_row = max(top_exp + n - k - 1, top_exp) # 14
+        start_col = max(left_exp - n + k + 1, left_exp)  #
+        length = min(left_exp - start_col + 1, start_row - bottom_exp + 1) #
+        # k + 9, n_long, m_long, (n_long + m_long - 1) - k,
+        diagonal_bits = 0
+        diagonal_opponent = 0
+
+        if length >= WINDOW_SIZE:
+            for i in range(length): # 0 to
+                row = start_row + i
+                col = start_col + i
+                bit_pos = row * ROW_SIZE + col
+                diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
+                diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+
+            if diagonal_bits:  # Skip empty diagonals
+                value += scan_window(diagonal_bits, diagonal_opponent, length)
+
+
+
+
     # Main diagonal scan (↘)
     n = bottom - top + 1 # 1
     m = right - left + 1 # 5
@@ -228,52 +260,23 @@ def bitwise_heuristic(boards, turn, capture):
 
     for k in range(n + m - 1):  # 0 to 4
         # Calculate start and end rows for this diagonal
-        start_row = max(top_exp + n - k - 1, top_exp) # 
-        start_col = max(left_exp - n + k + 1, left_exp)  # 
-        length = min(left_exp - start_col + 1, start_row - bottom_exp + 1) # 
-        # k + 9, n_long, m_long, (n_long + m_long - 1) - k, 
+        start_row = max(top_exp + n - k - 1, top_exp) #
+        start_col = max(left_exp - n + k + 1, left_exp)  #
+        length = min(left_exp - start_col + 1, start_row - bottom_exp + 1) #
+        # k + 9, n_long, m_long, (n_long + m_long - 1) - k,
         diagonal_bits = 0
         diagonal_opponent = 0
-        
+
         if length >= WINDOW_SIZE:
-            for i in range(length): # 0 to 
+            for i in range(length): # 0 to
                 row = start_row + i
                 col = start_col + i
                 bit_pos = row * ROW_SIZE + col
                 diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
                 diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-            
+
             if diagonal_bits:  # Skip empty diagonals
                 value += scan_window(diagonal_bits, diagonal_opponent, length)
-
-
-    # # Main diagonal scan (↘)
-    # n = bottom - top + 1 # 
-    # m = right - left + 1 # 
-    # n_long = bottom_exp - top_exp + 1 # 
-    # m_long = right_exp - left_exp + 1 # 
-
-    # for k in range(n + m - 1):  # 0 to 9
-    #     # Calculate start and end rows for this diagonal
-    #     start_row = max(top_exp + top - k, top_exp) # 
-    #     start_col = max(left_exp, left_exp - left + k)  # 
-    #     length = min(k + 9, n_long, m_long, (n_long + m_long - 1) - k) # 
-        
-    #     diagonal_bits = 0
-    #     diagonal_opponent = 0
-        
-    #     if length >= WINDOW_SIZE:
-    #         for i in range(length): # 0 to 
-    #             row = start_row + i
-    #             col = start_col + i
-    #             bit_pos = row * ROW_SIZE + col
-    #             diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-    #             diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-            
-    #         if diagonal_bits:  # Skip empty diagonals
-    #             value += scan_window(diagonal_bits, diagonal_opponent, length)
-
-
 
     # # Main diagonal scan (↘)
     # n = bottom - top + 1 # 5
@@ -286,10 +289,10 @@ def bitwise_heuristic(boards, turn, capture):
     #     start_row = max(top_exp + top - k, top_exp) # 4, 3, 2, 1, 0, 0, 0, 0, 0
     #     start_col = max(left_exp, left_exp - left + k)  # 0, 0, 0, 0, 0, 1, 2, 3, 4
     #     length = min(k + 9, n_long, m_long, (n_long + m_long - 1) - k) # 9, 10, 11, 12, 13, 12, 11, 10, 9
-        
+
     #     diagonal_bits = 0
     #     diagonal_opponent = 0
-        
+
     #     if length >= WINDOW_SIZE:
     #         for i in range(length): # 0 to 9
     #             row = start_row + i
@@ -297,7 +300,7 @@ def bitwise_heuristic(boards, turn, capture):
     #             bit_pos = row * ROW_SIZE + col
     #             diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
     #             diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-            
+
     #         if diagonal_bits:  # Skip empty diagonals
     #             value += scan_window(diagonal_bits, diagonal_opponent, length)
 
@@ -307,10 +310,10 @@ def bitwise_heuristic(boards, turn, capture):
     #     start_row = min(top_exp, top_exp + k - m + 1)
     #     start_col = min(right_exp, right_exp - k + m - 1)
     #     length = min(k + 9, n_long, m_long, (n_long + m_long - 1) - k)
-    
+
     #     anti_diagonal_bits = 0
     #     anti_diagonal_opponent = 0
-    
+
     #     if length >= WINDOW_SIZE:
     #         for i in range(length):
     #             row = start_row + i
@@ -318,7 +321,7 @@ def bitwise_heuristic(boards, turn, capture):
     #             bit_pos = row * ROW_SIZE + col
     #             anti_diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
     #             anti_diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
-            
+
     #         if anti_diagonal_bits:
     #             value += scan_window(anti_diagonal_bits, anti_diagonal_opponent, length)
 
@@ -327,11 +330,11 @@ def bitwise_heuristic(boards, turn, capture):
 
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
-    
+
     if depth == 0:#maybe one
         count[0] += 1
         return bitwise_heuristic(boards, turn, captures[turn])
-    
+
     moves = generate_legal_moves(boards, turn, captures[turn], t)
 
     if maximizing_player:
@@ -340,10 +343,10 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             new_boards = copy.deepcopy(boards)
             # new_captures = copy.deepcopy(captures)
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
-            
+
             if result:  # Win found
                 return float('inf')
-                
+
             eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t)
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
@@ -362,7 +365,7 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             if result:  # Loss found
 
                 return float('-inf')
-                
+
             eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
@@ -390,12 +393,12 @@ def bot_play(boards, turn, captures):
     alpha = float('-inf')
     beta = float('inf')
     count = [0]
-    
+
     # First check for winning moves
     # for move in moves:
     for move in moves:
         result = is_winning_move(boards, turn, move, [captures[0], captures[1]])
-        
+
         if result:  # Winning move found
             print("Found winning move")
             return move
@@ -409,15 +412,15 @@ def bot_play(boards, turn, captures):
         result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
 
 
-        
+
         if not result:  # Only evaluate non-winning moves
             eval = minimax(new_boards, DEPTH - 1, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
             alpha = max(alpha, eval)
-    
+
     print(f"Evaluated {count[0]} positions")
-    print(f"Time spent generating moves: {t[0]:.2f}s") 
+    print(f"Time spent generating moves: {t[0]:.2f}s")
     return best_move
 
