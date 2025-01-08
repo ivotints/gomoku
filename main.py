@@ -86,9 +86,9 @@ def main():
                             # turn is 1
                             move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
 
-                            result, update = handle_move(game.boards, game.turn, move, game.captures)
+                            is_win, has_capture = handle_move(game.boards, game.turn, move, game.captures)
 
-                            handle_turn(game, result, update, move)
+                            handle_turn(game, is_win, has_capture, move)
 
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False

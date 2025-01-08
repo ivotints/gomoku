@@ -1,4 +1,4 @@
-from macro import DIRECTIONS, THREE, DIRECTION_MIN
+from macro import DIRECTIONS
 from board import coordinate, out_of_bounds, SIZE
 BOARD_SIZE = SIZE - 1
 
@@ -14,24 +14,6 @@ def display_board(player1, player2):
                 row_display.append('.')
         print(' '.join(row_display))
     print("---------------")
-
-def check_capture_old(boards, move, turn):
-    capture = 0
-    capture_positions = []
-    for pos in DIRECTIONS:
-        # check for out of bounds
-        if out_of_bounds(move + pos * 3):
-            continue
-        # check for players piece if present
-        if not is_occupied(boards[turn], move + pos * 3):
-            continue
-        # check for opponent piece to eat
-        if is_occupied(boards[not turn], move + pos * 2) and is_occupied(boards[not turn], move + pos):
-            capture += 1
-            capture_positions.append(move + pos * 2)
-            capture_positions.append(move + pos)
-
-    return capture, capture_positions
 
 def is_capture(boards, y, x, turn):
     BOARD_SIZE = 19
@@ -200,96 +182,6 @@ def is_won(boards, turn, capture):
     if line is None or (capture == 4 and is_line_capture(boards, line, turn)): # if opponent has 4 captures and he can eat one more during the event where we have 5 in a row 
         return False
     return True
-
-# now i want to start check_double_three() from beginning. lets for now check only horizontal direction for pattern 0b01110. your goal is to extract from map 5 to 7 bits,  (pattern size is 5) depends on a how close to border we are. if we are on it we dont even check on nothing. We first calculate bits_space which is 5 to 7 bits depends on how close we to the border. than we take mask of that size and check if there is a opponent point in thet area. if result is != 0, we stop. then we take mask of  bits_space bits and apply it to current map. then we take its first  5 bits with mask and we compare it to pattern PATTERN_1. if it is same, we stop and do count as 1. if not, we continue by shifting one bit and
-
-# this is readable version. but not the fastest. 
-def check_double_three(board, y, x, turn):
-    BOARD_SIZE = 19
-    PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
-    MASKS = {5: 0b11111, 6: 0b111111}
-
-    # Inline place_piece
-    bit_position = y * BOARD_SIZE + x
-    board[turn][0] |= (1 << bit_position)  # Set bit
-    count = 0
-
-    def check_pattern(self_bits, opp_bits, space, pattern_len):
-        pattern = PATTERNS[0][0] if pattern_len == 5 else PATTERNS[1][0]
-        pattern2 = PATTERNS[2][0] if pattern_len == 6 else 0
-        mask = MASKS[pattern_len]
-        
-        for shift in range(space - pattern_len + 1):
-            if ((opp_bits >> shift) & mask) == 0:
-                chunk = (self_bits >> shift) & mask
-                if chunk == pattern or chunk == pattern2:
-                    return 1
-        return 0
-
-    def compute_spaces(coord, pattern_len):
-        max_extra = pattern_len - 2
-        left = min(coord, max_extra)
-        right = min((BOARD_SIZE - 1) - coord, max_extra)
-        return left, left + right + 1
-
-
-    # Check all directions
-    for pattern_len in [5, 6]:
-        # Horizontal
-        left, bits_space = compute_spaces(x, pattern_len)
-        if bits_space >= pattern_len:
-            row_self = (board[turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)
-            row_opp = (board[not turn][0] >> (y * BOARD_SIZE)) & ((1 << BOARD_SIZE) - 1)
-            extracted_self = (row_self >> (x - left)) & ((1 << bits_space) - 1)
-            extracted_opp = (row_opp >> (x - left)) & ((1 << bits_space) - 1)
-            count += check_pattern(extracted_self, extracted_opp, bits_space, pattern_len)
-
-
-
-
-        # Vertical
-        top, v_bits_space = compute_spaces(y, pattern_len)
-        if v_bits_space >= pattern_len:
-            extracted_self = extracted_opp = 0
-            for i in range(v_bits_space):
-                bit_pos = (y - top + i) * BOARD_SIZE + x
-                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
-            count += check_pattern(extracted_self, extracted_opp, v_bits_space, pattern_len)
-
-
-
-        # Diagonal (\)
-        d_left, d_bits_space = compute_spaces(min(y, x), pattern_len)
-        if d_bits_space >= pattern_len:
-            extracted_self = extracted_opp = 0
-            for i in range(d_bits_space):
-                bit_pos = (y - d_left + i) * BOARD_SIZE + (x - d_left + i)
-                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
-            count += check_pattern(extracted_self, extracted_opp, d_bits_space, pattern_len)
-
-
-
-        # Diagonal (/)
-        d_down = min((BOARD_SIZE - 1) - y, x, pattern_len - 2)
-        d_up = min(y, (BOARD_SIZE - 1) - x, pattern_len - 2)
-        d2_bits_space = d_down + d_up + 1
-        if d2_bits_space >= pattern_len:
-            extracted_self = extracted_opp = 0
-            for i in range(d2_bits_space):
-                bit_pos = (y + d_down - i) * BOARD_SIZE + (x - d_down + i)
-                extracted_self |= ((board[turn][0] >> bit_pos) & 1) << i
-                extracted_opp |= ((board[not turn][0] >> bit_pos) & 1) << i
-            count += check_pattern(extracted_self, extracted_opp, d2_bits_space, pattern_len)
-
-    board[turn][0] &= ~(1 << bit_position)  # Unset bit
-    return count > 1
-
-
-
-
-
 
 # this is unreadable version. but the fastest.
 def check_double_three(board, y, x, turn):

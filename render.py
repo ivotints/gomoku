@@ -3,19 +3,16 @@ from macro import BLACK
 from board import SIZE, WIDTH
 from game import is_occupied
 
-# can we store somewhere this image of board not to create it every time?
 def draw_board(win):
     win.fill((235,173,100))
-    square = WIDTH / SIZE # 47.6
+    square = WIDTH / SIZE
     for i in range(1, SIZE):
-        # vertical lines      x           y         x               y
         pyd.line(win, BLACK, (i * square, square), (i * square, WIDTH - square), width=2)
-        # horizontal lines    x           y         x               y
         pyd.line(win, BLACK, (square, i * square), (WIDTH - square, i * square), width=2)
 
 def find_mouse_pos(pos):
     x, y = pos
-    w = WIDTH / SIZE # 47.6
+    w = WIDTH / SIZE
     if x < w - w / 3 or x > WIDTH - w + w / 3 or y < w - w / 3 or y > WIDTH - w + w / 3:
         return None
     x = round(x / w)
@@ -36,7 +33,7 @@ def display_board(player1, player2):
     print("---------------")
 
 def update_board(boards, win):
-    draw_board(win) # this will again create image of board, can we store it somewhere?
+    draw_board(win)
     for player, board in enumerate(boards):
         b = board.copy()
         pos = 0
