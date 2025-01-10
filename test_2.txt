@@ -1,9 +1,0 @@
-#before good check on win line
-Evaluated 81587 positions
-Time spent generating moves: 26.22s
-Time taken: 55.66
-
-#after has_winning_line()
-Evaluated 81587 positions
-Time spent generating moves: 14.20s
-Time taken: 41.65
