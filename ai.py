@@ -231,7 +231,7 @@ def bitwise_heuristic(boards, turn, capture):
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
 
-    if depth == 0:#maybe one
+    if depth == 0:
         count[0] += 1
         return bitwise_heuristic(boards, turn, captures[turn])
 
@@ -249,6 +249,9 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t)
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
+            # will be faster in theory
+            # max_eval = max_eval if max_eval > eval else eval
+            # alpha = alpha if alpha > eval else eval
             if beta <= alpha:
                 break  # Beta cut-off
         return max_eval
@@ -266,6 +269,9 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
+            # will be faster in theory
+            # min_eval = min_eval if min_eval < eval else eval
+            # beta = beta if beta < eval else eval
             if beta <= alpha:
                 break  # Alpha cut-off
         return min_eval
