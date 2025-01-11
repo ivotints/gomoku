@@ -31,11 +31,12 @@ def handle_move_bot(boards, turn, move, captures):
 def generate_legal_moves(boards, turn, capture, t):
     start_time = time.time()
     legal_moves = []
+    COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001 # 000000000000000000
+    ROW_MASK = 0b1111111111111111111
     ROW_SIZE = 19
     union_board = boards[0][0] | boards[1][0]
 
     # 1) Define the bounding box
-    ROW_MASK = (1 << ROW_SIZE) - 1
     top = 0
     while top < ROW_SIZE and ((union_board >> (top * ROW_SIZE)) & ROW_MASK) == 0:
         top += 1
@@ -43,23 +44,10 @@ def generate_legal_moves(boards, turn, capture, t):
     while bottom >= 0 and ((union_board >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
         bottom -= 1
     left = 0
-    while left < ROW_SIZE:
-        has_piece = False
-        for row in range(top, bottom + 1):
-            bit_pos = row * ROW_SIZE + left
-            has_piece |= (union_board >> bit_pos) & 1
-        if has_piece:
-            break
+    while left < ROW_SIZE and ((union_board >> left) & COL_MASK) == 0:
         left += 1
-    
     right = ROW_SIZE - 1
-    while right >= 0:
-        has_piece = False
-        for row in range(top, bottom + 1):
-            bit_pos = row * ROW_SIZE + right
-            has_piece |= (union_board >> bit_pos) & 1
-        if has_piece:
-            break
+    while right >= 0 and ((union_board >> right) & COL_MASK) == 0:
         right -= 1
     # print(f"Bounding box:", top, bottom, left, right)
 
@@ -86,7 +74,8 @@ def generate_legal_moves(boards, turn, capture, t):
                 # Skip if out of bounds or if extracting 3 bits would overflow
                 if check_row < top or check_row > bottom:
                     continue
-                check_col = max(col - 1, left)
+                check_col = col - 1 if col - 1 > left else left
+
 
                 shift_pos = check_row * ROW_SIZE + check_col
                 window_mask |= (union_board >> shift_pos) & mask
@@ -108,6 +97,7 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
     ROW_MASK = 0b1111111111111111111
+    COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001 # 000000000000000000
     WINDOW_MASK = (1 << WINDOW_SIZE) - 1
     value = 0
 
@@ -124,22 +114,10 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
     while bottom >= 0 and ((union_board >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
         bottom -= 1
     left = 0
-    while left < ROW_SIZE:
-        has_piece = False
-        for row in range(top, bottom + 1):
-            bit_pos = row * ROW_SIZE + left
-            has_piece |= (union_board >> bit_pos) & 1
-        if has_piece:
-            break
+    while left < ROW_SIZE and ((union_board >> left) & COL_MASK) == 0:
         left += 1
     right = ROW_SIZE - 1
-    while right >= 0:
-        has_piece = False
-        for row in range(top, bottom + 1):
-            bit_pos = row * ROW_SIZE + right
-            has_piece |= (union_board >> bit_pos) & 1
-        if has_piece:
-            break
+    while right >= 0 and ((union_board >> right) & COL_MASK) == 0:
         right -= 1
 
     expand = WINDOW_SIZE - 1
