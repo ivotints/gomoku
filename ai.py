@@ -83,7 +83,7 @@ def bitwise_heuristic(boards, turn, capture):
 
     # Find bounding box
     if capture > 4:
-        return 10000000 # 10 000 000
+        return float('inf') # 10 000 000
     top = 0
     while top < ROW_SIZE and ((boards[turn][0] >> (top * ROW_SIZE)) & ROW_MASK) == 0:
         top += 1
@@ -133,7 +133,7 @@ def bitwise_heuristic(boards, turn, capture):
                     bits_count += 1
                 if bits_count > 1:
                     if bits_count == 5:
-                        return 10000000
+                        return float('inf')
                     value += 1 << (3 * (bits_count - 2))
 
     # Vertical scan
@@ -157,7 +157,7 @@ def bitwise_heuristic(boards, turn, capture):
                     bits_count += 1
                 if bits_count > 1:
                     if bits_count == 5:
-                        return 10000000
+                        return float('inf')
                     value += 1 << (3 * (bits_count - 2))
 
     # Main diagonal scan (↘)
@@ -192,7 +192,7 @@ def bitwise_heuristic(boards, turn, capture):
                             bits_count += 1
                         if bits_count > 1:
                             if bits_count == 5:
-                                return 10000000
+                                return float('inf')
                             value += 1 << (3 * (bits_count - 2))
 
     # Anti-diagonal scan (↙)
@@ -224,16 +224,16 @@ def bitwise_heuristic(boards, turn, capture):
                             bits_count += 1
                         if bits_count > 1:
                             if bits_count == 5:
-                                return 10000000
+                                return float('inf')
                             value += 1 << (3 * (bits_count - 2))
 
     return 16 * (2 ** capture) + value
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
 
-    if depth == 0:
+    if depth == 1:
         count[0] += 1
-        return bitwise_heuristic(boards, turn, captures[turn])
+        return bitwise_heuristic(boards, turn, captures[turn])  - bitwise_heuristic(boards, not turn, captures[not turn])
 
     moves = generate_legal_moves(boards, turn, captures[turn], t)
 
@@ -313,7 +313,7 @@ def bot_play(boards, turn, captures):
         is_win = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
 
         if not is_win:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, DEPTH - 1, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures, count, t)
             if eval > best_eval:
                 best_eval = eval
                 best_move = move
