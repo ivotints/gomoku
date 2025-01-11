@@ -276,50 +276,63 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
 
     return (16 * (2 ** capture) + value) - (16 * (2 ** capture_opponent))
 
-def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
+def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t, transposition_table=None):
+    if transposition_table is None:
+        transposition_table = {}
+
+    board_hash = hash((boards[0][0], boards[1][0]))
+    if board_hash in transposition_table and transposition_table[board_hash][1] >= depth:
+        return transposition_table[board_hash][0]
 
     if depth == 1:
         count[0] += 1
-        return bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
+        value = bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
+        transposition_table[board_hash] = (value, depth)
+        return value
+
     moves = generate_legal_moves(boards, turn, captures[turn], t)
+    
+    if depth > 2:
+        # Move ordering
+        move_values = []
+        for move in moves:
+            # Quick static evaluation
+            new_boards = copy.deepcopy(boards)
+            handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+            value = bitwise_heuristic(new_boards, turn, captures[turn], captures[not turn])
+            move_values.append((move, value))
+        
+        # Sort moves based on evaluation
+        move_values.sort(key=lambda x: x[1], reverse=maximizing_player)
+        moves = [move for move, _ in move_values]
 
     if maximizing_player:
         max_eval = float('-inf')
         for move in moves:
             new_boards = copy.deepcopy(boards)
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
-
-            if result:  # Win found
+            if result:
                 return float('inf')
-
-            eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t, transposition_table)
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
-            # will be faster in theory
-            # max_eval = max_eval if max_eval > eval else eval
-            # alpha = alpha if alpha > eval else eval
             if beta <= alpha:
-                break  # Beta cut-off
+                break
+        transposition_table[board_hash] = (max_eval, depth)
         return max_eval
     else:
         min_eval = float('inf')
         for move in moves:
             new_boards = copy.deepcopy(boards)
-
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
-
-            if result:  # Loss found
-
+            if result:
                 return float('-inf')
-
-            eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
+            eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t, transposition_table)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
-            # will be faster in theory
-            # min_eval = min_eval if min_eval < eval else eval
-            # beta = beta if beta < eval else eval
             if beta <= alpha:
-                break  # Alpha cut-off
+                break
+        transposition_table[board_hash] = (min_eval, depth)
         return min_eval
 
 def is_winning_move(boards, turn, move, captures):
