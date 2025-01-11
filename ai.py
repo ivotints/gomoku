@@ -97,8 +97,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
     ROW_MASK = 0b1111111111111111111
-    COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001 # 000000000000000000
-    WINDOW_MASK = (1 << WINDOW_SIZE) - 1
+    COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001
+    WINDOW_MASK = 0b11111
     value = 0
 
     # Find bounding box
@@ -304,19 +304,26 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
 
     moves = generate_legal_moves(boards, turn, captures[turn], t)
     
+
+
+    # Sort moves based on evaluation. But does it help? 
     if depth > 2:
         # Move ordering
         move_values = []
         for move in moves:
             # Quick static evaluation
             new_boards = copy.deepcopy(boards)
-            handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
+            handle_move_bot_void(new_boards, turn, move, [captures[0], captures[1]])
             value = bitwise_heuristic(new_boards, turn, captures[turn], captures[not turn])
             move_values.append((move, value))
         
         # Sort moves based on evaluation
         move_values.sort(key=lambda x: x[1], reverse=maximizing_player)
         moves = [move for move, _ in move_values]
+
+
+
+
 
     if maximizing_player:
         max_eval = float('-inf')
