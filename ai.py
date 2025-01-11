@@ -74,7 +74,7 @@ def generate_legal_moves(boards, turn, capture, t):
     t[0] += time.time() - start_time
     return legal_moves
 
-def bitwise_heuristic(boards, turn, capture):
+def bitwise_heuristic(boards, turn, capture, capture_opponent):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
     ROW_MASK = 0b1111111111111111111
@@ -83,7 +83,9 @@ def bitwise_heuristic(boards, turn, capture):
 
     # Find bounding box
     if capture > 4:
-        return float('inf') # 10 000 000
+        return float('inf') 
+    if capture_opponent > 4:
+        return float('-inf') 
     top = 0
     while top < ROW_SIZE and ((boards[turn][0] >> (top * ROW_SIZE)) & ROW_MASK) == 0:
         top += 1
@@ -114,6 +116,8 @@ def bitwise_heuristic(boards, turn, capture):
     bottom_exp = ROW_SIZE - 1 if bottom + expand >= ROW_SIZE else bottom + expand
     left_exp = 0 if left - expand < 0 else left - expand
     right_exp = ROW_SIZE - 1 if right + expand >= ROW_SIZE else right + expand
+    n = bottom - top + 1
+    m = right - left + 1
 
     # Horizontal scan
     for row in range(top, bottom + 1):
@@ -121,11 +125,11 @@ def bitwise_heuristic(boards, turn, capture):
         current_row = (boards[turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
         current_row_opponent = (boards[not turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
         
-        # Inline scan_window logic
         for window_shift in range(right_exp - left_exp - WINDOW_SIZE + 2):
+            window_turn = (current_row >> window_shift) & WINDOW_MASK
             window_opponent = (current_row_opponent >> window_shift) & WINDOW_MASK
+            
             if window_opponent == 0:
-                window_turn = (current_row >> window_shift) & WINDOW_MASK
                 bits_count = 0
                 temp_window = window_turn
                 while temp_window:
@@ -135,6 +139,17 @@ def bitwise_heuristic(boards, turn, capture):
                     if bits_count == 5:
                         return float('inf')
                     value += 1 << (3 * (bits_count - 2))
+                    
+            if window_turn == 0:
+                bits_count = 0
+                temp_window = window_opponent
+                while temp_window:
+                    temp_window &= (temp_window - 1)
+                    bits_count += 1
+                if bits_count > 1:
+                    if bits_count == 5:
+                        return float('-inf')
+                    value -= 1 << (3 * (bits_count - 2))
 
     # Vertical scan
     for col in range(left, right + 1):
@@ -147,9 +162,10 @@ def bitwise_heuristic(boards, turn, capture):
         
         # Inline scan_window logic
         for window_shift in range(bottom_exp - top_exp - WINDOW_SIZE + 2):
+            window_turn = (vertical_bits >> window_shift) & WINDOW_MASK
             window_opponent = (vertical_opponent >> window_shift) & WINDOW_MASK
+            
             if window_opponent == 0:
-                window_turn = (vertical_bits >> window_shift) & WINDOW_MASK
                 bits_count = 0
                 temp_window = window_turn
                 while temp_window:
@@ -159,16 +175,27 @@ def bitwise_heuristic(boards, turn, capture):
                     if bits_count == 5:
                         return float('inf')
                     value += 1 << (3 * (bits_count - 2))
+            
+            if window_turn == 0:
+                bits_count = 0
+                temp_window = window_opponent
+                while temp_window:
+                    temp_window &= (temp_window - 1)
+                    bits_count += 1
+                if bits_count > 1:
+                    if bits_count == 5:
+                        return float('-inf')
+                    value -= 1 << (3 * (bits_count - 2))
 
     # Main diagonal scan (↘)
     n = bottom - top + 1
     m = right - left + 1
-
+    
     for k in range(n + m - 1):
         start_row = top_exp + n - k - 1 if top_exp + n - k - 1 > top_exp else top_exp
         start_col = left_exp - n + k + 1 if left_exp - n + k + 1 > left_exp else left_exp
         length = bottom_exp - start_row + 1 if bottom_exp - start_row + 1 < right_exp - start_col + 1 else right_exp - start_col + 1
-
+    
         if length >= WINDOW_SIZE:
             diagonal_bits = 0
             diagonal_opponent = 0
@@ -179,28 +206,38 @@ def bitwise_heuristic(boards, turn, capture):
                 diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
                 diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
             
-            if diagonal_bits:
-                # Inline scan_window logic
-                for window_shift in range(length - WINDOW_SIZE + 1):
-                    window_opponent = (diagonal_opponent >> window_shift) & WINDOW_MASK
-                    if window_opponent == 0:
-                        window_turn = (diagonal_bits >> window_shift) & WINDOW_MASK
-                        bits_count = 0
-                        temp_window = window_turn
-                        while temp_window:
-                            temp_window &= (temp_window - 1)
-                            bits_count += 1
-                        if bits_count > 1:
-                            if bits_count == 5:
-                                return float('inf')
-                            value += 1 << (3 * (bits_count - 2))
+            for window_shift in range(length - WINDOW_SIZE + 1):
+                window_turn = (diagonal_bits >> window_shift) & WINDOW_MASK
+                window_opponent = (diagonal_opponent >> window_shift) & WINDOW_MASK
+                
+                if window_opponent == 0:
+                    bits_count = 0
+                    temp_window = window_turn
+                    while temp_window:
+                        temp_window &= (temp_window - 1)
+                        bits_count += 1
+                    if bits_count > 1:
+                        if bits_count == 5:
+                            return float('inf')
+                        value += 1 << (3 * (bits_count - 2))
+                
+                if window_turn == 0:
+                    bits_count = 0
+                    temp_window = window_opponent
+                    while temp_window:
+                        temp_window &= (temp_window - 1)
+                        bits_count += 1
+                    if bits_count > 1:
+                        if bits_count == 5:
+                            return float('-inf')
+                        value -= 1 << (3 * (bits_count - 2))
 
-    # Anti-diagonal scan (↙)
+     # Anti-diagonal scan (↙)
     for k in range(n + m - 1):
         start_row = top_exp + n - k - 1 if top_exp + n - k - 1 > top_exp else top_exp
         start_col = right_exp + n - k - 1 if right_exp + n - k - 1 < right_exp else right_exp
         length = bottom_exp - start_row + 1 if bottom_exp - start_row + 1 < start_col - left_exp + 1 else start_col - left_exp + 1
-
+    
         if length >= WINDOW_SIZE:
             anti_bits = 0
             anti_opponent = 0
@@ -210,31 +247,40 @@ def bitwise_heuristic(boards, turn, capture):
                 bit_pos = row * ROW_SIZE + col
                 anti_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
                 anti_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+    
+            for window_shift in range(length - WINDOW_SIZE + 1):
+                window_turn = (anti_bits >> window_shift) & WINDOW_MASK
+                window_opponent = (anti_opponent >> window_shift) & WINDOW_MASK
+                
+                if window_opponent == 0:
+                    bits_count = 0
+                    temp_window = window_turn
+                    while temp_window:
+                        temp_window &= (temp_window - 1)
+                        bits_count += 1
+                    if bits_count > 1:
+                        if bits_count == 5:
+                            return float('inf')
+                        value += 1 << (3 * (bits_count - 2))
+                
+                if window_turn == 0:
+                    bits_count = 0
+                    temp_window = window_opponent
+                    while temp_window:
+                        temp_window &= (temp_window - 1)
+                        bits_count += 1
+                    if bits_count > 1:
+                        if bits_count == 5:
+                            return float('-inf')
+                        value -= 1 << (3 * (bits_count - 2))
 
-            if anti_bits:
-                # Inline scan_window logic
-                for window_shift in range(length - WINDOW_SIZE + 1):
-                    window_opponent = (anti_opponent >> window_shift) & WINDOW_MASK
-                    if window_opponent == 0:
-                        window_turn = (anti_bits >> window_shift) & WINDOW_MASK
-                        bits_count = 0
-                        temp_window = window_turn
-                        while temp_window:
-                            temp_window &= (temp_window - 1)
-                            bits_count += 1
-                        if bits_count > 1:
-                            if bits_count == 5:
-                                return float('inf')
-                            value += 1 << (3 * (bits_count - 2))
-
-    return 16 * (2 ** capture) + value
+    return (16 * (2 ** capture) + value) - (16 * (2 ** capture_opponent))
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
 
     if depth == 1:
         count[0] += 1
-        return bitwise_heuristic(boards, turn, captures[turn])  - bitwise_heuristic(boards, not turn, captures[not turn])
-
+        return bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
     moves = generate_legal_moves(boards, turn, captures[turn], t)
 
     if maximizing_player:
