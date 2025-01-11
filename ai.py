@@ -3,6 +3,18 @@ import copy
 from macro import DEPTH
 import time
 
+
+# do not return anything
+def handle_move_bot_void(boards, turn, move, captures) -> None:
+    y = move // 19
+    x = move % 19
+    capture, pos = check_capture(boards, y, x, turn)
+    boards[turn][0] |= (1 << move)
+    if capture: # here it will delete opponent's pieces
+        captures[turn] += capture
+        for p in pos:
+            boards[not turn][0] &= ~(1 << p)
+
 def handle_move_bot(boards, turn, move, captures):
     y = move // 19
     x = move % 19
@@ -19,7 +31,6 @@ def handle_move_bot(boards, turn, move, captures):
 def generate_legal_moves(boards, turn, capture, t):
     start_time = time.time()
     legal_moves = []
-
     ROW_SIZE = 19
     union_board = boards[0][0] | boards[1][0]
 
@@ -32,11 +43,25 @@ def generate_legal_moves(boards, turn, capture, t):
     while bottom >= 0 and ((union_board >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
         bottom -= 1
     left = 0
-    while left < ROW_SIZE and not any((union_board >> (row * ROW_SIZE + left)) & 1 for row in range(top, bottom + 1)):
+    while left < ROW_SIZE:
+        has_piece = False
+        for row in range(top, bottom + 1):
+            bit_pos = row * ROW_SIZE + left
+            has_piece |= (union_board >> bit_pos) & 1
+        if has_piece:
+            break
         left += 1
+    
     right = ROW_SIZE - 1
-    while right >= 0 and not any((union_board >> (row * ROW_SIZE + right)) & 1 for row in range(top, bottom + 1)):
+    while right >= 0:
+        has_piece = False
+        for row in range(top, bottom + 1):
+            bit_pos = row * ROW_SIZE + right
+            has_piece |= (union_board >> bit_pos) & 1
+        if has_piece:
+            break
         right -= 1
+    # print(f"Bounding box:", top, bottom, left, right)
 
     # Optionally expand bounding box
     expand = 1
@@ -45,23 +70,26 @@ def generate_legal_moves(boards, turn, capture, t):
     left = 0 if left - expand < 0 else left - expand
     right = ROW_SIZE - 1 if right + expand >= ROW_SIZE else right + expand
 
+    # print(f"Bounding box:", top, bottom, left, right)
 
     # 2) Iterate through the bounding box with a 3x3 sliding window
-    for row in range(top, bottom + 1):
-        for col in range(left, right + 1):
-
+    if right - left == 1:
+        mask = 0b11
+    else:
+        mask = 0b111
+    for row in range(top, bottom + 1): # 0, 1, 2
+        for col in range(left, right + 1): # 0, 1
 
             window_mask = 0
             for i in range(-1, 2):
                 check_row = row + i
-                check_col = col - 1
                 # Skip if out of bounds or if extracting 3 bits would overflow
-                if check_row < 0 or check_row >= ROW_SIZE:
+                if check_row < top or check_row > bottom:
                     continue
-                if check_col < 0 or (check_col + 2) >= ROW_SIZE:
-                    continue
-                shift_pos = (row + i) * ROW_SIZE + col - 1
-                window_mask |= (union_board >> shift_pos) & 0b111  # 3 bits
+                check_col = max(col - 1, left)
+
+                shift_pos = check_row * ROW_SIZE + check_col
+                window_mask |= (union_board >> shift_pos) & mask
 
             # If the sliding window is not empty, check legality of center position
             if window_mask != 0:
@@ -72,6 +100,8 @@ def generate_legal_moves(boards, turn, capture, t):
 
     # Record time
     t[0] += time.time() - start_time
+    # print(legal_moves)
+    # time.sleep(111111)
     return legal_moves
 
 def bitwise_heuristic(boards, turn, capture, capture_opponent):
@@ -86,18 +116,19 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
         return float('inf') 
     if capture_opponent > 4:
         return float('-inf') 
+    union_board = boards[0][0] | boards[1][0]
     top = 0
-    while top < ROW_SIZE and ((boards[turn][0] >> (top * ROW_SIZE)) & ROW_MASK) == 0:
+    while top < ROW_SIZE and ((union_board >> (top * ROW_SIZE)) & ROW_MASK) == 0:
         top += 1
     bottom = ROW_SIZE - 1
-    while bottom >= 0 and ((boards[turn][0] >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
+    while bottom >= 0 and ((union_board >> (bottom * ROW_SIZE)) & ROW_MASK) == 0:
         bottom -= 1
     left = 0
     while left < ROW_SIZE:
         has_piece = False
         for row in range(top, bottom + 1):
             bit_pos = row * ROW_SIZE + left
-            has_piece |= (boards[turn][0] >> bit_pos) & 1
+            has_piece |= (union_board >> bit_pos) & 1
         if has_piece:
             break
         left += 1
@@ -106,7 +137,7 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
         has_piece = False
         for row in range(top, bottom + 1):
             bit_pos = row * ROW_SIZE + right
-            has_piece |= (boards[turn][0] >> bit_pos) & 1
+            has_piece |= (union_board >> bit_pos) & 1
         if has_piece:
             break
         right -= 1
@@ -284,6 +315,9 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
     if board_hash in transposition_table and transposition_table[board_hash][1] >= depth:
         return transposition_table[board_hash][0]
 
+    if is_won(boards, turn, captures[not turn]):
+        return float('-inf') if turn == 0 else float('inf')
+
     if depth == 1:
         count[0] += 1
         value = bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
@@ -350,33 +384,26 @@ def is_winning_move(boards, turn, move, captures):
 def bot_play(boards, turn, captures):
     t = [0]
     moves = generate_legal_moves(boards, turn, captures[turn], t)
+
+    for move in moves:
+        if is_winning_move(boards, turn, move, captures):
+            return move
+
     best_move = moves[0]  # Default to first move
     best_eval = float('-inf')
     alpha = float('-inf')
     beta = float('inf')
     count = [0]
 
-    # First check for winning moves
-    # for move in moves:
-    for move in moves:
-        is_win = is_winning_move(boards, turn, move, [captures[0], captures[1]])
-
-        if is_win:  # Winning move found
-            print("Found winning move")
-            return move
-
-    # If no winning move, do minimax search
     for move in moves:
         new_boards = copy.deepcopy(boards)
+        handle_move_bot_void(new_boards, turn, move, [captures[0], captures[1]])
 
-        is_win = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
-
-        if not is_win:  # Only evaluate non-winning moves
-            eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures, count, t)
-            if eval > best_eval:
-                best_eval = eval
-                best_move = move
-            alpha = max(alpha, eval)
+        eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures, count, t)
+        if eval > best_eval:
+            best_eval = eval
+            best_move = move
+        alpha = max(alpha, eval)
 
     print(f"Evaluated {count[0]} positions")
     print(f"Time spent generating moves: {t[0]:.2f}s")
