@@ -2,7 +2,7 @@ from game import check_capture, is_won, is_legal_lite, has_winning_line
 import copy
 from macro import DEPTH
 import time
-
+from wrapper import heuristic
 
 # do not return anything
 def handle_move_bot_void(boards, turn, move, captures) -> None:
@@ -93,7 +93,7 @@ def generate_legal_moves(boards, turn, capture, t):
     # time.sleep(111111)
     return legal_moves
 
-def bitwise_heuristic(boards, turn, capture, capture_opponent):
+def bitwise_heuristic(board_turn, board_not_turn, capture, capture_opponent):
     ROW_SIZE = 19
     WINDOW_SIZE = 5
     ROW_MASK = 0b1111111111111111111
@@ -106,7 +106,7 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
         return float('inf') 
     if capture_opponent > 4:
         return float('-inf') 
-    union_board = boards[0][0] | boards[1][0]
+    union_board = board_turn | board_not_turn
     top = 0
     while top < ROW_SIZE and ((union_board >> (top * ROW_SIZE)) & ROW_MASK) == 0:
         top += 1
@@ -131,8 +131,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
     # Horizontal scan
     for row in range(top, bottom + 1):
         row_shift = row * ROW_SIZE
-        current_row = (boards[turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
-        current_row_opponent = (boards[not turn][0] >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
+        current_row = (board_turn >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
+        current_row_opponent = (board_not_turn >> row_shift) & ((1 << (right_exp + 1)) - (1 << left_exp))
         
         for window_shift in range(right_exp - left_exp - WINDOW_SIZE + 2):
             window_turn = (current_row >> window_shift) & WINDOW_MASK
@@ -166,8 +166,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
         vertical_opponent = 0
         for row in range(top_exp, bottom_exp + 1):
             bit_pos = row * ROW_SIZE + col
-            vertical_bits |= ((boards[turn][0] >> bit_pos) & 1) << (row - top_exp)
-            vertical_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << (row - top_exp)
+            vertical_bits |= ((board_turn >> bit_pos) & 1) << (row - top_exp)
+            vertical_opponent |= ((board_not_turn >> bit_pos) & 1) << (row - top_exp)
         
         # Inline scan_window logic
         for window_shift in range(bottom_exp - top_exp - WINDOW_SIZE + 2):
@@ -212,8 +212,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
                 row = start_row + i
                 col = start_col + i
                 bit_pos = row * ROW_SIZE + col
-                diagonal_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-                diagonal_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+                diagonal_bits |= ((board_turn >> bit_pos) & 1) << i
+                diagonal_opponent |= ((board_not_turn >> bit_pos) & 1) << i
             
             for window_shift in range(length - WINDOW_SIZE + 1):
                 window_turn = (diagonal_bits >> window_shift) & WINDOW_MASK
@@ -254,8 +254,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
                 row = start_row + i
                 col = start_col - i
                 bit_pos = row * ROW_SIZE + col
-                anti_bits |= ((boards[turn][0] >> bit_pos) & 1) << i
-                anti_opponent |= ((boards[not turn][0] >> bit_pos) & 1) << i
+                anti_bits |= ((board_turn >> bit_pos) & 1) << i
+                anti_opponent |= ((board_not_turn >> bit_pos) & 1) << i
     
             for window_shift in range(length - WINDOW_SIZE + 1):
                 window_turn = (anti_bits >> window_shift) & WINDOW_MASK
@@ -288,7 +288,8 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
     if depth == 1:
         count[0] += 1
-        value = bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
+        value = heuristic(boards[turn][0], boards[not turn][0],captures[turn],captures[not turn])
+        # value = bitwise_heuristic(boards[turn][0], boards[not turn][0], captures[turn], captures[not turn])
         return value
 
     moves = generate_legal_moves(boards, turn, captures[turn], t)

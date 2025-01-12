@@ -55,3 +55,40 @@ Time taken: 14.74
 Evaluated 237599 positions
 Time spent generating moves: 11.07s
 Time taken: 33.57
+Evaluated 237599 positions
+Time spent generating moves: 11.27s
+Time taken: 33.99
+
+# passing integers instead of pointers on them in heuristic
+Evaluated 237599 positions
+Time spent generating moves: 11.09s
+Time taken: 32.35
+Evaluated 237599 positions
+Time spent generating moves: 11.22s
+Time taken: 32.76
+Evaluated 237599 positions
+Time spent generating moves: 11.17s
+Time taken: 32.62
+
+# with c++ heuristic
+Evaluated 237599 positions
+Time spent generating moves: 11.32s
+Time taken: 21.76
+
+running build
+running build_ext
+Evaluated 237599 positions
+Time spent generating moves: 11.61s
+Time taken: 22.41
+
+running build
+running build_ext
+Evaluated 237599 positions
+Time spent generating moves: 11.41s
+Time taken: 21.95
+
+running build
+running build_ext
+Evaluated 237599 positions
+Time spent generating moves: 11.39s
+Time taken: 21.81
