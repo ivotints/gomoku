@@ -106,6 +106,7 @@ def bitwise_heuristic(board_turn, board_not_turn, capture, capture_opponent):
         return float('inf') 
     if capture_opponent > 4:
         return float('-inf') 
+    
     union_board = board_turn | board_not_turn
     top = 0
     while top < ROW_SIZE and ((union_board >> (top * ROW_SIZE)) & ROW_MASK) == 0:

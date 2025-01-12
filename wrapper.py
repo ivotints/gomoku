@@ -15,7 +15,7 @@ _lib.bitwise_heuristic.argtypes = [
     ctypes.c_int,
     ctypes.c_int
 ]
-_lib.bitwise_heuristic.restype = ctypes.c_double
+_lib.bitwise_heuristic.restype = ctypes.c_int
 
 
 def convert_to_array(board_int):
