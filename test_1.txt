@@ -51,3 +51,7 @@ Evaluated 103391 positions
 Time spent generating moves: 7.05s
 Time taken: 14.74
 
+# smarter heuristic with calculation of opponent's value
+Evaluated 237599 positions
+Time spent generating moves: 11.07s
+Time taken: 33.57

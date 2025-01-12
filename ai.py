@@ -286,20 +286,9 @@ def bitwise_heuristic(boards, turn, capture, capture_opponent):
     return (16 * (2 ** capture) + value) - (16 * (2 ** capture_opponent))
 
 def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
-    # if transposition_table is None:
-    #     transposition_table = {}
-
-    # board_hash = hash((boards[0][0], boards[1][0]))
-    # if board_hash in transposition_table and transposition_table[board_hash][1] >= depth:
-    #     return transposition_table[board_hash][0]
-
-    # if is_won(boards, turn, captures[not turn]):
-    #     return float('-inf') if turn == 0 else float('inf')
-
     if depth == 1:
         count[0] += 1
         value = bitwise_heuristic(boards, turn, captures[turn], captures[not turn])
-        # transposition_table[board_hash] = (value, depth)
         return value
 
     moves = generate_legal_moves(boards, turn, captures[turn], t)
@@ -316,7 +305,6 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break
-        # transposition_table[board_hash] = (max_eval, depth)
         return max_eval
     else:
         min_eval = float('inf')
@@ -330,7 +318,6 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             beta = min(beta, eval)
             if beta <= alpha:
                 break
-        # transposition_table[board_hash] = (min_eval, depth)
         return min_eval
 
 def is_winning_move(boards, turn, move, captures):
