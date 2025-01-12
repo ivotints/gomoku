@@ -1,4 +1,4 @@
-WIDTH = 1000
+WIDTH = 800
 SIZE = 20
 
 class coordinate:

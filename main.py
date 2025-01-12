@@ -69,8 +69,8 @@ def main():
                 if event.type == py.QUIT:
                     game.running = False
                 if event.type == py.MOUSEBUTTONDOWN:
-                    pos = find_mouse_pos(py.mouse.get_pos()) #(x, y) from 0 to 18
-                    print("mouse pos:", pos)
+                    pos = find_mouse_pos(py.mouse.get_pos())
+                    # print("mouse pos:", pos)
                     if pos is None:
                         continue
                     move = pos[1] * 19 + pos[0]
