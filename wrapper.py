@@ -37,6 +37,33 @@ _lib.is_legal_lite.argtypes = [
 ]
 _lib.is_legal_lite.restype = ctypes.c_bool
 
+# Add to existing argtypes definitions
+class CaptureResult(ctypes.Structure):
+    _fields_ = [("capture_count", ctypes.c_int),
+                ("positions", ctypes.POINTER(ctypes.c_int)),
+                ("position_count", ctypes.c_int)]
+
+_lib.check_capture_cpp.argtypes = [
+    ctypes.POINTER(ctypes.c_uint32),
+    ctypes.POINTER(ctypes.c_uint32),
+    ctypes.c_int,
+    ctypes.c_int
+]
+_lib.check_capture_cpp.restype = CaptureResult
+
+_lib.is_won_cpp.argtypes = [
+    ctypes.POINTER(ctypes.c_uint32),  # board_turn
+    ctypes.POINTER(ctypes.c_uint32),  # board_not_turn
+    ctypes.c_int,                     # turn
+    ctypes.c_int                      # capture_opponent
+]
+_lib.is_won_cpp.restype = ctypes.c_bool
+
+class MinimaxResult(ctypes.Structure):
+    _fields_ = [("value", ctypes.c_int),
+                ("best_move", ctypes.c_int)]
+
+
 def convert_to_array(board_int):
     # Convert 19x19 board integer to array of 19 uint32
     arr = np.zeros(19, dtype=np.uint32)
@@ -82,4 +109,28 @@ def is_legal_lite(capture, board_turn, board_not_turn, y, x):
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         y,
         x
+    )
+
+def check_capture(board_turn, board_not_turn, y, x):
+    arr_turn = convert_to_array(board_turn)
+    arr_not_turn = convert_to_array(board_not_turn)
+    
+    result = _lib.check_capture_cpp(
+        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        y, x
+    )
+    
+    positions = [result.positions[i] for i in range(result.position_count)]
+    return result.capture_count, positions
+
+def is_won(boards, turn, capture_opponent):
+    arr_turn = convert_to_array(boards[turn][0])
+    arr_not_turn = convert_to_array(boards[not turn][0])
+    
+    return _lib.is_won_cpp(
+        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        turn,
+        capture_opponent
     )

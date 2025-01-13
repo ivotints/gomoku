@@ -1,5 +1,6 @@
 from macro import DIRECTIONS
 from board import coordinate, out_of_bounds, SIZE
+from wrapper import check_capture
 BOARD_SIZE = SIZE - 1
 
 def display_board(player1, player2):
@@ -37,7 +38,7 @@ def is_capture(board_turn, board_not_turn, y, x):
 
     return False
 
-def check_capture(boards, y, x, turn):
+def check_capture_py(boards, y, x, turn):
     BOARD_SIZE = 19
     capture = 0
     positions = []
@@ -107,7 +108,7 @@ def winning_line(board):
     for i in range(BOARD_SIZE):
         for j in range(BOARD_SIZE):
             bit_pos = i * BOARD_SIZE + j
-            if not ((board[0] >> bit_pos) & 1):  # inline is_occupied
+            if not ((board >> bit_pos) & 1):  # inline is_occupied
                 continue
             
             for dy, dx in directions:
@@ -118,7 +119,7 @@ def winning_line(board):
                         valid = False
                         break
                     new_bit_pos = y * BOARD_SIZE + x
-                    if not ((board[0] >> new_bit_pos) & 1):
+                    if not ((board >> new_bit_pos) & 1):
                         valid = False
                         break
                 if valid:
@@ -178,7 +179,7 @@ def is_line_capture(boards, line, turn):
     return False
 
 def is_won(boards, turn, capture):
-    line = winning_line(boards[turn])
+    line = winning_line(boards[turn][0])
     if line is None or (capture == 4 and is_line_capture(boards, line, turn)): # if opponent has 4 captures and he can eat one more during the event where we have 5 in a row 
         return False
     return True
@@ -276,7 +277,7 @@ def is_legal_lite_py(captures, board_turn, board_not_turn, y, x):
 def is_legal(captures, boards, move, turn):
     y = move // 19
     x = move % 19
-    capture, pos = check_capture(boards, y, x, turn) 
+    capture, pos = check_capture(boards[turn][0], boards[not turn][0], y, x)
     if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards[turn][0], boards[not turn][0], y, x)):
         return False, capture, pos
     return True, capture, pos
