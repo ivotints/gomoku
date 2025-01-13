@@ -1,16 +1,7 @@
-#include <cstdint>
 #include <cmath>
 #include <algorithm>
 #include <limits>
-#define ROW_SIZE 19
-#define WINDOW_SIZE 5
-#define WINDOW_MASK 0b11111
-#define MAX_INT std::numeric_limits<int>::max()
-#define MIN_INT std::numeric_limits<int>::min()
-
-extern "C" {
-    int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int capture, int capture_opponent);
-}
+#include "heuristic.h"
 
 inline int scan_window(uint32_t window_turn, uint32_t window_opponent, int& value) {
     if (window_opponent == 0) {
@@ -72,13 +63,14 @@ int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int captur
     int bottom = ROW_SIZE - 1;
     while (bottom >= 0 && board_turn[bottom] == 0 && board_not_turn[bottom] == 0)
         bottom--;
+
     int left = 0;
     uint32_t col_bits;
     while (left < ROW_SIZE) {
         col_bits = 0;
         for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((board_turn[row] >> left) & 1) << row;
-            col_bits |= ((board_not_turn[row] >> left) & 1) << row;
+            col_bits |= ((board_turn[row] >> left) & 1);
+            col_bits |= ((board_not_turn[row] >> left) & 1);
         }
         if (col_bits != 0) break;
         left++;
@@ -89,8 +81,8 @@ int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int captur
     while (right >= 0) {
         col_bits = 0;
         for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((board_turn[row] >> right) & 1) << row;
-            col_bits |= ((board_not_turn[row] >> right) & 1) << row;
+            col_bits |= ((board_turn[row] >> right) & 1);
+            col_bits |= ((board_not_turn[row] >> right) & 1);
         }
         if (col_bits != 0) break;
         right--;

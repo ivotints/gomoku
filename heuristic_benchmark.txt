@@ -1,0 +1,30 @@
+
+Final statistics (from 115 complete batches):
+Min batch time: 1.88461s
+Max batch time: 1.9697s
+Average batch time: 1.90834s
+Average time per call: 1.90834 μs
+
+
+=== New benchmark session ===
+Batch completed: 1000000 iterations in 1.96109s (avg: 1.96109 μs/call)
+Batch completed: 1000000 iterations in 1.92162s (avg: 1.92162 μs/call)
+Batch completed: 1000000 iterations in 1.96639s (avg: 1.96639 μs/call)
+Batch completed: 1000000 iterations in 1.9323s (avg: 1.9323 μs/call)
+Batch completed: 1000000 iterations in 1.94155s (avg: 1.94155 μs/call)
+Batch completed: 1000000 iterations in 1.91202s (avg: 1.91202 μs/call)
+Batch completed: 1000000 iterations in 1.94174s (avg: 1.94174 μs/call)
+Batch completed: 1000000 iterations in 1.9416s (avg: 1.9416 μs/call)
+Batch completed: 1000000 iterations in 1.93331s (avg: 1.93331 μs/call)
+Batch completed: 1000000 iterations in 1.93754s (avg: 1.93754 μs/call)
+Batch completed: 1000000 iterations in 1.91983s (avg: 1.91983 μs/call)
+Batch completed: 1000000 iterations in 1.93108s (avg: 1.93108 μs/call)
+Batch completed: 1000000 iterations in 1.8961s (avg: 1.8961 μs/call)
+Batch completed: 1000000 iterations in 1.90025s (avg: 1.90025 μs/call)
+Batch completed: 1000000 iterations in 1.91402s (avg: 1.91402 μs/call)
+
+Final statistics (from 15 complete batches):
+Min batch time: 1.8961s
+Max batch time: 1.96639s
+Average batch time: 1.93003s
+Average time per call: 1.93003 μs
