@@ -121,7 +121,7 @@ def is_legal(captures, boards, move, turn):
     y = move // 19
     x = move % 19
     capture, pos = check_capture(boards[turn][0], boards[not turn][0], y, x)
-    if not capture and ((captures == 4 and winning_line(boards[not turn])) or check_double_three(boards[turn][0], boards[not turn][0], y, x)):
+    if not capture and ((captures == 4 and winning_line(boards[not turn][0])) or check_double_three(boards[turn][0], boards[not turn][0], y, x)):
         return False, capture, pos
     return True, capture, pos
 
