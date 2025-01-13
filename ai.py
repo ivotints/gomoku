@@ -1,8 +1,7 @@
-from game import check_capture, is_won, is_legal_lite, has_winning_line
+from game import check_capture, is_won, has_winning_line, is_legal_lite_py
 import copy
 from macro import DEPTH
-import time
-from wrapper import heuristic
+from wrapper import heuristic, generate_legal_moves_cpp, is_legal_lite
 
 # do not return anything
 def handle_move_bot_void(boards, turn, move, captures) -> None:
@@ -28,13 +27,12 @@ def handle_move_bot(boards, turn, move, captures):
         return True
     return False
 
-def generate_legal_moves(boards, turn, capture, t):
-    start_time = time.time()
+def generate_legal_moves(board_turn, board_not_turn, turn, capture):
     legal_moves = []
     COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001 # 000000000000000000
     ROW_MASK = 0b1111111111111111111
     ROW_SIZE = 19
-    union_board = boards[0][0] | boards[1][0]
+    union_board = board_turn | board_not_turn
 
     # 1) Define the bounding box
     top = 0
@@ -84,13 +82,9 @@ def generate_legal_moves(boards, turn, capture, t):
             if window_mask != 0:
                 bit_pos = row * ROW_SIZE + col
                 if not ((union_board >> bit_pos) & 1):  # If not occupied
-                    if is_legal_lite(capture, boards, row, col, turn):
+                    if is_legal_lite(capture, board_turn, board_not_turn, row, col):
                         legal_moves.append(bit_pos)
 
-    # Record time
-    t[0] += time.time() - start_time
-    # print(legal_moves)
-    # time.sleep(111111)
     return legal_moves
 
 def bitwise_heuristic(board_turn, board_not_turn, capture, capture_opponent):
@@ -286,14 +280,13 @@ def bitwise_heuristic(board_turn, board_not_turn, capture, capture_opponent):
 
     return (16 * (2 ** capture) + value) - (16 * (2 ** capture_opponent))
 
-def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count, t):
+def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count):
     if depth == 1:
         count[0] += 1
         value = heuristic(boards[turn][0], boards[not turn][0],captures[turn],captures[not turn])
         # value = bitwise_heuristic(boards[turn][0], boards[not turn][0], captures[turn], captures[not turn])
         return value
-
-    moves = generate_legal_moves(boards, turn, captures[turn], t)
+    moves = generate_legal_moves(boards[turn][0], boards[not turn][0], turn, captures[turn])
 
     if maximizing_player:
         max_eval = float('-inf')
@@ -302,7 +295,7 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
             if result:
                 return float('inf')
-            eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count, t)
+            eval = minimax(new_boards, depth - 1, alpha, beta, False, not turn, captures, count)
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha:
@@ -315,7 +308,7 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
             result = handle_move_bot(new_boards, turn, move, [captures[0], captures[1]])
             if result:
                 return float('-inf')
-            eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count, t)
+            eval = minimax(new_boards, depth - 1, alpha, beta, True, not turn, captures, count)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
@@ -336,7 +329,7 @@ def is_winning_move(boards, turn, move, captures):
 
 def bot_play(boards, turn, captures):
     t = [0]
-    moves = generate_legal_moves(boards, turn, captures[turn], t)
+    moves = generate_legal_moves(boards[turn][0], boards[not turn][0], turn, captures[turn])
 
     for move in moves:
         if is_winning_move(boards, turn, move, captures):
@@ -352,13 +345,11 @@ def bot_play(boards, turn, captures):
         new_boards = copy.deepcopy(boards)
         handle_move_bot_void(new_boards, turn, move, [captures[0], captures[1]])
 
-        eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures, count, t)
+        eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures, count)
         if eval > best_eval:
             best_eval = eval
             best_move = move
         alpha = max(alpha, eval)
 
     print(f"Evaluated {count[0]} positions")
-    print(f"Time spent generating moves: {t[0]:.2f}s")
     return best_move
-
