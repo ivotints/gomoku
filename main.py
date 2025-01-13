@@ -32,14 +32,14 @@ class gomoku:
         draw_board(self.win)
         py.display.update()
 
-def handle_turn(game, is_win, has_capture, move):
+def handle_turn(game, result, has_capture, move):
     # draw a circle on the board
-    pyd.circle(game.win, BLACK if not game.turn else WHITE, ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
-    if is_win is None:
+    if result is None:
         return False
+    pyd.circle(game.win, BLACK if not game.turn else WHITE, ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
     if has_capture:
         update_board(game.boards, game.win, game.captures)
-    if is_win:
+    if result:
         message = "{} win!".format("Black" if not game.turn else "White")
         font = py.font.Font(None, 74)
         text = font.render(message, True, (30, 30, 30))
@@ -77,16 +77,16 @@ def main():
                     if not is_occupied(game.boards[BLACK_PLAYER], (pos[1], pos[0])) and not is_occupied(game.boards[WHITE_PLAYER], (pos[1], pos[0])):
                         # we go here after mouse click and if it was not occupied
                         # turn is 0 for now because it is black's turn
-                        is_win, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                        legal = handle_turn(game, is_win, has_capture, move)
+                        result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+                        legal = handle_turn(game, result, has_capture, move)
                         # turn is 1
                         if legal and not game.solo:
                             game.thinking = True
                             start = time.time()
                             # turn is 1
                             move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
-                            is_win, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                            handle_turn(game, is_win, has_capture, move)
+                            result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+                            handle_turn(game, result, has_capture, move)
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
 
