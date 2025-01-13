@@ -19,19 +19,6 @@ def find_mouse_pos(pos):
     y = round(y / w)
     return ((x - 1, y - 1))
 
-def display_board(player1, player2):
-    for row in range(SIZE - 1):
-        row_display = []
-        for col in range(SIZE - 1):
-            if is_occupied(player1, (row, col)):
-                row_display.append('X')
-            elif is_occupied(player2, (row, col)):
-                row_display.append('O')
-            else:
-                row_display.append('.')
-        print(' '.join(row_display))
-    print("---------------")
-
 def update_board(boards, win):
     draw_board(win)
     for player, board in enumerate(boards):

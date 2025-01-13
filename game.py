@@ -1,20 +1,6 @@
-from macro import DIRECTIONS
-from board import coordinate, out_of_bounds, SIZE
-from wrapper import check_capture
+from board import SIZE
+from wrapper import check_capture, is_won
 BOARD_SIZE = SIZE - 1
-
-def display_board(player1, player2):
-    for row in range(SIZE - 1):
-        row_display = []
-        for col in range(SIZE - 1):
-            if is_occupied(player1, (row, col)):
-                row_display.append('X')
-            elif is_occupied(player2, (row, col)):
-                row_display.append('O')
-            else:
-                row_display.append('.')
-        print(' '.join(row_display))
-    print("---------------")
 
 def is_capture(board_turn, board_not_turn, y, x):
     BOARD_SIZE = 19
@@ -159,31 +145,6 @@ def has_winning_line(board):
                     
     return False
 
-def is_eatable(boards, pos, direction, turn):
-    if not is_occupied(boards[turn], pos + direction):
-        return False
-    if is_occupied(boards[not turn], pos - direction) and not (is_occupied(boards[not turn], pos + direction * 2) or is_occupied(boards[turn], pos + direction * 2)):
-        return True
-    if is_occupied(boards[not turn], pos + direction * 2) and not (is_occupied(boards[not turn], pos - direction) or is_occupied(boards[turn], pos - direction)):
-        return True
-    return False
-
-def is_line_capture(boards, line, turn):
-    for pos in line:
-        pos = coordinate(pos)
-        for direction in DIRECTIONS:
-            if out_of_bounds(pos + direction * 2) or out_of_bounds(pos - direction):
-                continue
-            if is_eatable(boards, pos, direction, turn):
-                return True
-    return False
-
-def is_won(boards, turn, capture):
-    line = winning_line(boards[turn][0])
-    if line is None or (capture == 4 and is_line_capture(boards, line, turn)): # if opponent has 4 captures and he can eat one more during the event where we have 5 in a row 
-        return False
-    return True
-
 # this is readable version. but not the fastest. 
 def check_double_three(board_turn, board_not_turn, y, x):
     BOARD_SIZE = 19
@@ -266,12 +227,6 @@ def check_double_three(board_turn, board_not_turn, y, x):
 
     board_turn &= ~(1 << bit_position)  # Unset bit
     return count > 1
-
-def is_legal_lite_py(captures, board_turn, board_not_turn, y, x):
-    if not is_capture(board_turn, board_not_turn, y, x) and (captures == 4 and has_winning_line(board_not_turn)) or check_double_three(board_turn, board_not_turn, y, x):
-        return False
-    return True
-
 
 # 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):

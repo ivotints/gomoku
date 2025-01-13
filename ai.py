@@ -1,7 +1,7 @@
 from game import has_winning_line
 import copy
 from macro import DEPTH
-from wrapper import heuristic, generate_legal_moves_cpp, check_capture, is_won
+from wrapper import heuristic, generate_legal_moves_cpp, check_capture, is_won, minimax
 
 # do not return anything
 def handle_move_bot_void(boards, turn, move, captures) -> None:
@@ -89,7 +89,7 @@ def bot_play(boards, turn, captures):
         new_boards = copy.deepcopy(boards)
         handle_move_bot_void(new_boards, turn, move, [captures[0], captures[1]])
 
-        eval = minimax_py(new_boards, DEPTH, alpha, beta, False, not turn, captures)
+        eval = minimax(new_boards, DEPTH, alpha, beta, False, not turn, captures)
         if eval > best_eval:
             best_eval = eval
             best_move = move

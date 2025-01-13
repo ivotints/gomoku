@@ -27,15 +27,6 @@ _lib.generate_legal_moves.argtypes = [
 ]
 _lib.generate_legal_moves.restype = None
 
-# Set up is_legal_lite function
-_lib.is_legal_lite.argtypes = [
-    ctypes.c_int,                     # capture
-    ctypes.POINTER(ctypes.c_uint32),  # board_turn
-    ctypes.POINTER(ctypes.c_uint32),  # board_not_turn
-    ctypes.c_int,                     # y
-    ctypes.c_int                     # x
-]
-_lib.is_legal_lite.restype = ctypes.c_bool
 
 # Add to existing argtypes definitions
 class CaptureResult(ctypes.Structure):
@@ -58,6 +49,19 @@ _lib.is_won_cpp.argtypes = [
     ctypes.c_int                      # capture_opponent
 ]
 _lib.is_won_cpp.restype = ctypes.c_bool
+
+# Add to existing type definitions
+_lib.minimax_cpp.argtypes = [
+    ctypes.POINTER(ctypes.c_uint32),  # board_turn
+    ctypes.POINTER(ctypes.c_uint32),  # board_not_turn
+    ctypes.c_int,                     # depth
+    ctypes.c_int,                     # alpha
+    ctypes.c_int,                     # beta
+    ctypes.c_bool,                    # maximizing_player
+    ctypes.c_int,                     # turn
+    ctypes.POINTER(ctypes.c_int)      # captures
+]
+_lib.minimax_cpp.restype = ctypes.c_int
 
 class MinimaxResult(ctypes.Structure):
     _fields_ = [("value", ctypes.c_int),
@@ -99,18 +103,6 @@ def generate_legal_moves_cpp(board_turn, board_not_turn, capture):
     
     return [moves[i] for i in range(move_count.value)]
 
-def is_legal_lite(capture, board_turn, board_not_turn, y, x):
-    arr_turn = convert_to_array(board_turn)
-    arr_not_turn = convert_to_array(board_not_turn)
-    
-    return _lib.is_legal_lite(
-        capture,
-        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
-        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
-        y,
-        x
-    )
-
 def check_capture(board_turn, board_not_turn, y, x):
     arr_turn = convert_to_array(board_turn)
     arr_not_turn = convert_to_array(board_not_turn)
@@ -133,4 +125,16 @@ def is_won(boards, turn, capture_opponent):
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         turn,
         capture_opponent
+    )
+
+def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures):
+    arr_turn = convert_to_array(boards[turn][0])
+    arr_not_turn = convert_to_array(boards[not turn][0])
+    captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
+    
+    return _lib.minimax_cpp(
+        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        depth, alpha, beta, maximizing_player, turn,
+        captures_arr
     )

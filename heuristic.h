@@ -33,6 +33,11 @@ extern "C" {
     bool is_won_cpp(uint32_t* board_turn, uint32_t* board_not_turn, 
                     int turn, int capture_opponent);
 
+    int minimax_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
+               int depth, int alpha, int beta,
+               bool maximizing_player, int turn,
+               int* captures);
+
 }
 
 #endif

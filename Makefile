@@ -20,6 +20,9 @@ clean:
 run: $(TARGET)
 	@$(PYTHON) main.py
 
+fclean: clean
+	@rm -f test_heuristic
+
 test_heuristic:
 	g++ -O3 -std=c++17 test_heuristic.cpp heuristic.cpp -o test_heuristic
 	./test_heuristic
