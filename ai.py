@@ -27,7 +27,7 @@ def handle_move_bot(boards, turn, move, captures):
         return True
     return False
 
-def generate_legal_moves(board_turn, board_not_turn, turn, capture):
+def generate_legal_moves(board_turn, board_not_turn, capture):
     legal_moves = []
     COL_MASK = 0b1000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001000000000000000000100000000000000000010000000000000000001 # 000000000000000000
     ROW_MASK = 0b1111111111111111111
@@ -286,7 +286,7 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures, count
         value = heuristic(boards[turn][0], boards[not turn][0],captures[turn],captures[not turn])
         # value = bitwise_heuristic(boards[turn][0], boards[not turn][0], captures[turn], captures[not turn])
         return value
-    moves = generate_legal_moves(boards[turn][0], boards[not turn][0], turn, captures[turn])
+    moves = generate_legal_moves_cpp(boards[turn][0], boards[not turn][0], captures[turn])
 
     if maximizing_player:
         max_eval = float('-inf')
@@ -329,7 +329,7 @@ def is_winning_move(boards, turn, move, captures):
 
 def bot_play(boards, turn, captures):
     t = [0]
-    moves = generate_legal_moves(boards[turn][0], boards[not turn][0], turn, captures[turn])
+    moves = generate_legal_moves_cpp(boards[turn][0], boards[not turn][0], captures[turn])
 
     for move in moves:
         if is_winning_move(boards, turn, move, captures):

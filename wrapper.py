@@ -21,7 +21,6 @@ _lib.bitwise_heuristic.restype = ctypes.c_int
 _lib.generate_legal_moves.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),  # board_turn
     ctypes.POINTER(ctypes.c_uint32),  # board_not_turn
-    ctypes.c_int,                     # turn
     ctypes.c_int,                     # capture
     ctypes.POINTER(ctypes.c_int),     # moves array
     ctypes.POINTER(ctypes.c_int)      # move count
@@ -56,7 +55,7 @@ def heuristic(board_turn, board_not_turn, capture, capture_opponent):
         capture_opponent
     )
 
-def generate_legal_moves_cpp(board_turn, board_not_turn, turn, capture):
+def generate_legal_moves_cpp(board_turn, board_not_turn, capture):
     arr_turn = convert_to_array(board_turn)
     arr_not_turn = convert_to_array(board_not_turn)
     
@@ -66,7 +65,6 @@ def generate_legal_moves_cpp(board_turn, board_not_turn, turn, capture):
     _lib.generate_legal_moves(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
-        turn,
         capture,
         moves,
         ctypes.byref(move_count)
