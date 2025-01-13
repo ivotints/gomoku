@@ -1,14 +1,22 @@
 import pygame.draw as pyd
-from macro import BLACK
+import pygame as py
+from macro import BLACK, WHITE
 from board import SIZE, WIDTH
 from game import is_occupied
 
-def draw_board(win):
+def draw_board(win, captures=[0, 0]):
     win.fill((235,173,100))
     square = WIDTH / SIZE
     for i in range(1, SIZE):
         pyd.line(win, BLACK, (i * square, square), (i * square, WIDTH - square), width=2)
         pyd.line(win, BLACK, (square, i * square), (WIDTH - square, i * square), width=2)
+    font = py.font.Font(None, 24)
+    text = font.render(f"Captures:     {captures[0]}", True, BLACK)
+    text_rect = text.get_rect(center=(80, 20))
+    win.blit(text, text_rect)
+    text = font.render(str(captures[1]), True, WHITE)
+    text_rect = text.get_rect(center=(180, 20))
+    win.blit(text, text_rect)
 
 def find_mouse_pos(pos):
     x, y = pos
@@ -19,8 +27,15 @@ def find_mouse_pos(pos):
     y = round(y / w)
     return ((x - 1, y - 1))
 
-def update_board(boards, win):
-    draw_board(win)
+# def draw_captures(win, captures):
+#     colors = [(0, 0, 0), (255, 255, 255)]
+#     for color, i in enumerate(captures):
+#         for j in range(i):
+#             pyd.line(win, colors[color], (150 + 10 * (j + 1), 2), (150 + 10 * (j + 1), 30), width=1)
+
+def update_board(boards, win, captures):
+    draw_board(win, captures)
+    # draw_captures(win, captures)
     for player, board in enumerate(boards):
         b = board.copy()
         pos = 0

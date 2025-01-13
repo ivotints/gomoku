@@ -6,10 +6,6 @@
 #include "heuristic.h"
 # define DEPTH 4
 
-
-
-
-
 bool is_winning_move_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
                         int move, int turn, int capture) {
     int y = move / 19;
@@ -80,11 +76,6 @@ int bot_play_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
 
     return best_move;
 }
-
-
-
-
-
 
 int minimax_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
                 int depth, int alpha, int beta,
@@ -390,7 +381,6 @@ inline std::pair<int, int> compute_spaces(int coord, int pattern_len, int BOARD_
     int right = std::min(BOARD_SIZE - 1 - coord, max_extra);
     return {left, left + right + 1};
 }
-#include <iostream>
 bool check_double_three(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
     
     const int BOARD_SIZE = 19;
@@ -533,24 +523,6 @@ void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn,
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 inline int scan_window(uint32_t window_turn, uint32_t window_opponent, int& value) {
     if (window_opponent == 0) {

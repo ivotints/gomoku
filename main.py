@@ -38,7 +38,7 @@ def handle_turn(game, is_win, has_capture, move):
     if is_win is None:
         return False
     if has_capture:
-        update_board(game.boards, game.win)
+        update_board(game.boards, game.win, game.captures)
     if is_win:
         message = "{} win!".format("Black" if not game.turn else "White")
         font = py.font.Font(None, 74)
@@ -47,7 +47,7 @@ def handle_turn(game, is_win, has_capture, move):
         game.win.blit(text, text_rect)
         print("GG")
         py.display.update()
-        py.time.wait(1000)  # Wait for 1 second
+        py.time.wait(5000)  # Wait for 1 second
         exit(0)
     game.turn = not game.turn
     py.display.update()
@@ -85,11 +85,8 @@ def main():
                             start = time.time()
                             # turn is 1
                             move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
-
                             is_win, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-
                             handle_turn(game, is_win, has_capture, move)
-
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
 
