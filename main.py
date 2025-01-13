@@ -5,12 +5,12 @@ with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
 import pygame.draw as pyd
 from macro import BLACK, WHITE
 from render import draw_board, update_board, find_mouse_pos
-from board import coordinate, SIZE, WIDTH
+from board import SIZE, WIDTH
 from game import handle_move, is_occupied
 import argparse
-from ai import bot_play
 import copy
 import time
+from wrapper import bot_play
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
 

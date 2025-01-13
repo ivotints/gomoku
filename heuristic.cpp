@@ -4,6 +4,84 @@
 #include <cstring>
 #include <vector>
 #include "heuristic.h"
+# define DEPTH 4
+
+
+
+
+
+bool is_winning_move_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
+                        int move, int turn, int capture) {
+    int y = move / 19;
+    int x = move % 19;
+    
+    CaptureResult cap = check_capture_cpp(board_turn, board_not_turn, y, x);
+    if (cap.capture_count + capture > 4)
+        return true;
+
+    board_turn[y] |= (1u << x);
+    bool is_win = has_winning_line(board_turn);
+    board_turn[y] &= ~(1u << x);
+    
+    return is_win;
+}
+
+int bot_play_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
+                 int turn, int* captures) {
+    int moves[361];
+    int move_count = 0;
+    generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
+
+    // Check for winning moves first
+    for (int i = 0; i < move_count; i++) {
+        if (is_winning_move_cpp(board_turn, board_not_turn, moves[i], turn, captures[turn])) {
+            return moves[i];
+        }
+    }
+
+    int best_move = moves[0];
+    int best_eval = MIN_INT;
+    int alpha = MIN_INT;
+    int beta = MAX_INT;
+
+    // Try each move
+    for (int i = 0; i < move_count; i++) {
+        uint32_t new_board_turn[ROW_SIZE];
+        uint32_t new_board_not_turn[ROW_SIZE];
+        int new_captures[2] = {captures[0], captures[1]};
+
+        memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
+        memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
+
+        // Apply move
+        int y = moves[i] / 19;
+        int x = moves[i] % 19;
+        CaptureResult cap = check_capture_cpp(new_board_turn, new_board_not_turn, y, x);
+        new_board_turn[y] |= (1u << x);
+        
+        if (cap.capture_count > 0) {
+            new_captures[turn] += cap.capture_count;
+            for (int j = 0; j < cap.position_count; j++) {
+                int pos_y = cap.positions[j] / 19;
+                int pos_x = cap.positions[j] % 19;
+                new_board_not_turn[pos_y] &= ~(1u << pos_x);
+            }
+        }
+
+        int eval = minimax_cpp(new_board_not_turn, new_board_turn,
+                             DEPTH, alpha, beta, false, !turn, new_captures);
+
+        if (eval > best_eval) {
+            best_eval = eval;
+            best_move = moves[i];
+        }
+        alpha = std::max(alpha, eval);
+    }
+
+    return best_move;
+}
+
+
 
 
 

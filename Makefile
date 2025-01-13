@@ -7,7 +7,7 @@ TARGET = heuristic.cpython-*-x86_64-linux-gnu.so
 all: $(TARGET)
 
 $(TARGET): heuristic.cpp
-	@$(PYTHON) setup.py build
+	@$(PYTHON) setup.py build # > /dev/null 2>&1
 	@cp build/lib*/$(TARGET) ./heuristic.so
 
 clean:

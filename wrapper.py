@@ -63,6 +63,15 @@ _lib.minimax_cpp.argtypes = [
 ]
 _lib.minimax_cpp.restype = ctypes.c_int
 
+# Add to existing argtypes definitions
+_lib.bot_play_cpp.argtypes = [
+    ctypes.POINTER(ctypes.c_uint32),  # board_turn
+    ctypes.POINTER(ctypes.c_uint32),  # board_not_turn
+    ctypes.c_int,                     # turn
+    ctypes.POINTER(ctypes.c_int)      # captures
+]
+_lib.bot_play_cpp.restype = ctypes.c_int
+
 class MinimaxResult(ctypes.Structure):
     _fields_ = [("value", ctypes.c_int),
                 ("best_move", ctypes.c_int)]
@@ -136,5 +145,18 @@ def minimax(boards, depth, alpha, beta, maximizing_player, turn, captures):
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         depth, alpha, beta, maximizing_player, turn,
+        captures_arr
+    )
+
+# Add new wrapper function
+def bot_play(boards, turn, captures):
+    arr_turn = convert_to_array(boards[turn][0])
+    arr_not_turn = convert_to_array(boards[not turn][0])
+    captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
+    
+    return _lib.bot_play_cpp(
+        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        turn,
         captures_arr
     )

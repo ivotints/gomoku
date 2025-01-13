@@ -37,7 +37,16 @@ extern "C" {
                int depth, int alpha, int beta,
                bool maximizing_player, int turn,
                int* captures);
+    int bot_play_cpp(uint32_t* board_turn, uint32_t* board_not_turn,
+                    int turn, int* captures);
+    
 
 }
+    struct PlayResult {
+        int move;
+        int eval;
+    };
+    bool has_winning_line(uint32_t* board);
+
 
 #endif
