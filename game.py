@@ -2,85 +2,6 @@ from board import SIZE
 from wrapper import check_capture, is_won
 BOARD_SIZE = SIZE - 1
 
-def is_capture(board_turn, board_not_turn, y, x):
-    BOARD_SIZE = 19
-    directions = [(0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)]
-
-    for dy, dx in directions:
-        y3, x3 = y + dy*3, x + dx*3       # own piece
-        if (x3 < 0 or x3 >= BOARD_SIZE or y3 < 0 or y3 >= BOARD_SIZE):
-            continue
-
-        # Calculate bit positions
-        bit1 = (y + dy) * BOARD_SIZE + (x + dx)
-        bit2 = (y + dy*2) * BOARD_SIZE + (x + dx*2)
-        bit3 = y3 * BOARD_SIZE + x3
-
-        # Check if pattern matches: empty->opponent->opponent->player
-        if ((board_turn >> bit3) & 1) and \
-           ((board_not_turn >> bit2) & 1) and \
-           ((board_not_turn >> bit1) & 1):
-            return True
-
-    return False
-
-def check_capture_py(boards, y, x, turn):
-    BOARD_SIZE = 19
-    capture = 0
-    positions = []
-    
-    # Each direction - right, down-right, down, down-left, left, up-left, up, up-right
-    directions = [
-        (0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)
-    ]
-
-    for dy, dx in directions:
-        # Calculate positions for 3 pieces in line
-        y1, x1 = y + dy, x + dx           # first adjacent
-        y2, x2 = y + dy*2, x + dx*2       # second adjacent  
-        y3, x3 = y + dy*3, x + dx*3       # own piece
-
-        # Check bounds for all positions
-        if (x3 < 0 or x3 >= BOARD_SIZE or y3 < 0 or y3 >= BOARD_SIZE):
-            continue
-
-        # Calculate bit positions
-        bit1 = y1 * BOARD_SIZE + x1
-        bit2 = y2 * BOARD_SIZE + x2  
-        bit3 = y3 * BOARD_SIZE + x3
-
-        # Check if pattern matches: empty->opponent->opponent->player
-        if ((boards[turn][0] >> bit3) & 1) and \
-           ((boards[not turn][0] >> bit2) & 1) and \
-           ((boards[not turn][0] >> bit1) & 1):
-            capture += 1
-            positions.extend([bit1, bit2])
-
-    return capture, positions
-
-
-def place_piece_old(bitboard, move, set_bit=True):
-    row, col = move
-    bit_position = row * BOARD_SIZE + col
-    if set_bit:
-        bitboard[0] |= (1 << bit_position)
-    else:
-        bitboard[0] &= ~(1 << bit_position)
-
-def place_piece(bitboard, move, set_bit=True):
-    if isinstance(move, tuple):
-        # Handle (row, col) coordinates
-        row, col = move
-        bit_position = row * BOARD_SIZE + col
-    else:
-        # Handle bit position directly
-        bit_position = move
-
-    if set_bit:
-        bitboard[0] |= (1 << bit_position)
-    else:
-        bitboard[0] &= ~(1 << bit_position)
-
 
 def is_occupied(board, pos): # y, x
     y, x = pos
@@ -111,39 +32,6 @@ def winning_line(board):
                 if valid:
                     return ((i,j), (i+dy,j+dx), (i+2*dy,j+2*dx), (i+3*dy,j+3*dx), (i+4*dy,j+4*dx))
     return None
-
-def has_winning_line(board):
-    BOARD_SIZE = 19
-    directions = [(0,1), (1,1), (1,0), (1,-1)]
-    
-    # Pre-calculate bounds to avoid repeated checks
-    for i in range(BOARD_SIZE - 4):  # No need to check last 4 rows
-        for j in range(BOARD_SIZE):
-            bit_pos = i * BOARD_SIZE + j
-            
-            # Skip if current position is empty
-            if not (board & (1 << bit_pos)):
-                continue
-                
-            for dy, dx in directions:
-                # Early bounds check
-                end_y, end_x = i + 4*dy, j + 4*dx
-                if (end_y >= BOARD_SIZE or end_y < 0 or 
-                    end_x >= BOARD_SIZE or end_x < 0):
-                    continue
-                
-                # Check all 5 positions in one go
-                valid = True
-                for k in range(1, 5):
-                    next_pos = (i + k*dy) * BOARD_SIZE + (j + k*dx)
-                    if not (board & (1 << next_pos)):
-                        valid = False
-                        break
-                        
-                if valid:
-                    return True
-                    
-    return False
 
 # this is readable version. but not the fastest. 
 def check_double_three(board_turn, board_not_turn, y, x):
