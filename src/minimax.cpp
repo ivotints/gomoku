@@ -2,8 +2,7 @@
 
 int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures) {
     if (depth == 1) {
-        return bitwise_heuristic(board_turn, board_not_turn, 
-                               captures[turn], captures[not turn]);
+        return bitwise_heuristic(board_turn, board_not_turn, captures[turn], captures[not turn]) * (maximizing_player ? 1 : -1);
     }
 
     int moves[361];  // 19x19 max possible moves
@@ -11,9 +10,8 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
     generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
 
     if (maximizing_player) {
-        int max_eval = std::numeric_limits<int>::min(); ;
+        int max_eval = std::numeric_limits<int>::min();
         for (int i = 0; i < move_count; i++) {
-            // Create copies of boards and captures
             uint32_t new_board_turn[ROW_SIZE];
             uint32_t new_board_not_turn[ROW_SIZE];
             int new_captures[2] = {captures[0], captures[1]};
@@ -21,7 +19,6 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
             memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
 
-            // Apply move
             int y = moves[i] / 19;
             int x = moves[i] % 19;
             CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
@@ -42,7 +39,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                                 depth - 1, alpha, beta, false, !turn, new_captures);
+                             depth - 1, alpha, beta, false, !turn, new_captures);
             max_eval = std::max(max_eval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha)
@@ -75,11 +72,11 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
 
             if (new_captures[turn] > 4 || 
                 is_won(new_board_turn, new_board_not_turn, turn, new_captures[!turn])) {
-                return std::numeric_limits<int>::min(); ;
+                return std::numeric_limits<int>::min();
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                                 depth - 1, alpha, beta, true, !turn, new_captures);
+                             depth - 1, alpha, beta, true, !turn, new_captures);
             min_eval = std::min(min_eval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha)
