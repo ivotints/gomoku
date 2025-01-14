@@ -8,7 +8,7 @@ from game import handle_move, is_occupied
 import argparse
 import copy
 import time
-from wrapper import bot_play
+from wrapper import bot_play, get_board_evaluation
 from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
@@ -38,6 +38,15 @@ def handle_turn(game, result, has_capture, move):
     pyd.circle(game.win, (0,0,0) if not game.turn else (255,255,255), ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
     if has_capture:
         update_board(game.boards, game.win, game.captures)
+
+    # evaluation display
+    evaluation = get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1])
+    font = py.font.Font(None, 24)
+    pyd.rect(game.win, (235,173,100), (WIDTH - 150, 10, 140, 30)) # Clear previous eval
+    text = font.render(f"Eval: {evaluation}", True, (0,0,0))
+    text_rect = text.get_rect(topright=(WIDTH - 10, 20))
+    game.win.blit(text, text_rect)
+
     if result:
         message = "{} win!".format("Black" if not game.turn else "White")
         font = py.font.Font(None, 74)

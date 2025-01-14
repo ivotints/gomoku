@@ -40,6 +40,14 @@ _lib.bot_play.argtypes = [
 ]
 _lib.bot_play.restype = ctypes.c_int
 
+_lib.bitwise_heuristic.argtypes = [
+       ctypes.POINTER(ctypes.c_uint32), 
+       ctypes.POINTER(ctypes.c_uint32), 
+       ctypes.c_int, 
+       ctypes.c_int
+   ]
+_lib.bitwise_heuristic.restype = ctypes.c_int
+
 def convert_to_array(board_int):
     # Convert 19x19 board integer to array of 19 uint32
     arr = np.zeros(19, dtype=np.uint32)
@@ -81,4 +89,20 @@ def bot_play(boards, turn, captures):
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         turn,
         captures_arr
+    )
+
+
+
+
+def get_board_evaluation(board_turn, board_not_turn, capture_turn, capture_not_turn):
+   
+    from wrapper import convert_to_array
+    arr_turn = convert_to_array(board_turn)
+    arr_not_turn = convert_to_array(board_not_turn)
+    
+    return _lib.bitwise_heuristic(
+        arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
+        capture_turn,
+        capture_not_turn
     )
