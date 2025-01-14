@@ -1,6 +1,7 @@
 import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
+from wrapper import get_board_evaluation
 
 def draw_suggestion(game, suggested_move):
     x = suggested_move % 19
@@ -10,12 +11,14 @@ def draw_suggestion(game, suggested_move):
               WIDTH / SIZE / 3, 2)
     py.display.update()
 
-def draw_board(win, captures=[0, 0]):
+def draw_board(win, captures=[0, 0], evaluation=0):
     win.fill((235,173,100))
     square = WIDTH / SIZE
     for i in range(1, SIZE):
         pyd.line(win, BLACK, (i * square, square), (i * square, WIDTH - square), width=2)
         pyd.line(win, BLACK, (square, i * square), (WIDTH - square, i * square), width=2)
+    
+    # Draw captures
     font = py.font.Font(None, 24)
     text = font.render(f"Captures:     {captures[0]}", True, BLACK)
     text_rect = text.get_rect(center=(80, 20))
@@ -23,6 +26,18 @@ def draw_board(win, captures=[0, 0]):
     text = font.render(str(captures[1]), True, WHITE)
     text_rect = text.get_rect(center=(180, 20))
     win.blit(text, text_rect)
+    
+    # Draw evaluation
+    if evaluation > 0:
+        intensity = min(abs(evaluation) / 100.0, 1.0)
+        color = (0, int(255 * intensity), 0)
+    else:
+        intensity = min(abs(evaluation) / 100.0, 1.0)
+        color = (int(255 * intensity), 0, 0)
+        
+    eval_text = font.render(f"Eval: {evaluation}", True, color)
+    eval_rect = eval_text.get_rect(center=(WIDTH - 90, 20))
+    win.blit(eval_text, eval_rect)
 
 def find_mouse_pos(pos):
     x, y = pos
@@ -34,7 +49,8 @@ def find_mouse_pos(pos):
     return ((x - 1, y - 1))
 
 def update_board(boards, win, captures):
-    draw_board(win, captures)
+    evaluation = get_board_evaluation(boards[0][0], boards[1][0], captures[0], captures[1])
+    draw_board(win, captures, evaluation)
     # draw_captures(win, captures)
     for player, board in enumerate(boards):
         b = board.copy()
