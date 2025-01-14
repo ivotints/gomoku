@@ -3,14 +3,13 @@ import contextlib
 with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
     import pygame as py
 import pygame.draw as pyd
-from macro import BLACK, WHITE
 from render import draw_board, update_board, find_mouse_pos
-from board import SIZE, WIDTH
 from game import handle_move, is_occupied
 import argparse
 import copy
 import time
 from wrapper import bot_play
+from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
 
@@ -36,7 +35,7 @@ def handle_turn(game, result, has_capture, move):
     # draw a circle on the board
     if result is None:
         return False
-    pyd.circle(game.win, BLACK if not game.turn else WHITE, ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
+    pyd.circle(game.win, (0,0,0) if not game.turn else (255,255,255), ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
     if has_capture:
         update_board(game.boards, game.win, game.captures)
     if result:

@@ -1,17 +1,20 @@
 CC = g++
-CFLAGS = -Wall -O3 -fPIC -std=c++17
+CFLAGS = -Wall -O3 -fPIC -shared -std=c++17 
 PYTHON = python3
-TARGET = heuristic.cpython-*-x86_64-linux-gnu.so
-
+TARGET = heuristic.so
+SRC_DIR = src/
+SRCS = $(addprefix $(SRC_DIR), heuristic.cpp bot_play.cpp is_won.cpp moves_generator.cpp minimax.cpp)
+BUILD_DIR = build/
 
 all: $(TARGET)
 
-$(TARGET): heuristic.cpp
-	@$(PYTHON) setup.py build # > /dev/null 2>&1
-	@cp build/lib*/$(TARGET) ./heuristic.so
+$(TARGET): $(SRCS)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
+	@cp $(BUILD_DIR)$@ ./
 
 clean:
-	@rm -rf build/
+	@rm -rf $(BUILD_DIR)
 	@rm -f *.o
 	@rm -f *.so
 	@rm -f *.pyc
@@ -20,13 +23,11 @@ clean:
 run: $(TARGET)
 	@$(PYTHON) main.py
 
-fclean: clean
-	@rm -f test_heuristic
+run2: $(TARGET)
+	@$(PYTHON) main.py -p 2
 
-test_heuristic:
-	g++ -O3 -std=c++17 test_heuristic.cpp heuristic.cpp -o test_heuristic
-	./test_heuristic
+fclean: clean
 
 re: clean all
 
-.PHONY: all clean run re
+.PHONY: all clean fclean run run2 re

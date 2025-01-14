@@ -1,7 +1,5 @@
-from board import SIZE
 from wrapper import check_capture, is_won
-BOARD_SIZE = SIZE - 1
-
+BOARD_SIZE = 19
 
 def is_occupied(board, pos): # y, x
     y, x = pos

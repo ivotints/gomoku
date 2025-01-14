@@ -16,29 +16,29 @@ class CaptureResult(ctypes.Structure):
                 ("positions", ctypes.POINTER(ctypes.c_int)),
                 ("position_count", ctypes.c_int)]
 
-_lib.check_capture_cpp.argtypes = [
+_lib.check_capture.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.c_int,
     ctypes.c_int
 ]
-_lib.check_capture_cpp.restype = CaptureResult
+_lib.check_capture.restype = CaptureResult
 
-_lib.is_won_cpp.argtypes = [
+_lib.is_won.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_int,
+    ctypes.c_bool,
     ctypes.c_int
 ]
-_lib.is_won_cpp.restype = ctypes.c_bool
+_lib.is_won.restype = ctypes.c_bool
 
-_lib.bot_play_cpp.argtypes = [
+_lib.bot_play.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_int,
+    ctypes.c_bool,
     ctypes.POINTER(ctypes.c_int)
 ]
-_lib.bot_play_cpp.restype = ctypes.c_int
+_lib.bot_play.restype = ctypes.c_int
 
 def convert_to_array(board_int):
     # Convert 19x19 board integer to array of 19 uint32
@@ -51,7 +51,7 @@ def check_capture(board_turn, board_not_turn, y, x):
     arr_turn = convert_to_array(board_turn)
     arr_not_turn = convert_to_array(board_not_turn)
     
-    result = _lib.check_capture_cpp(
+    result = _lib.check_capture(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         y, x
@@ -64,7 +64,7 @@ def is_won(boards, turn, capture_opponent):
     arr_turn = convert_to_array(boards[turn][0])
     arr_not_turn = convert_to_array(boards[not turn][0])
     
-    return _lib.is_won_cpp(
+    return _lib.is_won(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         turn,
@@ -76,7 +76,7 @@ def bot_play(boards, turn, captures):
     arr_not_turn = convert_to_array(boards[not turn][0])
     captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
     
-    return _lib.bot_play_cpp(
+    return _lib.bot_play(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         turn,

@@ -1,8 +1,7 @@
 import pygame.draw as pyd
 import pygame as py
-from macro import BLACK, WHITE
-from board import SIZE, WIDTH
-from game import is_occupied
+from macro import BLACK, WHITE, WIDTH, SIZE
+
 
 def draw_board(win, captures=[0, 0]):
     win.fill((235,173,100))
@@ -26,12 +25,6 @@ def find_mouse_pos(pos):
     x = round(x / w)
     y = round(y / w)
     return ((x - 1, y - 1))
-
-# def draw_captures(win, captures):
-#     colors = [(0, 0, 0), (255, 255, 255)]
-#     for color, i in enumerate(captures):
-#         for j in range(i):
-#             pyd.line(win, colors[color], (150 + 10 * (j + 1), 2), (150 + 10 * (j + 1), 30), width=1)
 
 def update_board(boards, win, captures):
     draw_board(win, captures)
