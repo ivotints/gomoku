@@ -3,7 +3,7 @@ import contextlib
 with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
     import pygame as py
 import pygame.draw as pyd
-from render import draw_board, update_board, find_mouse_pos
+from render import draw_board, update_board, find_mouse_pos, draw_suggestion
 from game import handle_move, is_occupied
 import argparse
 import copy
@@ -88,6 +88,7 @@ def main():
                             handle_turn(game, result, has_capture, move)
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
+                            draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
 
 if __name__ == '__main__':
     main()

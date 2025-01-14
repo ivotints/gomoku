@@ -10,7 +10,7 @@ all: $(TARGET)
 
 $(TARGET): $(SRCS)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
+	@$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
 	@cp $(BUILD_DIR)$@ ./
 
 clean:
@@ -27,6 +27,7 @@ run2: $(TARGET)
 	@$(PYTHON) main.py -p 2
 
 fclean: clean
+	@rm -rf .vscode/
 
 re: clean all
 

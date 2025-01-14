@@ -7,6 +7,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <thread>
+#include <vector>
+#include <mutex>
+#include <random>
 
 #define ROW_SIZE 19
 #define WINDOW_SIZE 5

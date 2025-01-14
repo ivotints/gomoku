@@ -1,7 +1,5 @@
 #include "gomoku.hpp"
-#include <thread>
-#include <vector>
-#include <mutex>
+
 
 CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, 
                               int y, int x) {
@@ -79,11 +77,11 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
     std::vector<std::thread> threads;
     std::mutex best_move_mutex;
 
-    int best_move = moves[0];
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, move_count - 1);
+    int best_move = moves[dis(gen)];
     int best_eval = std::numeric_limits<int>::min();
-
-//3 cores 8 moves
-    
 
     int num_threads = std::thread::hardware_concurrency();
     int moves_per_thread = move_count / num_threads + 1; // or do it other way??

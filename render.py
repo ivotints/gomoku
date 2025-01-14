@@ -2,6 +2,13 @@ import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
 
+def draw_suggestion(game, suggested_move):
+    x = suggested_move % 19
+    y = suggested_move // 19
+    pyd.circle(game.win, (128,128,128), 
+              ((x + 1) * WIDTH / SIZE, (y + 1) * WIDTH / SIZE), 
+              WIDTH / SIZE / 3, 2)
+    py.display.update()
 
 def draw_board(win, captures=[0, 0]):
     win.fill((235,173,100))
