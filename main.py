@@ -31,6 +31,29 @@ class gomoku:
         draw_board(self.win)
         py.display.update()
 
+def draw_evaluation(game, win):
+    evaluation = get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1])
+    font = py.font.Font(None, 24)
+    
+    # Clear previous evaluation
+    pyd.rect(win, (235,173,100), (WIDTH - 150, 10, 140, 30))
+    
+    # Calculate color based on evaluation value
+    if evaluation > 0:
+        # Green gradient (0,0,0) to (0,255,0)
+        intensity = min(abs(evaluation) / 1000.0, 1.0)
+        color = (0, int(255 * intensity), 0)
+    elif evaluation < 0:
+        # Red gradient (0,0,0) to (255,0,0)
+        intensity = min(abs(evaluation) / 1000.0, 1.0)
+        color = (int(255 * intensity), 0, 0)
+    else:
+        color = (0, 0, 0)
+
+    text = font.render(f"Eval: {evaluation}", True, color)
+    text_rect = text.get_rect(topright=(WIDTH - 10, 20))
+    win.blit(text, text_rect)
+
 def handle_turn(game, result, has_capture, move):
     # draw a circle on the board
     if result is None:
@@ -40,12 +63,7 @@ def handle_turn(game, result, has_capture, move):
         update_board(game.boards, game.win, game.captures)
 
     # evaluation display
-    evaluation = get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1])
-    font = py.font.Font(None, 24)
-    pyd.rect(game.win, (235,173,100), (WIDTH - 150, 10, 140, 30)) # Clear previous eval
-    text = font.render(f"Eval: {evaluation}", True, (0,0,0))
-    text_rect = text.get_rect(topright=(WIDTH - 10, 20))
-    game.win.blit(text, text_rect)
+    draw_evaluation(game, game.win)
 
     if result:
         message = "{} win!".format("Black" if not game.turn else "White")
