@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -O3 -fPIC -shared -std=c++17 
+CFLAGS = -Wall -O3 -fPIC -shared -std=c++17  -pthread
 PYTHON = python3
 TARGET = heuristic.so
 SRC_DIR = src/

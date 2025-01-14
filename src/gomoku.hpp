@@ -8,11 +8,10 @@
 #include <cmath>
 #include <cstring>
 
-
 #define ROW_SIZE 19
 #define WINDOW_SIZE 5
 #define WINDOW_MASK 0b11111
-#define DEPTH 2
+#define DEPTH 4
 
 struct CaptureResult {
         int capture_count;

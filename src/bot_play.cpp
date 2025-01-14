@@ -1,7 +1,7 @@
 #include "gomoku.hpp"
-
-
-
+#include <thread>
+#include <vector>
+#include <mutex>
 
 CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, 
                               int y, int x) {
@@ -41,7 +41,6 @@ CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn,
     return result;
 }
 
-
 static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_turn,
                         int move, int turn, int capture) {
     int y = move / 19;
@@ -71,42 +70,69 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
         }
     }
 
+    struct MoveEval {
+        int move;
+        int eval;
+    };
+    
+    std::vector<MoveEval> results(move_count);
+    std::vector<std::thread> threads;
+    std::mutex best_move_mutex;
+
     int best_move = moves[0];
     int best_eval = std::numeric_limits<int>::min();
-    int alpha = std::numeric_limits<int>::min();
-    int beta = std::numeric_limits<int>::max();
 
-    // Try each move
-    for (int i = 0; i < move_count; i++) {
-        uint32_t new_board_turn[ROW_SIZE];
-        uint32_t new_board_not_turn[ROW_SIZE];
-        int new_captures[2] = {captures[0], captures[1]};
+//3 cores 8 moves
+    
 
-        memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
-        memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
+    int num_threads = std::thread::hardware_concurrency();
+    int moves_per_thread = move_count / num_threads + 1; // or do it other way??
 
-        // Apply move
-        int y = moves[i] / 19;
-        int x = moves[i] % 19;
-        CaptureResult cap = check_capture(new_board_turn, new_board_not_turn, y, x);
-        new_board_turn[y] |= (1u << x);
-        
-        if (cap.capture_count > 0) {
-            new_captures[turn] += cap.capture_count;
-            for (int j = 0; j < cap.position_count; j++) {
-                int pos_y = cap.positions[j] / 19;
-                int pos_x = cap.positions[j] % 19;
-                new_board_not_turn[pos_y] &= ~(1u << pos_x);
+    for (int t = 0; t < num_threads && t * moves_per_thread < move_count; t++)
+    {
+        int start = t * moves_per_thread;
+        int end = std::min((t + 1) * moves_per_thread, move_count);
+
+
+
+        threads.emplace_back([&, start, end]() {
+            for (int i = start; i < end; i++) {
+                uint32_t new_board_turn[ROW_SIZE];
+                uint32_t new_board_not_turn[ROW_SIZE];
+                int new_captures[2] = {captures[0], captures[1]};
+
+                memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
+                memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
+
+                int y = moves[i] / 19;
+                int x = moves[i] % 19;
+                CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
+                new_board_turn[y] |= (1u << x);
+
+                if (capture.capture_count > 0) {
+                    new_captures[turn] += capture.capture_count;
+                    for (int j = 0; j < capture.position_count; j++) {
+                        int pos_y = capture.positions[j] / 19;
+                        int pos_x = capture.positions[j] % 19;
+                        new_board_not_turn[pos_y] &= ~(1u << pos_x);
+                    }
+                }
+
+                int eval = minimax(new_board_not_turn, new_board_turn,
+                                DEPTH, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false, !turn, new_captures);
+                results[i] = {moves[i], eval};
+                std::lock_guard<std::mutex> lock(best_move_mutex);
+                if (eval > best_eval) {
+                    best_eval = eval;
+                    best_move = moves[i];
+                }
             }
-        }
 
-        int eval = minimax(new_board_not_turn, new_board_turn, DEPTH, alpha, beta, false, !turn, new_captures);
+        });
+    }
 
-        if (eval > best_eval) {
-            best_eval = eval;
-            best_move = moves[i];
-        }
-        alpha = std::max(alpha, eval);
+    for (auto& thread : threads) {
+        thread.join();
     }
 
     return best_move;
