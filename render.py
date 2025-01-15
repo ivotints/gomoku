@@ -2,6 +2,7 @@ import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
 from wrapper import get_board_evaluation
+import math
 
 def draw_suggestion(game, suggested_move):
     move = suggested_move.move
@@ -15,6 +16,8 @@ def draw_suggestion(game, suggested_move):
 def draw_board(win, captures=[0, 0], evaluation=0):
     win.fill((235,173,100))
     square = WIDTH / SIZE
+    
+    # Draw board grid
     for i in range(1, SIZE):
         pyd.line(win, BLACK, (i * square, square), (i * square, WIDTH - square), width=2)
         pyd.line(win, BLACK, (square, i * square), (WIDTH - square, i * square), width=2)
@@ -28,17 +31,37 @@ def draw_board(win, captures=[0, 0], evaluation=0):
     text_rect = text.get_rect(center=(180, 20))
     win.blit(text, text_rect)
     
-    # Draw evaluation
-    if evaluation > 0:
-        intensity = min(abs(evaluation) / 100.0, 1.0)
-        color = (0, int(255 * intensity), 0)
-    else:
-        intensity = min(abs(evaluation) / 100.0, 1.0)
-        color = (int(255 * intensity), 0, 0)
+    # Draw evaluation bar
+    bar_width = 15
+    bar_height = WIDTH - 2 * square
+    bar_x = square/2 - bar_width/2
+    bar_y = square
+    
+    # Draw background bar
+    pyd.rect(win, (200,200,200), (bar_x, bar_y + 1, bar_width, bar_height))
+    
+    # Calculate bar fill using logarithmic scale
+    if evaluation != 0:
+        sign = 1 if evaluation > 0 else -1
+        log_eval = sign * math.log(abs(evaluation) + 1, 10)
+        fill_ratio = min(max(log_eval / 4, -1), 1)
         
-    eval_text = font.render(f"Eval: {evaluation}", True, color)
-    eval_rect = eval_text.get_rect(center=(WIDTH - 90, 20))
-    win.blit(eval_text, eval_rect)
+        # Center point is middle of bar
+        center_y = bar_y + bar_height/2 + 1
+        if evaluation > 0:  # Black winning - fill up
+            fill_WIDTH = fill_ratio * bar_height/2
+            fill_y = center_y - fill_WIDTH
+        else:  # White winning - fill down
+            fill_WIDTH = -fill_ratio * bar_height/2
+            fill_y = center_y
+            
+        color = BLACK if evaluation > 0 else WHITE
+        pyd.rect(win, color, (bar_x, fill_y, bar_width, abs(fill_WIDTH)))
+    
+    # Draw center line
+    pyd.line(win, BLACK, (bar_x, bar_y + bar_height/2), 
+             (bar_x + bar_width - 1, bar_y + bar_height/2), width=2)
+
 
 def find_mouse_pos(pos):
     x, y = pos
@@ -50,7 +73,7 @@ def find_mouse_pos(pos):
     return ((x - 1, y - 1))
 
 def update_board(game):
-    draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[game.turn][0], game.boards[not game.turn][0], game.captures[game.turn], game.captures[not game.turn]))
+    draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
     # draw_captures(win, captures)
     for player, board in enumerate(game.boards):
         b = board.copy()

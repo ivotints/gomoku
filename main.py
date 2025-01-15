@@ -8,7 +8,7 @@ from game import handle_move, is_occupied
 import argparse
 import copy
 import time
-from wrapper import bot_play, get_board_evaluation
+from wrapper import bot_play
 from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
