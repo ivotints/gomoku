@@ -56,7 +56,7 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
 }
 
 
-int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures) {
+BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures) {
     int moves[361];
     int move_count = 0;
     generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
@@ -64,7 +64,7 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
     // Check for winning moves first
     for (int i = 0; i < move_count; i++) {
         if (is_winning_move(board_turn, board_not_turn, moves[i], turn, captures[turn])) {
-            return moves[i];
+            return {moves[i], 1000000};
         }
     }
 
@@ -81,7 +81,7 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, move_count - 1);
     int best_move = moves[dis(gen)];
-    int best_eval = std::numeric_limits<int>::min();
+    int best_eval = -1000000;
 
     int num_threads = std::thread::hardware_concurrency();
     int moves_per_thread = move_count / num_threads + 1; // or do it other way??
@@ -117,7 +117,7 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
                 }
 
                 int eval = minimax(new_board_not_turn, new_board_turn,
-                                DEPTH, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false, !turn, new_captures);
+                                DEPTH, -1000000, 1000000, false, !turn, new_captures);
                 results[i] = {moves[i], eval};
                 std::lock_guard<std::mutex> lock(best_move_mutex);
                 if (eval > best_eval) {
@@ -133,5 +133,5 @@ int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* cap
         thread.join();
     }
 
-    return best_move;
+    return {best_move, best_eval};
 }

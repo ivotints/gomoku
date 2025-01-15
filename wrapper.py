@@ -38,7 +38,12 @@ _lib.bot_play.argtypes = [
     ctypes.c_bool,
     ctypes.POINTER(ctypes.c_int)
 ]
-_lib.bot_play.restype = ctypes.c_int
+
+class BotResult(ctypes.Structure):
+    _fields_ = [("move", ctypes.c_int),
+                ("evaluation", ctypes.c_int)]
+
+_lib.bot_play.restype = BotResult
 
 _lib.bitwise_heuristic.argtypes = [
        ctypes.POINTER(ctypes.c_uint32), 

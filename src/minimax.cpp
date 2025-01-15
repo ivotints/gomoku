@@ -10,7 +10,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
     generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
 
     if (maximizing_player) {
-        int max_eval = std::numeric_limits<int>::min();
+        int max_eval = -1000000;
         for (int i = 0; i < move_count; i++) {
             uint32_t new_board_turn[ROW_SIZE];
             uint32_t new_board_not_turn[ROW_SIZE];
@@ -35,7 +35,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
 
             if (new_captures[turn] > 4 || 
                 is_won(new_board_turn, new_board_not_turn, turn, new_captures[!turn])) {
-                return std::numeric_limits<int>::max();
+                return 1000000;
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
@@ -47,7 +47,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
         }
         return max_eval;
     } else {
-        int min_eval = std::numeric_limits<int>::max();
+        int min_eval = 1000000;
         for (int i = 0; i < move_count; i++) {
             uint32_t new_board_turn[ROW_SIZE];
             uint32_t new_board_not_turn[ROW_SIZE];
@@ -72,7 +72,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
 
             if (new_captures[turn] > 4 || 
                 is_won(new_board_turn, new_board_not_turn, turn, new_captures[!turn])) {
-                return std::numeric_limits<int>::min();
+                return -1000000;
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,

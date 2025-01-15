@@ -5,7 +5,7 @@ static inline int scan_window(uint32_t window_turn, uint32_t window_opponent, in
     if (window_opponent == 0) {
         int bits_count = __builtin_popcount(window_turn);
         if (bits_count > 1) {
-            if (bits_count == 5) return std::numeric_limits<int>::max();
+            if (bits_count == 5) return 1000000;
             value += 1 << (3 * (bits_count - 2));
         }
     }
@@ -13,7 +13,7 @@ static inline int scan_window(uint32_t window_turn, uint32_t window_opponent, in
     if (window_turn == 0) {
         int bits_count = __builtin_popcount(window_opponent);
         if (bits_count > 1) {
-            if (bits_count == 5) return std::numeric_limits<int>::min();
+            if (bits_count == 5) return -1000000;
             value -= 1 << (3 * (bits_count - 2));
         }
     }
@@ -54,9 +54,9 @@ int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int captur
     int value = 0;
 
     if (capture > 4)
-        return std::numeric_limits<int>::max();
+        return 1000000;
     if (capture_opponent > 4)
-        return std::numeric_limits<int>::min();
+        return -1000000;
 
     int top = 0;
     while (top < ROW_SIZE && board_turn[top] == 0 && board_not_turn[top] == 0)

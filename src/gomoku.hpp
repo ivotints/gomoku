@@ -23,9 +23,14 @@ struct CaptureResult {
         int position_count;
     };
 
+struct BotResult {
+    int move;
+    int evaluation;
+};
+
 extern "C"
 {
-    int bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures);
+    BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures);
     CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x);
     bool is_won(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int capture_opponent);
     int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int capture, int capture_opponent);

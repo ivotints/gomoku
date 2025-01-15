@@ -4,8 +4,9 @@ from macro import BLACK, WHITE, WIDTH, SIZE
 from wrapper import get_board_evaluation
 
 def draw_suggestion(game, suggested_move):
-    x = suggested_move % 19
-    y = suggested_move // 19
+    move = suggested_move.move
+    x = move % 19
+    y = move // 19
     pyd.circle(game.win, (128,128,128), 
               ((x + 1) * WIDTH / SIZE, (y + 1) * WIDTH / SIZE), 
               WIDTH / SIZE / 3, 2)
@@ -48,11 +49,10 @@ def find_mouse_pos(pos):
     y = round(y / w)
     return ((x - 1, y - 1))
 
-def update_board(boards, win, captures):
-    evaluation = get_board_evaluation(boards[0][0], boards[1][0], captures[0], captures[1])
-    draw_board(win, captures, evaluation)
+def update_board(game):
+    draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[game.turn][0], game.boards[not game.turn][0], game.captures[game.turn], game.captures[not game.turn]))
     # draw_captures(win, captures)
-    for player, board in enumerate(boards):
+    for player, board in enumerate(game.boards):
         b = board.copy()
         pos = 0
         while b[0]:
@@ -64,6 +64,6 @@ def update_board(boards, win, captures):
                 px = (x + 1) * WIDTH / SIZE
                 py = (y + 1) * WIDTH / SIZE
                 color = (0, 0, 0) if player == 0 else (255, 255, 255)
-                pyd.circle(win, color, (px, py), WIDTH / SIZE / 3)
+                pyd.circle(game.win, color, (px, py), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1

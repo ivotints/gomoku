@@ -26,6 +26,7 @@ class gomoku:
         self.running = True
         self.solo = players
         self.thinking = False
+        self.eval = 0
 
         py.display.set_caption("Gomoku")
         draw_board(self.win)
@@ -33,13 +34,13 @@ class gomoku:
 
 
 
-def handle_turn(game, result, has_capture, move):
+def handle_turn(game, result, move):
     # draw a circle on the board
     if result is None:
         return False
     pyd.circle(game.win, (0,0,0) if not game.turn else (255,255,255), ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
     
-    update_board(game.boards, game.win, game.captures)
+    update_board(game)
 
     if result:
         message = "{} win!".format("Black" if not game.turn else "White")
@@ -80,15 +81,18 @@ def main():
                         # we go here after mouse click and if it was not occupied
                         # turn is 0 for now because it is black's turn
                         result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                        legal = handle_turn(game, result, has_capture, move)
+                        legal = handle_turn(game, result, move)
                         # turn is 1
                         if legal and not game.solo:
                             game.thinking = True
                             start = time.time()
                             # turn is 1
-                            move = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+                            # move, game.eval = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+                            bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+                            move = bot_result.move
+                            game.eval = -bot_result.evaluation
                             result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                            handle_turn(game, result, has_capture, move)
+                            handle_turn(game, result, move)
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
                             draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
