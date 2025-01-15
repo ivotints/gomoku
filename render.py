@@ -4,6 +4,34 @@ from macro import BLACK, WHITE, WIDTH, SIZE
 from wrapper import get_board_evaluation
 import math
 
+def show_winning_message(game):
+    """Display the winning message with bordered text based on winner color"""
+    is_black_winner = game.turn
+    message = "Black wins!" if is_black_winner else "White wins!"
+    
+    # Set colors based on winner
+    text_color = (0, 0, 0) if is_black_winner else (255, 255, 255)
+    border_color = (255, 255, 255) if is_black_winner else (0, 0, 0)
+    
+    font = py.font.Font(None, 74)
+    
+    # Create border by rendering text multiple times with offset
+    border_offsets = [(x, y) for x in (-2, 2) for y in (-2, 2)]
+    for offset_x, offset_y in border_offsets:
+        border_text = font.render(message, True, border_color)
+        border_rect = border_text.get_rect(center=(WIDTH // 2 + offset_x, WIDTH // 2 + offset_y))
+        game.win.blit(border_text, border_rect)
+    
+    # Render main text
+    text = font.render(message, True, text_color)
+    text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
+    game.win.blit(text, text_rect)
+    
+    py.display.update()
+    py.time.wait(2000)  # Wait for 2 seconds
+    exit(0)
+
+
 def draw_suggestion(game, suggested_move):
     move = suggested_move.move
     x = move % 19
@@ -12,6 +40,7 @@ def draw_suggestion(game, suggested_move):
               ((x + 1) * WIDTH / SIZE, (y + 1) * WIDTH / SIZE), 
               WIDTH / SIZE / 3, 2)
     py.display.update()
+
 
 def draw_board(win, captures=[0, 0], evaluation=0):
     win.fill((235,173,100))
@@ -63,14 +92,6 @@ def draw_board(win, captures=[0, 0], evaluation=0):
              (bar_x + bar_width - 1, bar_y + bar_height/2), width=2)
 
 
-def find_mouse_pos(pos):
-    x, y = pos
-    w = WIDTH / SIZE
-    if x < w - w / 3 or x > WIDTH - w + w / 3 or y < w - w / 3 or y > WIDTH - w + w / 3:
-        return None
-    x = round(x / w)
-    y = round(y / w)
-    return ((x - 1, y - 1))
 
 def update_board(game):
     draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
@@ -85,8 +106,9 @@ def update_board(game):
                 y = pos // (SIZE - 1)
 
                 px = (x + 1) * WIDTH / SIZE
-                py = (y + 1) * WIDTH / SIZE
+                pyy = (y + 1) * WIDTH / SIZE
                 color = (0, 0, 0) if player == 0 else (255, 255, 255)
-                pyd.circle(game.win, color, (px, py), WIDTH / SIZE / 3)
+                pyd.circle(game.win, color, (px, pyy), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1
+    py.display.update()

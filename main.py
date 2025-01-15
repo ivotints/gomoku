@@ -3,7 +3,7 @@ import contextlib
 with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
     import pygame as py
 import pygame.draw as pyd
-from render import draw_board, update_board, find_mouse_pos, draw_suggestion
+from render import draw_board, update_board, draw_suggestion, show_winning_message
 from game import handle_move, is_occupied
 import argparse
 import copy
@@ -15,10 +15,6 @@ WHITE_PLAYER = 1
 
 class gomoku:
     def __init__(self, players):
-        #100
-        #000
-        #000
-        # will be encoded like 0b000000001
         self.boards = [[0], [0]] # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
@@ -34,26 +30,24 @@ class gomoku:
 
 
 
-def handle_turn(game, result, move):
-    # draw a circle on the board
+def find_mouse_pos(pos):
+    x, y = pos
+    w = WIDTH / SIZE
+    if x < w - w / 3 or x > WIDTH - w + w / 3 or y < w - w / 3 or y > WIDTH - w + w / 3:
+        return None
+    x = round(x / w)
+    y = round(y / w)
+    return ((x - 1, y - 1))
+
+
+def handle_turn(game, result):
     if result is None:
         return False
-    pyd.circle(game.win, (0,0,0) if not game.turn else (255,255,255), ((move % 19 + 1) * WIDTH / SIZE, (move // 19 + 1) * WIDTH / SIZE), WIDTH / SIZE / 3)
-    
     update_board(game)
-
-    if result:
-        message = "{} win!".format("Black" if not game.turn else "White")
-        font = py.font.Font(None, 74)
-        text = font.render(message, True, (30, 30, 30))
-        text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
-        game.win.blit(text, text_rect)
-        print("GG")
-        py.display.update()
-        py.time.wait(5000)  # Wait for 1 second
-        exit(0)
     game.turn = not game.turn
-    py.display.update()
+    
+    if result:
+        show_winning_message(game)
     return True
 
 def main():
@@ -81,7 +75,7 @@ def main():
                         # we go here after mouse click and if it was not occupied
                         # turn is 0 for now because it is black's turn
                         result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                        legal = handle_turn(game, result, move)
+                        legal = handle_turn(game, result)
                         # turn is 1
                         if legal and not game.solo:
                             game.thinking = True
@@ -92,7 +86,7 @@ def main():
                             move = bot_result.move
                             game.eval = -bot_result.evaluation
                             result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                            handle_turn(game, result, move)
+                            handle_turn(game, result)
                             print(f"Time taken: {time.time() - start:.2f}")
                             game.thinking = False
                             draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
