@@ -114,7 +114,6 @@ def check_double_three(board_turn, board_not_turn, y, x):
     board_turn &= ~(1 << bit_position)  # Unset bit
     return count > 1
 
-# 0, boards, (y, x), 0
 def is_legal(captures, boards, move, turn):
     y = move // 19
     x = move % 19
@@ -123,13 +122,7 @@ def is_legal(captures, boards, move, turn):
         return False, capture, pos
     return True, capture, pos
 
-# our 2 boards
-# which turn
-# move that was made
-# current captures for both players
 def handle_move(boards, turn, move, captures):
-    # turbn is 0 for black
-    # 0, boards, (y, x), 0
     legal, has_capture, pos = is_legal(captures[turn], boards, move, turn)
     if not legal:
         return None, has_capture

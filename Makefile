@@ -23,6 +23,9 @@ clean:
 run: $(TARGET)
 	@$(PYTHON) main.py
 
+run_with_help: $(TARGET)
+	@$(PYTHON) main.py --suggest
+
 run2: $(TARGET)
 	@$(PYTHON) main.py -p 2
 

@@ -23,12 +23,12 @@ class gomoku:
         self.solo = players
         self.thinking = False
         self.eval = 0
+        self.show_suggestions = False  # Add this line
 
+        py.init()
         py.display.set_caption("Gomoku")
         draw_board(self.win)
         py.display.update()
-
-
 
 def find_mouse_pos(pos):
     x, y = pos
@@ -50,46 +50,66 @@ def handle_turn(game, result):
         show_winning_message(game)
     return True
 
+def handle_user_move(game, pos):
+    """Handle a user's mouse click to make a move"""
+    if pos is None:
+        return False
+        
+    move = pos[1] * 19 + pos[0]
+    if not is_occupied(game.boards[BLACK_PLAYER], (pos[1], pos[0])) and \
+       not is_occupied(game.boards[WHITE_PLAYER], (pos[1], pos[0])):
+        result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+        return handle_turn(game, result)
+    return False
+
+def handle_bot_move(game):
+    """Handle the bot's turn"""
+    game.thinking = True
+    start = time.time()
+    
+    # Get and execute bot's move
+    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+    move = bot_result.move
+    game.eval = -bot_result.evaluation
+    result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+    handle_turn(game, result)
+    
+    print(f"Time taken: {time.time() - start:.2f}")
+    game.thinking = False
+    
+    # Show suggestion only if enabled
+    if game.show_suggestions:
+        draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
+
+def handle_events(game):
+    """Handle pygame events"""
+    for event in py.event.get():
+        if event.type in (py.QUIT, py.KEYDOWN):
+            if event.type == py.KEYDOWN and event.key != py.K_ESCAPE:
+                continue
+            game.running = False
+            return False
+            
+        if event.type == py.MOUSEBUTTONDOWN:
+            pos = find_mouse_pos(py.mouse.get_pos())
+            if handle_user_move(game, pos) and not game.solo:
+                handle_bot_move(game)
+    return True
+
 def main():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--player", "-p", type=int, choices=[1, 2], help="Choose amount of player 1 or 2", nargs='?', default=1)
+    parse.add_argument("--player", "-p", type=int, choices=[1, 2], 
+                      help="Choose amount of player 1 or 2", nargs='?', default=1)
+    parse.add_argument("--suggest", "-s", action="store_true", 
+                      help="Show move suggestions", default=False)
     args = parse.parse_args()
-    with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
-        py.init()
+        
     game = gomoku(args.player - 1)
+    game.show_suggestions = args.suggest
+    
     while game.running:
         if not game.thinking:
-            for event in py.event.get():
-                if event.type == py.KEYDOWN:
-                    if event.key == py.K_ESCAPE:
-                        game.running = False
-                if event.type == py.QUIT:
-                    game.running = False
-                if event.type == py.MOUSEBUTTONDOWN:
-                    pos = find_mouse_pos(py.mouse.get_pos())
-                    # print("mouse pos:", pos)
-                    if pos is None:
-                        continue
-                    move = pos[1] * 19 + pos[0]
-                    if not is_occupied(game.boards[BLACK_PLAYER], (pos[1], pos[0])) and not is_occupied(game.boards[WHITE_PLAYER], (pos[1], pos[0])):
-                        # we go here after mouse click and if it was not occupied
-                        # turn is 0 for now because it is black's turn
-                        result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                        legal = handle_turn(game, result)
-                        # turn is 1
-                        if legal and not game.solo:
-                            game.thinking = True
-                            start = time.time()
-                            # turn is 1
-                            # move, game.eval = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
-                            bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
-                            move = bot_result.move
-                            game.eval = -bot_result.evaluation
-                            result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
-                            handle_turn(game, result)
-                            print(f"Time taken: {time.time() - start:.2f}")
-                            game.thinking = False
-                            draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
+            handle_events(game)
 
 if __name__ == '__main__':
     main()
