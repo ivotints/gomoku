@@ -27,7 +27,6 @@ _lib.check_capture.restype = CaptureResult
 _lib.is_won.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_bool,
     ctypes.c_int
 ]
 _lib.is_won.restype = ctypes.c_bool
@@ -73,14 +72,13 @@ def check_capture(board_turn, board_not_turn, y, x):
     positions = [result.positions[i] for i in range(result.position_count)]
     return result.capture_count, positions
 
-def is_won(boards, turn, capture_opponent):
-    arr_turn = convert_to_array(boards[turn][0])
-    arr_not_turn = convert_to_array(boards[not turn][0])
+def is_won(board_turn, board_not_turn, capture_opponent):
+    arr_turn = convert_to_array(board_turn)
+    arr_not_turn = convert_to_array(board_not_turn)
     
     return _lib.is_won(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
-        turn,
         capture_opponent
     )
 

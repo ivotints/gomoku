@@ -138,6 +138,6 @@ def handle_move(boards, turn, move, captures):
     if has_capture:
         for p in pos:
             boards[not turn][0] &= ~(1 << p)
-    if captures[turn] > 4 or is_won(boards, turn, captures[not turn]):
+    if captures[turn] > 4 or is_won(boards[turn][0], boards[not turn][0], captures[not turn]):
         return True, has_capture
     return False, has_capture

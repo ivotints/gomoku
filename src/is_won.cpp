@@ -38,7 +38,7 @@ static inline bool has_eatable_piece_in_line(uint32_t* board_turn, uint32_t* boa
     return false;
 }
 
-bool is_won(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int capture_opponent) {
+bool is_won(uint32_t* board_turn, uint32_t* board_not_turn, int capture_opponent) {
     const int BOARD_SIZE = 19;
     const int directions[4][2] = {{0,1}, {1,1}, {1,0}, {1,-1}};
     const int capture_directions[8][2] = {

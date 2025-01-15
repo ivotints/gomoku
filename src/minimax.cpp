@@ -34,7 +34,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             if (new_captures[turn] > 4 || 
-                is_won(new_board_turn, new_board_not_turn, turn, new_captures[!turn])) {
+                is_won(new_board_turn, new_board_not_turn, new_captures[!turn])) {
                 return 1000000;
             }
 
@@ -71,7 +71,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             if (new_captures[turn] > 4 || 
-                is_won(new_board_turn, new_board_not_turn, turn, new_captures[!turn])) {
+                is_won(new_board_turn, new_board_not_turn, new_captures[!turn])) {
                 return -1000000;
             }
 
