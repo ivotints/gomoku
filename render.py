@@ -98,6 +98,7 @@ def draw_board(win, captures=[0, 0], evaluation=0):
     text_rect = text.get_rect(center=(180, 20))
     win.blit(text, text_rect)
     
+    draw_suggestion_button(win)
     # Draw evaluation bar
     bar_width = 15
     bar_height = WIDTH - 2 * square
@@ -129,9 +130,15 @@ def draw_board(win, captures=[0, 0], evaluation=0):
     pyd.line(win, BLACK, (bar_x, bar_y + bar_height/2), 
              (bar_x + bar_width - 1, bar_y + bar_height/2), width=2)
 
+def draw_suggestion_button(win):
+    font = py.font.Font(None, 50)
+    text = font.render('?', False, BLACK)
+    text_rect = text.get_rect()
+    
+    text_rect.topright = (WIDTH - 5, 5)
+    win.blit(text, text_rect)
 
-
-def update_board(game):
+def update_board(game, sugg=False):
     draw_board(game.win, game.captures, game.eval if not game.is_multiplayer else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
     draw_undo_button(game.win)
 
@@ -152,6 +159,7 @@ def update_board(game):
                 pyd.circle(game.win, color, (px, pyy), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1
-    if game.show_suggestions and (game.is_multiplayer or game.turn == 1):
-        draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
+    if (game.show_suggestions and (game.is_multiplayer or game.turn == 1)) or sugg:
+        turn = game.turn if sugg else not game.turn
+        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures)))
     py.display.update()

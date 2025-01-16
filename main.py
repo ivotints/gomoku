@@ -128,11 +128,29 @@ def handle_bot_move(game):
 
 
 
-def is_undo_button_clicked(pos):
+def handle_undo(game, pos):
     """Check if click position is within UNDO text bounds"""
     x, y = pos
-    return (WIDTH - 50 <= x <= WIDTH - 10 and  # Approximate text width of 40px
-            WIDTH - 25 <= y <= WIDTH - 10)  # 15px height
+    if (WIDTH - 50 <= x <= WIDTH - 10 and WIDTH - 25 <= y <= WIDTH - 10):
+        if not game.is_multiplayer:
+            if game.undo_move():
+                game.undo_move()
+                game.turn = not game.turn
+                update_board(game)
+                game.turn = not game.turn
+                return True
+            else:
+                if game.undo_move():
+                    return True
+    return False
+def handle_suggestion(game, pos):
+    """Check if click position is within SUGGEST text bounds"""
+    x, y = pos
+    if (774 <= x <= 795 and 0 <= y <= 34):
+        game.show_suggestions = not game.show_suggestions
+        update_board(game, game.show_suggestions)
+        return True
+    return False
 
 def handle_events(game):
     """Handle pygame events"""
@@ -146,25 +164,14 @@ def handle_events(game):
         if event.type == py.MOUSEBUTTONDOWN:
             click_pos = py.mouse.get_pos()
             
-            # Check for undo button click
-            if is_undo_button_clicked(click_pos):
-                if not game.is_multiplayer:  # is_multiplayer mode (vs bot)
-                    if game.undo_move():  # Undo both moves
-                        game.undo_move()
-                        game.turn = not game.turn
-                        update_board(game)
-                        game.turn = not game.turn
-                        return True
-                else:  # Two player mode
-                    if game.undo_move():  # Undo single move
-                        return True
-                continue
-            else:
-                pos = find_mouse_pos(click_pos)
-                if handle_user_move(game, pos):
-                    if not game.is_multiplayer:
-                        handle_bot_move(game)
-                    return True
+            if handle_suggestion(game, click_pos) or handle_undo(game, click_pos):
+                return True
+
+            pos = find_mouse_pos(click_pos)
+            if handle_user_move(game, pos):
+                if not game.is_multiplayer:
+                    handle_bot_move(game)
+                return True
     return True
 
 def main():
