@@ -120,7 +120,7 @@ def handle_bot_move(game):
     bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
     move = bot_result.move
     game.eval = -bot_result.evaluation
-    result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+    result, has_capture = handle_move(game, game.boards, game.turn, move, game.captures)
 
     game.time = time.time() - start
     handle_turn(game, result)
