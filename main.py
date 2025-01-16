@@ -40,11 +40,11 @@ class gomoku:
             bit_position = 9 * 19 + 9
             self.boards[0][0] |= (1 << bit_position)
             self.turn = WHITE_PLAYER
-            if not is_white:
+            if not is_white and not players:
                 handle_bot_move(self)
             update_board(self)
         else:
-            if is_white:
+            if is_white and not players:
                 handle_bot_move(self)
             update_board(self)
 
