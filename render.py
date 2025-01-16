@@ -118,18 +118,15 @@ def draw_board(win, captures=[0, 0], evaluation=0):
 def update_board(game):
     draw_board(game.win, game.captures, game.eval if not game.is_multiplayer else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
     draw_undo_button(game.win)
-    if game.show_suggestions and (game.is_multiplayer or game.turn == 1):
-        draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
 
     if not game.is_multiplayer:
-        display_time(game, time.time()- game.time)
+        display_time(game, time.time() - game.time)
 
     for player, board in enumerate(game.boards):
         b = board.copy()
         pos = 0
         while b[0]:
             if b[0] & 1:
-
                 x = pos % (SIZE - 1)
                 y = pos // (SIZE - 1)
 
@@ -139,4 +136,6 @@ def update_board(game):
                 pyd.circle(game.win, color, (px, pyy), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1
+    if game.show_suggestions and (game.is_multiplayer or game.turn == 1):
+        draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
     py.display.update()

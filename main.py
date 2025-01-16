@@ -2,7 +2,7 @@ import os
 import contextlib
 with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
     import pygame as py
-from render import draw_board, update_board, draw_suggestion, show_winning_message, display_time
+from render import draw_board, update_board, show_winning_message
 from game import handle_move, is_occupied
 import argparse
 import copy
@@ -151,7 +151,9 @@ def handle_events(game):
                 if not game.is_multiplayer:  # is_multiplayer mode (vs bot)
                     if game.undo_move():  # Undo both moves
                         game.undo_move()
+                        game.turn = not game.turn
                         update_board(game)
+                        game.turn = not game.turn
                         return True
                 else:  # Two player mode
                     if game.undo_move():  # Undo single move
