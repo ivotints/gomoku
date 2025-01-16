@@ -160,6 +160,13 @@ void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn,
     int bottom = ROW_SIZE - 1;
     while (bottom >= 0 && union_board[bottom] == 0) bottom--;
 
+    if (top > bottom)
+    {
+        *move_count = 1;
+        moves[0] = 9 * ROW_SIZE + 9;
+        return ;
+    }
+
     int left = 0;
     uint32_t col_bits;
     while (left < ROW_SIZE) {
