@@ -159,7 +159,7 @@ def update_board(game, sugg=False):
                 pyd.circle(game.win, color, (px, pyy), WIDTH / SIZE / 3)
             b[0] >>= 1
             pos += 1
-    if (game.show_suggestions and (game.is_multiplayer or game.turn == 1)) or sugg:
-        turn = game.turn if sugg else not game.turn
-        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures)))
+    if (game.show_suggestions and (game.is_multiplayer or not game.is_white == game.turn)) or sugg:
+        turn = game.is_white if sugg else not game.turn
+        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures), game.depth))
     py.display.update()

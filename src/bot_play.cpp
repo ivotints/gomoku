@@ -54,7 +54,7 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
     return is_win;
 }
 
-BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures) {
+BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth) {
     int moves[361];
     int move_count = 0;
     generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
@@ -111,7 +111,7 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
                 }
 
                 int eval = minimax(new_board_not_turn, new_board_turn,
-                                DEPTH, -1000000, 1000000, false, !turn, new_captures);
+                                depth, -1000000, 1000000, false, !turn, new_captures);
                 results[i] = {moves[i], eval};
                 std::lock_guard<std::mutex> lock(best_move_mutex);
                 if (eval > best_eval) {

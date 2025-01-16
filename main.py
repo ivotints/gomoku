@@ -20,7 +20,7 @@ class Move:
         self.time = game.time
 
 class gomoku:
-    def __init__(self, players):
+    def __init__(self, players, variant, depth=4, is_white=False):
         self.boards = [[0], [0]] # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
@@ -32,50 +32,38 @@ class gomoku:
         self.show_suggestions = False
         self.time = 0
         self.history = []
-
+        self.depth = depth
+        self.is_white = is_white
         py.init()
         py.display.set_caption("Gomoku")
-        draw_board(self.win)
-        py.display.update()
+        if variant:
+            bit_position = 9 * 19 + 9
+            self.boards[0][0] |= (1 << bit_position)
+            self.turn = WHITE_PLAYER
+            if not is_white:
+                handle_bot_move(self)
+            update_board(self)
+        else:
+            if is_white:
+                handle_bot_move(self)
+            update_board(self)
 
     def save_move(self):
         """Save current game state to history"""
-        print(f"\n=== Saving Move ===")
-        print(f"Current boards: {self.boards}")
-        print(f"Current turn: {'Black' if self.turn == 0 else 'White'}")
-        print(f"Current captures: {self.captures}")
-        print(f"Current eval: {self.eval}")
         self.history.append(Move(self))
-        print(f"History length after save: {len(self.history)}")
 
     def undo_move(self):
         """Restore previous game state from history"""
-        print(f"\n=== Attempting Undo ===")
         if not self.history:
-            print("No moves in history to undo")
             return False
         
-        print(f"Current state before undo:")
-        print(f"Boards: {self.boards}")
-        print(f"Turn: {'Black' if self.turn == 0 else 'White'}")
-        print(f"Captures: {self.captures}")
-        
         previous = self.history.pop()
-        print(f"\nRestoring to previous state:")
-        print(f"Previous boards: {previous.boards}")
-        print(f"Previous captures: {previous.captures}")
         
         self.boards = [previous.boards[0].copy(), previous.boards[1].copy()]
         self.captures = previous.captures.copy()
         self.eval = previous.eval
         self.time = previous.time
         self.turn = not self.turn  # This line might be the issue - double turn change
-
-        print(f"\nFinal state after undo:")
-        print(f"Boards: {self.boards}")
-        print(f"Turn: {'Black' if self.turn == 0 else 'White'}")
-        print(f"Captures: {self.captures}")
-        print(f"History length: {len(self.history)}")
         
         update_board(self)
         return True
@@ -107,7 +95,7 @@ def handle_user_move(game, pos):
         
     move = pos[1] * 19 + pos[0]
     if not is_occupied(game.boards[0], move) and not is_occupied(game.boards[1], move):
-        result, has_capture = handle_move(game, game.boards, game.turn, move, game.captures)
+        result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
         return handle_turn(game, result)
     return False
 
@@ -117,10 +105,10 @@ def handle_bot_move(game):
     start = time.time()
     
     # Get and execute bot's move
-    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures))
+    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth)
     move = bot_result.move
     game.eval = -bot_result.evaluation
-    result, has_capture = handle_move(game, game.boards, game.turn, move, game.captures)
+    result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
 
     game.time = time.time() - start
     handle_turn(game, result)
@@ -178,13 +166,15 @@ def main():
     parse = argparse.ArgumentParser()
     parse.add_argument("--player", "-p", type=int, choices=[1, 2], 
                       help="Choose amount of player 1 or 2", nargs='?', default=1)
-    parse.add_argument("--suggest", "-s", action="store_true", 
-                      help="Show move suggestions", default=False)
+    parse.add_argument("--color", "-c", type=str, choices=["black", "white"],
+                      help="Choose color", default="black")
+    parse.add_argument("--variant", "-v", action="store_true", 
+                      help="Activate variant", default=False)
+    parse.add_argument("--depth", "-D", type=int, 
+                      help="Algo search depth", default=4)
     args = parse.parse_args()
-        
-    game = gomoku(args.player - 1)
-    game.show_suggestions = args.suggest
-    
+    is_white = True if args.color == "white" else False
+    game = gomoku(args.player - 1, args.variant, args.depth, is_white)
     while game.running:
         if not game.thinking:
             handle_events(game)

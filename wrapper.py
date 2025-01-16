@@ -35,7 +35,8 @@ _lib.bot_play.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.POINTER(ctypes.c_uint32),
     ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_int)
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_int
 ]
 
 class BotResult(ctypes.Structure):
@@ -48,7 +49,7 @@ _lib.bitwise_heuristic.argtypes = [
        ctypes.POINTER(ctypes.c_uint32), 
        ctypes.POINTER(ctypes.c_uint32), 
        ctypes.c_int, 
-       ctypes.c_int
+       ctypes.c_int,
    ]
 _lib.bitwise_heuristic.restype = ctypes.c_int
 
@@ -82,7 +83,7 @@ def is_won(board_turn, board_not_turn, capture_opponent):
         capture_opponent
     )
 
-def bot_play(boards, turn, captures):
+def bot_play(boards, turn, captures, depth):
     arr_turn = convert_to_array(boards[turn][0])
     arr_not_turn = convert_to_array(boards[not turn][0])
     captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
@@ -91,7 +92,8 @@ def bot_play(boards, turn, captures):
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         turn,
-        captures_arr
+        captures_arr,
+        depth
     )
 
 
