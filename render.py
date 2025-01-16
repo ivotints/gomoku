@@ -118,7 +118,7 @@ def draw_board(win, captures=[0, 0], evaluation=0):
 def update_board(game):
     draw_board(game.win, game.captures, game.eval if not game.is_multiplayer else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
     draw_undo_button(game.win)
-    if game.show_suggestions and ((not game.is_multiplayer and game.turn == 1) or game.is_multiplayer):
+    if game.show_suggestions and (game.is_multiplayer or game.turn == 1):
         draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
 
     if not game.is_multiplayer:

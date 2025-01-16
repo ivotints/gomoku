@@ -144,7 +144,6 @@ def handle_events(game):
             return False
         
         if event.type == py.MOUSEBUTTONDOWN:
-            time.sleep(0.1)  # Prevent double click
             click_pos = py.mouse.get_pos()
             
             # Check for undo button click
