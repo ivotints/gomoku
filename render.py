@@ -51,7 +51,7 @@ def show_winning_message(game):
     game.win.blit(text, text_rect)
     
     py.display.update()
-    py.time.wait(2000)  # Wait for 2 seconds
+    py.time.wait(2000)
     exit(0)
 
 

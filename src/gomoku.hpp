@@ -11,6 +11,8 @@
 #include <vector>
 #include <mutex>
 #include <random>
+#include <cstdlib>
+#include <ctime>
 
 #define ROW_SIZE 19
 #define WINDOW_SIZE 5

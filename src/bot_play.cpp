@@ -75,10 +75,8 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     std::vector<std::thread> threads;
     std::mutex best_move_mutex;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, move_count - 1);
-    int best_move = moves[dis(gen)];
+    std::srand(std::time(0));
+    int best_move = moves[std::rand() % move_count];
     int best_eval = -1000000;
 
     int num_threads = std::thread::hardware_concurrency();
@@ -125,7 +123,7 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
         });
     }
 
-    for (auto& thread : threads) {
+    for (std::thread& thread : threads) {
         thread.join();
     }
 
