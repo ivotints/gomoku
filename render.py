@@ -18,13 +18,29 @@ def draw_undo_button(win):
     # Draw just the text
     win.blit(text, text_rect)
 
-def display_time(game, start):
-    """Display the time taken to make a move"""
-    time_taken = time.time() - start
+def get_average_time(game):
+    """Calculate average time from history"""
+    if not game.history:
+        return 0
+    total_time = sum(move.time for move in game.history)
+    return total_time / len(game.history)
+
+def display_time(game, current_time):
+    """Display the current and average time taken"""
     font = py.font.Font(None, 24)
-    text = font.render(f"Time taken: {time_taken:.2f}", True, BLACK)
-    text_rect = text.get_rect(center=(WIDTH // 2, WIDTH - 20))
+    
+    # Current time
+    time_text = f"Time: {time.time() - current_time:.2f}"
+    text = font.render(time_text, True, BLACK)
+    text_rect = text.get_rect(center=(WIDTH//2 - 60, WIDTH - 20))
     game.win.blit(text, text_rect)
+    
+    # Average time
+    avg_time = get_average_time(game)
+    avg_text = f"Avg: {avg_time:.2f}"
+    avg = font.render(avg_text, True, BLACK)
+    avg_rect = avg.get_rect(center=(WIDTH//2 + 60, WIDTH - 20))
+    game.win.blit(avg, avg_rect)
     
 
 def show_winning_message(game):
