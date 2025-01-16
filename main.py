@@ -56,8 +56,7 @@ def handle_user_move(game, pos):
         return False
         
     move = pos[1] * 19 + pos[0]
-    if not is_occupied(game.boards[BLACK_PLAYER], (pos[1], pos[0])) and \
-       not is_occupied(game.boards[WHITE_PLAYER], (pos[1], pos[0])):
+    if not is_occupied(game.boards[0], move) and not is_occupied(game.boards[1], move):
         result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
         return handle_turn(game, result)
     return False
@@ -73,15 +72,9 @@ def handle_bot_move(game):
     game.eval = -bot_result.evaluation
     result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
 
-
-    # Calculate and display time
     game.time = time.time() - start
     handle_turn(game, result)
     game.thinking = False
-    
-    # Show suggestion only if enabled
-    if game.show_suggestions:
-        draw_suggestion(game, bot_play(game.boards, game.turn, copy.deepcopy(game.captures)))
 
 def handle_events(game):
     """Handle pygame events"""

@@ -1,0 +1,6 @@
+fix that
+
+c1r1s5% p main.py -s -p 2
+tcache_thread_shutdown(): unaligned tcache chunk detected
+zsh: IOT instruction (core dumped)  python3 main.py -s -p 2
+

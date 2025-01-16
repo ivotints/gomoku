@@ -1,9 +1,7 @@
 from wrapper import check_capture, is_won
 BOARD_SIZE = 19
 
-def is_occupied(board, pos): # y, x
-    y, x = pos
-    bit_position = y * BOARD_SIZE + x # y * 19 + x
+def is_occupied(board, bit_position):
     return (board[0] >> bit_position) & 1
 
 def winning_line(board):

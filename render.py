@@ -1,8 +1,9 @@
 import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
-from wrapper import get_board_evaluation
+from wrapper import get_board_evaluation,bot_play
 import math
+import copy
 import time
 
 def display_time(game, start):
@@ -49,7 +50,6 @@ def draw_suggestion(game, suggested_move):
     pyd.circle(game.win, (128,128,128), 
               ((x + 1) * WIDTH / SIZE, (y + 1) * WIDTH / SIZE), 
               WIDTH / SIZE / 3, 2)
-    py.display.update()
 
 
 def draw_board(win, captures=[0, 0], evaluation=0):
@@ -105,9 +105,13 @@ def draw_board(win, captures=[0, 0], evaluation=0):
 
 def update_board(game):
     draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
+    
+    if game.show_suggestions and ((not game.solo and game.turn == 1) or game.solo):
+        draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
+
     if not game.solo:
         display_time(game, time.time()- game.time)
-    # draw_captures(win, captures)
+
     for player, board in enumerate(game.boards):
         b = board.copy()
         pos = 0
