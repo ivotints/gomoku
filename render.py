@@ -6,6 +6,18 @@ import math
 import copy
 import time
 
+def draw_undo_button(win):
+    """Draw undo text button in right corner"""
+    font = py.font.Font(None, 20)  # Smaller font size
+    text = font.render("UNDO", True, BLACK)
+    text_rect = text.get_rect()
+    
+    # Position in right corner
+    text_rect.bottomright = (WIDTH - 10, WIDTH - 10)  # 10px padding from edges
+    
+    # Draw just the text
+    win.blit(text, text_rect)
+
 def display_time(game, start):
     """Display the time taken to make a move"""
     time_taken = time.time() - start
@@ -104,12 +116,12 @@ def draw_board(win, captures=[0, 0], evaluation=0):
 
 
 def update_board(game):
-    draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
-    
-    if game.show_suggestions and ((not game.solo and game.turn == 1) or game.solo):
+    draw_board(game.win, game.captures, game.eval if not game.is_multiplayer else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
+    draw_undo_button(game.win)
+    if game.show_suggestions and ((not game.is_multiplayer and game.turn == 1) or game.is_multiplayer):
         draw_suggestion(game, bot_play(game.boards, not game.turn, copy.deepcopy(game.captures)))
 
-    if not game.solo:
+    if not game.is_multiplayer:
         display_time(game, time.time()- game.time)
 
     for player, board in enumerate(game.boards):

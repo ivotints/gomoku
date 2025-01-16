@@ -15,7 +15,6 @@ WHITE_PLAYER = 1
 class Move:
     def __init__(self, game):
         self.boards = [game.boards[0].copy(), game.boards[1].copy()]
-        self.turn = game.turn
         self.captures = game.captures.copy()
         self.eval = game.eval
         self.time = game.time
@@ -27,7 +26,7 @@ class gomoku:
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
         self.running = True
-        self.solo = players
+        self.is_multiplayer = players
         self.thinking = False
         self.eval = 0
         self.show_suggestions = False
@@ -41,19 +40,43 @@ class gomoku:
 
     def save_move(self):
         """Save current game state to history"""
+        print(f"\n=== Saving Move ===")
+        print(f"Current boards: {self.boards}")
+        print(f"Current turn: {'Black' if self.turn == 0 else 'White'}")
+        print(f"Current captures: {self.captures}")
+        print(f"Current eval: {self.eval}")
         self.history.append(Move(self))
-    
+        print(f"History length after save: {len(self.history)}")
+
     def undo_move(self):
         """Restore previous game state from history"""
+        print(f"\n=== Attempting Undo ===")
         if not self.history:
+            print("No moves in history to undo")
             return False
         
+        print(f"Current state before undo:")
+        print(f"Boards: {self.boards}")
+        print(f"Turn: {'Black' if self.turn == 0 else 'White'}")
+        print(f"Captures: {self.captures}")
+        
         previous = self.history.pop()
+        print(f"\nRestoring to previous state:")
+        print(f"Previous boards: {previous.boards}")
+        print(f"Previous captures: {previous.captures}")
+        
         self.boards = [previous.boards[0].copy(), previous.boards[1].copy()]
-        self.turn = previous.turn
         self.captures = previous.captures.copy()
         self.eval = previous.eval
         self.time = previous.time
+        self.turn = not self.turn  # This line might be the issue - double turn change
+
+        print(f"\nFinal state after undo:")
+        print(f"Boards: {self.boards}")
+        print(f"Turn: {'Black' if self.turn == 0 else 'White'}")
+        print(f"Captures: {self.captures}")
+        print(f"History length: {len(self.history)}")
+        
         update_board(self)
         return True
 
@@ -70,7 +93,6 @@ def find_mouse_pos(pos):
 def handle_turn(game, result):
     if result is None:
         return False
-    game.save_move()
     update_board(game)
     game.turn = not game.turn
     
@@ -85,7 +107,7 @@ def handle_user_move(game, pos):
         
     move = pos[1] * 19 + pos[0]
     if not is_occupied(game.boards[0], move) and not is_occupied(game.boards[1], move):
-        result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+        result, has_capture = handle_move(game, game.boards, game.turn, move, game.captures)
         return handle_turn(game, result)
     return False
 
@@ -104,6 +126,14 @@ def handle_bot_move(game):
     handle_turn(game, result)
     game.thinking = False
 
+
+
+def is_undo_button_clicked(pos):
+    """Check if click position is within UNDO text bounds"""
+    x, y = pos
+    return (WIDTH - 50 <= x <= WIDTH - 10 and  # Approximate text width of 40px
+            WIDTH - 25 <= y <= WIDTH - 10)  # 15px height
+
 def handle_events(game):
     """Handle pygame events"""
     for event in py.event.get():
@@ -112,11 +142,28 @@ def handle_events(game):
                 continue
             game.running = False
             return False
-            
+        
         if event.type == py.MOUSEBUTTONDOWN:
-            pos = find_mouse_pos(py.mouse.get_pos())
-            if handle_user_move(game, pos) and not game.solo:
-                handle_bot_move(game)
+            time.sleep(0.1)  # Prevent double click
+            click_pos = py.mouse.get_pos()
+            
+            # Check for undo button click
+            if is_undo_button_clicked(click_pos):
+                if not game.is_multiplayer:  # is_multiplayer mode (vs bot)
+                    if game.undo_move():  # Undo both moves
+                        game.undo_move()
+                        update_board(game)
+                        return True
+                else:  # Two player mode
+                    if game.undo_move():  # Undo single move
+                        return True
+                continue
+            else:
+                pos = find_mouse_pos(click_pos)
+                if handle_user_move(game, pos):
+                    if not game.is_multiplayer:
+                        handle_bot_move(game)
+                    return True
     return True
 
 def main():

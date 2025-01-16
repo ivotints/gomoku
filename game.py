@@ -120,10 +120,11 @@ def is_legal(captures, boards, move, turn):
         return False, capture, pos
     return True, capture, pos
 
-def handle_move(boards, turn, move, captures):
+def handle_move(game, boards, turn, move, captures):
     legal, has_capture, pos = is_legal(captures[turn], boards, move, turn)
     if not legal:
         return None, has_capture
+    game.save_move()
     captures[turn] += has_capture
     boards[turn][0] |= (1 << move)
     if has_capture:
