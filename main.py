@@ -36,6 +36,8 @@ class gomoku:
         self.is_white = is_white
         py.init()
         py.display.set_caption("Gomoku")
+        draw_board(self.win, self.captures, self.eval)
+        py.display.update()
         if variant:
             bit_position = 9 * 19 + 9
             self.boards[0][0] |= (1 << bit_position)
@@ -54,7 +56,7 @@ class gomoku:
 
     def undo_move(self):
         """Restore previous game state from history"""
-        if not self.history:
+        if not self.history or len(self.history) == 1:
             return False
         
         previous = self.history.pop()
