@@ -12,6 +12,14 @@ from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
 
+class Move:
+    def __init__(self, game):
+        self.boards = [game.boards[0].copy(), game.boards[1].copy()]
+        self.turn = game.turn
+        self.captures = game.captures.copy()
+        self.eval = game.eval
+        self.time = game.time
+
 class gomoku:
     def __init__(self, players):
         self.boards = [[0], [0]] # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
@@ -24,11 +32,30 @@ class gomoku:
         self.eval = 0
         self.show_suggestions = False
         self.time = 0
+        self.history = []
 
         py.init()
         py.display.set_caption("Gomoku")
         draw_board(self.win)
         py.display.update()
+
+    def save_move(self):
+        """Save current game state to history"""
+        self.history.append(Move(self))
+    
+    def undo_move(self):
+        """Restore previous game state from history"""
+        if not self.history:
+            return False
+        
+        previous = self.history.pop()
+        self.boards = [previous.boards[0].copy(), previous.boards[1].copy()]
+        self.turn = previous.turn
+        self.captures = previous.captures.copy()
+        self.eval = previous.eval
+        self.time = previous.time
+        update_board(self)
+        return True
 
 def find_mouse_pos(pos):
     x, y = pos
@@ -43,6 +70,7 @@ def find_mouse_pos(pos):
 def handle_turn(game, result):
     if result is None:
         return False
+    game.save_move()
     update_board(game)
     game.turn = not game.turn
     

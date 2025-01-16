@@ -1,6 +1,5 @@
 #include "gomoku.hpp"
 
-
 CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, 
                               int y, int x) {
     const int BOARD_SIZE = 19;
@@ -55,7 +54,6 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
     return is_win;
 }
 
-
 BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures) {
     int moves[361];
     int move_count = 0;
@@ -90,8 +88,6 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     {
         int start = t * moves_per_thread;
         int end = std::min((t + 1) * moves_per_thread, move_count);
-
-
 
         threads.emplace_back([&, start, end]() {
             for (int i = start; i < end; i++) {
