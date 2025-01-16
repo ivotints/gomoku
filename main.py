@@ -2,8 +2,7 @@ import os
 import contextlib
 with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
     import pygame as py
-import pygame.draw as pyd
-from render import draw_board, update_board, draw_suggestion, show_winning_message
+from render import draw_board, update_board, draw_suggestion, show_winning_message, display_time
 from game import handle_move, is_occupied
 import argparse
 import copy
@@ -23,7 +22,8 @@ class gomoku:
         self.solo = players
         self.thinking = False
         self.eval = 0
-        self.show_suggestions = False  # Add this line
+        self.show_suggestions = False
+        self.time = 0
 
         py.init()
         py.display.set_caption("Gomoku")
@@ -72,9 +72,11 @@ def handle_bot_move(game):
     move = bot_result.move
     game.eval = -bot_result.evaluation
     result, has_capture = handle_move(game.boards, game.turn, move, game.captures)
+
+
+    # Calculate and display time
+    game.time = time.time() - start
     handle_turn(game, result)
-    
-    print(f"Time taken: {time.time() - start:.2f}")
     game.thinking = False
     
     # Show suggestion only if enabled

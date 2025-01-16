@@ -3,6 +3,16 @@ import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
 from wrapper import get_board_evaluation
 import math
+import time
+
+def display_time(game, start):
+    """Display the time taken to make a move"""
+    time_taken = time.time() - start
+    font = py.font.Font(None, 24)
+    text = font.render(f"Time taken: {time_taken:.2f}", True, BLACK)
+    text_rect = text.get_rect(center=(WIDTH // 2, WIDTH - 20))
+    game.win.blit(text, text_rect)
+    
 
 def show_winning_message(game):
     """Display the winning message with bordered text based on winner color"""
@@ -95,6 +105,8 @@ def draw_board(win, captures=[0, 0], evaluation=0):
 
 def update_board(game):
     draw_board(game.win, game.captures, game.eval if not game.solo else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
+    if not game.solo:
+        display_time(game, time.time()- game.time)
     # draw_captures(win, captures)
     for player, board in enumerate(game.boards):
         b = board.copy()
