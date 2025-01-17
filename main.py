@@ -7,6 +7,7 @@ from game import handle_move, is_occupied
 import argparse
 import copy
 import time
+from test import generate_bitboards
 from wrapper import bot_play
 from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
@@ -20,8 +21,8 @@ class Move:
         self.time = game.time
 
 class gomoku:
-    def __init__(self, players, variant, depth=4, is_white=False):
-        self.boards = [[0], [0]] # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
+    def __init__(self, players, variant, depth=4, is_white=False, test=False):
+        self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
@@ -174,7 +175,12 @@ def main():
                       help="Activate variant", default=False)
     parse.add_argument("--depth", "-D", type=int, 
                       help="Algo search depth", default=4)
+    parse.add_argument("--test", "-t", type=bool, 
+                      help="test position")
     args = parse.parse_args()
+    if args.test:
+        bot_play(generate_bitboards(), 0, [0, 0], 4)
+        exit(0)
     is_white = True if args.color == "white" else False
     game = gomoku(args.player - 1, args.variant, args.depth, is_white)
     while game.running:

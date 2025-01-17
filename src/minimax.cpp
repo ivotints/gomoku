@@ -1,7 +1,8 @@
 #include "gomoku.hpp"
 
-int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures) {
+int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures, int *visited) {
     if (depth == 1) {
+        visited[0]++;
         return bitwise_heuristic(board_turn, board_not_turn, captures[turn], captures[not turn]) * (maximizing_player ? 1 : -1);
     }
 
@@ -39,7 +40,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                             depth - 1, alpha, beta, false, !turn, new_captures);
+                             depth - 1, alpha, beta, false, !turn, new_captures, visited);
             max_eval = std::max(max_eval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha)
@@ -76,7 +77,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                             depth - 1, alpha, beta, true, !turn, new_captures);
+                             depth - 1, alpha, beta, true, !turn, new_captures, visited);
             min_eval = std::min(min_eval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha)

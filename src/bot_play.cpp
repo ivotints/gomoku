@@ -81,7 +81,7 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
 
     int num_threads = std::thread::hardware_concurrency();
     int moves_per_thread = move_count / num_threads + 1; // or do it other way??
-
+    int total_evaluated = 0;
     for (int t = 0; t < num_threads && t * moves_per_thread < move_count; t++)
     {
         int start = t * moves_per_thread;
@@ -89,6 +89,7 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
 
         threads.emplace_back([&, start, end]() {
             for (int i = start; i < end; i++) {
+                int visited = 0;
                 uint32_t new_board_turn[ROW_SIZE];
                 uint32_t new_board_not_turn[ROW_SIZE];
                 int new_captures[2] = {captures[0], captures[1]};
@@ -111,9 +112,10 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
                 }
 
                 int eval = minimax(new_board_not_turn, new_board_turn,
-                                depth, -1000000, 1000000, false, !turn, new_captures);
+                                depth, -1000000, 1000000, false, !turn, new_captures, &visited);
                 results[i] = {moves[i], eval};
                 std::lock_guard<std::mutex> lock(best_move_mutex);
+                total_evaluated += visited;
                 if (eval > best_eval) {
                     best_eval = eval;
                     best_move = moves[i];
@@ -126,6 +128,6 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     for (std::thread& thread : threads) {
         thread.join();
     }
-
+    std::cout << "Total evaluated: " << total_evaluated << std::endl;
     return {best_move, best_eval};
 }

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <iostream>
 #include <limits>
 #include <utility>
 #include <algorithm>
@@ -40,4 +41,4 @@ extern "C"
 
 void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, int* moves, int* move_count);
 bool has_winning_line(uint32_t* board);
-int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn, int* captures);
+int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn, int* captures, int* visited);
