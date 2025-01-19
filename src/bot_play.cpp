@@ -57,6 +57,8 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
 BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth) {
     int moves[361];
     int move_count = 0;
+    initializeZobristTable();
+    uint64_t hash = computeZobristHash(board_turn, board_not_turn);
     generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
 
     // Check for winning moves first
@@ -79,16 +81,16 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     int best_move = moves[std::rand() % move_count];
     int best_eval = -1000000;
 
-    int num_threads = std::thread::hardware_concurrency();
-    int moves_per_thread = move_count / num_threads + 1; // or do it other way??
+    // int num_threads = std::thread::hardware_concurrency();
+    // int moves_per_thread = move_count / num_threads + 1; // or do it other way??
     int total_evaluated = 0;
-    for (int t = 0; t < num_threads && t * moves_per_thread < move_count; t++)
+    for (int i = 0; i < move_count; i++)
     {
-        int start = t * moves_per_thread;
-        int end = std::min((t + 1) * moves_per_thread, move_count);
+        // int start = t * moves_per_thread;
+        // int end = std::min((t + 1) * moves_per_thread, move_count);
 
-        threads.emplace_back([&, start, end]() {
-            for (int i = start; i < end; i++) {
+        // threads.emplace_back([&, start, end]() {
+        //     for (int i = start; i < end; i++) {
                 int visited = 0;
                 uint32_t new_board_turn[ROW_SIZE];
                 uint32_t new_board_not_turn[ROW_SIZE];
@@ -112,9 +114,9 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
                 }
 
                 int eval = minimax(new_board_not_turn, new_board_turn,
-                                depth, -1000000, 1000000, false, !turn, new_captures, &visited);
+                                depth, -1000000, 1000000, false, !turn, new_captures, &visited, updateZobristHash(hash, y, x, turn));
                 results[i] = {moves[i], eval};
-                std::lock_guard<std::mutex> lock(best_move_mutex);
+                // std::lock_guard<std::mutex> lock(best_move_mutex);
                 total_evaluated += visited;
                 if (eval > best_eval) {
                     best_eval = eval;
@@ -122,12 +124,9 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
                 }
             }
 
-        });
-    }
-
-    for (std::thread& thread : threads) {
-        thread.join();
-    }
+    // for (std::thread& thread : threads) {
+    //     thread.join();
+    // }
     std::cout << "Total evaluated: " << total_evaluated << std::endl;
     return {best_move, best_eval};
 }

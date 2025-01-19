@@ -3,7 +3,7 @@ CFLAGS = -Wall -O3 -fPIC -shared -std=c++17  -pthread
 PYTHON = python3
 TARGET = heuristic.so
 SRC_DIR = src/
-SRCS = $(addprefix $(SRC_DIR), heuristic.cpp bot_play.cpp is_won.cpp moves_generator.cpp minimax.cpp)
+SRCS = $(addprefix $(SRC_DIR), heuristic.cpp bot_play.cpp is_won.cpp moves_generator.cpp minimax.cpp zoristHash.cpp)
 BUILD_DIR = build/
 
 all: $(TARGET)

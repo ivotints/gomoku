@@ -53,6 +53,12 @@ _lib.bitwise_heuristic.argtypes = [
    ]
 _lib.bitwise_heuristic.restype = ctypes.c_int
 
+# _lib.storeHeuristicInTransposeTable.argtypes = [
+#     ctypes.c_uint64,
+#     ctypes.c_int
+# ]
+# _lib.storeHeuristicInTransposeTable.restype = ctypes.c_int
+
 def convert_to_array(board_int):
     # Convert 19x19 board integer to array of 19 uint32
     arr = np.zeros(19, dtype=np.uint32)

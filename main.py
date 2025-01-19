@@ -160,8 +160,10 @@ def handle_events(game):
 
             pos = find_mouse_pos(click_pos)
             if handle_user_move(game, pos):
+                t = time.time()
                 if not game.is_multiplayer:
                     handle_bot_move(game)
+                print("Time taken: ", time.time() - t)
                 return True
     return True
 
@@ -179,7 +181,9 @@ def main():
                       help="test position")
     args = parse.parse_args()
     if args.test:
-        bot_play(generate_bitboards(), 0, [0, 0], 4)
+        t = time.time()
+        bot_play(generate_bitboards(), 0, [0, 0], args.depth)
+        print("Time taken: ", time.time() - t)
         exit(0)
     is_white = True if args.color == "white" else False
     game = gomoku(args.player - 1, args.variant, args.depth, is_white)
