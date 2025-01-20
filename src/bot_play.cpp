@@ -1,10 +1,8 @@
 #include "gomoku.hpp"
 
-CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, 
-                              int y, int x) {
+int check_capture(uint32_t* board_turn, uint32_t* board_not_turn, 
+                              int y, int x, int* pos) {
     const int BOARD_SIZE = 19;
-    static std::vector<int> positions;  // Static to avoid reallocations
-    positions.clear();
     int capture = 0;
     
     const int directions[8][2] = {
@@ -25,26 +23,22 @@ CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn,
         if (((board_turn[y3] >> x3) & 1) && 
             ((board_not_turn[y + dir[0]*2] >> (x + dir[1]*2)) & 1) && 
             ((board_not_turn[y + dir[0]] >> (x + dir[1])) & 1)) {
+            pos[capture * 2] = bit1;
+            pos[capture * 2 + 1] = bit2;
             capture++;
-            positions.push_back(bit1);
-            positions.push_back(bit2);
         }
     }
 
-    CaptureResult result;
-    result.capture_count = capture;
-    result.position_count = positions.size();
-    result.positions = positions.data();
-    return result;
+    return capture;
 }
 
 static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_turn,
                         int move, int turn, int capture) {
     int y = move / 19;
     int x = move % 19;
-    
-    CaptureResult cap = check_capture(board_turn, board_not_turn, y, x);
-    if (cap.capture_count + capture > 4)
+    int pos[16];
+    int capture_count = check_capture(board_turn, board_not_turn, y, x, pos);
+    if (capture_count + capture > 4)
         return true;
 
     board_turn[y] |= (1u << x);
@@ -112,14 +106,15 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
 
                 int y = moves[i] / 19;
                 int x = moves[i] % 19;
-                CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
+                int pos[16];
+                int capture_count = check_capture(new_board_turn, new_board_not_turn, y, x, pos);
                 new_board_turn[y] |= (1u << x);
 
-                if (capture.capture_count > 0) {
-                    new_captures[turn] += capture.capture_count;
-                    for (int j = 0; j < capture.position_count; j++) {
-                        int pos_y = capture.positions[j] / 19;
-                        int pos_x = capture.positions[j] % 19;
+                if (capture_count > 0) {
+                    new_captures[turn] += capture_count;
+                    for (int j = 0; j < capture_count * 2; j++) {
+                        int pos_y = pos[j] / 19;
+                        int pos_x = pos[j] % 19;
                         new_board_not_turn[pos_y] &= ~(1u << pos_x);
                     }
                 }

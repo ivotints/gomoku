@@ -1,11 +1,36 @@
-from wrapper import check_capture, is_won
+from wrapper import is_won
 BOARD_SIZE = 19
 
 def is_occupied(board, bit_position):
     return (board[0] >> bit_position) & 1
 
+def check_capture(board_turn, board_not_turn, y, x):
+    capture = 0
+    pos = [0] * 16
+    directions = [
+        (0,1), (1,1), (1,0), (1,-1),
+        (0,-1), (-1,-1), (-1,0), (-1,1)
+    ]
+    
+    for dir_y, dir_x in directions:
+        y3 = y + dir_y * 3
+        x3 = x + dir_x * 3
+        
+        if x3 < 0 or x3 >= BOARD_SIZE or y3 < 0 or y3 >= BOARD_SIZE:
+            continue
+            
+        bit1 = (y + dir_y) * BOARD_SIZE + (x + dir_x)
+        bit2 = (y + dir_y * 2) * BOARD_SIZE + (x + dir_x * 2)
+        bit3 = y3 * BOARD_SIZE + x3
+        
+        if ((board_turn >> bit3) & 1) and ((board_not_turn >> bit2) & 1) and ((board_not_turn >> bit1) & 1):
+            pos[capture * 2] = bit1
+            pos[capture * 2 + 1] = bit2
+            capture += 1
+            
+    return capture, pos
+
 def winning_line(board):
-    BOARD_SIZE = 19
     directions = [(0,1), (1,1), (1,0), (1,-1)]  # 4 directions for efficiency
 
     for i in range(BOARD_SIZE):
@@ -31,7 +56,6 @@ def winning_line(board):
 
 # this is readable version. but not the fastest. 
 def check_double_three(board_turn, board_not_turn, y, x):
-    BOARD_SIZE = 19
     PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
     MASKS = {5: 0b11111, 6: 0b111111}
 

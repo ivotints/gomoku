@@ -43,7 +43,7 @@ extern std::unordered_map<uint64_t, int> transposeTable;
 extern "C"
 {
     BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move, bool search);
-    CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x);
+    int check_capture(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x, int *pos);
     bool is_won(uint32_t* board_turn, uint32_t* board_not_turn, int capture_opponent);
     int bitwise_heuristic(const uint32_t* __restrict__ board_turn, 
                      const uint32_t* __restrict__ board_not_turn,

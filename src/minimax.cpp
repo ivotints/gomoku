@@ -22,14 +22,15 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
 
             int y = new_moves[i] / 19;
             int x = new_moves[i] % 19;
-            CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
+            int pos[16];
+            int capture_count = check_capture(new_board_turn, new_board_not_turn, y, x, pos);
             new_board_turn[y] |= (1u << x);
             
-            if (capture.capture_count > 0) {
-                new_captures[turn] += capture.capture_count;
-                for (int j = 0; j < capture.position_count; j++) {
-                    int pos_y = capture.positions[j] / 19;
-                    int pos_x = capture.positions[j] % 19;
+            if (capture_count > 0) {
+                new_captures[turn] += capture_count;
+                for (int j = 0; j < capture_count * 2; j++) {
+                    int pos_y = pos[j] / 19;
+                    int pos_x = pos[j] % 19;
                     new_board_not_turn[pos_y] &= ~(1u << pos_x);
                 }
             }
@@ -59,14 +60,15 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
 
             int y = new_moves[i] / 19;
             int x = new_moves[i] % 19;
-            CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
+            int pos[16];
+            int capture_count = check_capture(new_board_turn, new_board_not_turn, y, x, pos);
             new_board_turn[y] |= (1u << x);
             
-            if (capture.capture_count > 0) {
-                new_captures[turn] += capture.capture_count;
-                for (int j = 0; j < capture.position_count; j++) {
-                    int pos_y = capture.positions[j] / 19;
-                    int pos_x = capture.positions[j] % 19;
+            if (capture_count > 0) {
+                new_captures[turn] += capture_count;
+                for (int j = 0; j < capture_count * 2; j++) {
+                    int pos_y = pos[j] / 19;
+                    int pos_x = pos[j] % 19;
                     new_board_not_turn[pos_y] &= ~(1u << pos_x);
                 }
             }
