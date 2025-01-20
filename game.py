@@ -125,6 +125,7 @@ def handle_move(game, boards, turn, move, captures):
     if not legal:
         return None, has_capture
     game.save_move()
+    game.last_move = move
     captures[turn] += has_capture
     boards[turn][0] |= (1 << move)
     if has_capture:

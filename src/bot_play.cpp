@@ -54,28 +54,33 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
     return is_win;
 }
 
-BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth) {
-    int moves[361];
-    int move_count = 0;
-    initializeZobristTable();
-    uint64_t hash = computeZobristHash(board_turn, board_not_turn);
-    generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
-
+BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move) {
+    static short moves[361];
+    static int move_count = 0;
+    // std::cout << "played: " << last_move / 19 << ", " << last_move % 19 << std::endl;
+    if (last_move == -1) {
+        moves[0] = 9 * 19 + 9;
+        move_count = 1;
+    } else{
+        find_and_remove(last_move, moves, &move_count);
+        generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count, last_move);
+    }
     // Check for winning moves first
     for (int i = 0; i < move_count; i++) {
+        // std::cout << "move: " << moves[i] / 19 << ", " << moves[i] % 19 << std::endl;
         if (is_winning_move(board_turn, board_not_turn, moves[i], turn, captures[turn])) {
             return {moves[i], 1000000};
         }
     }
 
     struct MoveEval {
-        int move;
+        short move;
         int eval;
     };
     
     std::vector<MoveEval> results(move_count);
     std::vector<std::thread> threads;
-    std::mutex best_move_mutex;
+    // std::mutex best_move_mutex;
 
     std::srand(std::time(0));
     int best_move = moves[std::rand() % move_count];
@@ -114,7 +119,7 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
                 }
 
                 int eval = minimax(new_board_not_turn, new_board_turn,
-                                depth, -1000000, 1000000, false, !turn, new_captures, &visited, updateZobristHash(hash, y, x, turn));
+                                depth, -1000000, 1000000, false, !turn, new_captures, &visited, moves, move_count, moves[i]);
                 results[i] = {moves[i], eval};
                 // std::lock_guard<std::mutex> lock(best_move_mutex);
                 total_evaluated += visited;
@@ -127,6 +132,8 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     // for (std::thread& thread : threads) {
     //     thread.join();
     // }
+    find_and_remove(best_move, moves, &move_count);
     std::cout << "Total evaluated: " << total_evaluated << std::endl;
+    // std::cout << "Best move: " << best_move / 19 << ", " << best_move % 19 << " with eval: " << best_eval << std::endl;
     return {best_move, best_eval};
 }

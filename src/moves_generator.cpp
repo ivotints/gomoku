@@ -137,89 +137,78 @@ bool check_double_three(uint32_t* board_turn, uint32_t* board_not_turn, int y, i
 }
 
 bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
+    if (x < 0 || x >= 19 || y < 0 || y >= 19 || (board_turn[y] & (1U << x)) || (board_not_turn[y] & (1U << x))) return false;
     if (!is_capture(board_turn, board_not_turn, y, x) && ((capture == 4 && has_winning_line(board_not_turn)) || check_double_three(board_turn, board_not_turn, y, x))) {
         return false;
     }
     return true;
 }
 
-void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn,
-                          int capture, int* moves, int* move_count) {
-    *move_count = 0;
-
-    // Create union board
-    uint32_t union_board[ROW_SIZE];
-    for(int i = 0; i < ROW_SIZE; i++) {
-        union_board[i] = board_turn[i] | board_not_turn[i];
-    }
-
-    // Find bounding box
-    int top = 0;
-    while (top < ROW_SIZE && union_board[top] == 0) top++;
+int light_eval(u_int32_t* board_turn, u_int32_t* board_not_turn, int y, int x) {
     
-    int bottom = ROW_SIZE - 1;
-    while (bottom >= 0 && union_board[bottom] == 0) bottom--;
+    return 0;
+}
 
-    if (top > bottom)
-    {
-        *move_count = 1;
-        moves[0] = 9 * ROW_SIZE + 9;
-        return ;
+void sort_move(short* moves, int move_count, uint32_t* board_turn, uint32_t* board_not_turn) {
+    int value[move_count];
+    for (int i = 0; i < move_count; i++) {
+        int y = moves[i] / 19;
+        int x = moves[i] % 19;
+        value[i] = 0;//bitwise_heuristic(board_turn, board_not_turn, 0, 0);
+    }
+    std::vector<int> order(move_count);
+    for (int i = 0; i < move_count; ++i) {
+        order[i] = i;
     }
 
-    int left = 0;
-    uint32_t col_bits;
-    while (left < ROW_SIZE) {
-        col_bits = 0;
-        for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((union_board[row] >> left) & 1);
+    std::sort(order.begin(), order.end(), [&](int a, int b) {
+        return value[a] > value[b];
+    });
+
+    std::vector<bool> visited(move_count, false);
+    for (int i = 0; i < move_count; ++i) {
+        if (visited[i] || order[i] == i) {
+            continue;
         }
-        if (col_bits != 0) break;
-        left++;
-    }
 
-    int right = ROW_SIZE - 1;
-    while (right >= 0) {
-        col_bits = 0;
-        for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((union_board[row] >> right) & 1);
-        }
-        if (col_bits != 0) break;
-        right--;
-    }
-
-    // Expand bounding box
-    int expand = 1;
-    top = (top - expand < 0) ? 0 : top - expand;
-    bottom = (bottom + expand >= ROW_SIZE) ? ROW_SIZE - 1 : bottom + expand;
-    left = (left - expand < 0) ? 0 : left - expand;
-    right = (right + expand >= ROW_SIZE) ? ROW_SIZE - 1 : right + expand;
-
-    // Iterate through bounding box
-    uint32_t mask = (right - left == 1) ? 0b11 : 0b111;
-    
-    for (int row = top; row <= bottom; row++) {
-        for (int col = left; col <= right; col++) {
-            uint32_t window_mask = 0;
-            
-            for (int i = -1; i <= 1; i++) {
-                int check_row = row + i;
-                if (check_row < top || check_row > bottom) continue;
-                
-                int check_col = (col - 1 > left) ? col - 1 : left;
-                int shift_pos = check_col;
-                window_mask |= (union_board[check_row] >> shift_pos) & mask;
-            }
-
-            if (window_mask != 0) {
-                int bit_pos = row * ROW_SIZE + col;
-                if (!(union_board[row] & (1u << col))) {
-                    if (is_legal_lite(capture, board_turn, board_not_turn, row, col)) {
-                        moves[*move_count] = bit_pos;
-                        (*move_count)++;
-                    }
-                }
-            }
+        int current = i;
+        while (!visited[current]) {
+            visited[current] = true;
+            int next = order[current];
+            std::swap(moves[current], moves[next]);
+            current = next;
         }
     }
+}
+
+void find_and_remove(short move, short* moves, int* move_count) {
+    for (int i = 0; i < *move_count; i++) {
+        if (moves[i] == move) {
+            memmove(&moves[i], &moves[i + 1], (*move_count - i - 1) * sizeof(short));
+            (*move_count)--;
+            return;
+        }
+    }
+    return;
+}
+
+bool find_move(short* moves, short move, int count) {
+    for (int i = 0; i < count; i++) {
+        if (moves[i] == move) return true;
+    }
+    return false;
+}
+void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count, short last_move) {
+    int x = last_move % 19;
+    int y = last_move / 19;
+    find_and_remove(last_move, moves, move_count);
+    if (!find_move(moves, last_move + 19, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y+1, x))       moves[(*move_count)++] = (y+1) * 19 + x;
+    if (!find_move(moves, last_move + 20, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y+1, x+1))     moves[(*move_count)++] = (y+1) * 19 + (x+1);
+    if (!find_move(moves, last_move + 18, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y+1, x-1))     moves[(*move_count)++] = (y+1) * 19 + (x-1);
+    if (!find_move(moves, last_move - 18, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y-1, x+1))     moves[(*move_count)++] = (y-1) * 19 + (x+1);
+    if (!find_move(moves, last_move - 20, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y-1, x-1))     moves[(*move_count)++] = (y-1) * 19 + (x-1);
+    if (!find_move(moves, last_move - 19, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y-1, x))       moves[(*move_count)++] = (y-1) * 19 + x;
+    if (!find_move(moves, last_move - 1, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y, x-1))        moves[(*move_count)++] = y * 19 + (x-1);
+    if (!find_move(moves, last_move + 1, *move_count) && is_legal_lite(capture, board_turn, board_not_turn, y, x+1))        moves[(*move_count)++] = y * 19 + (x+1);
+    sort_move(moves, *move_count, board_turn, board_not_turn);
 }

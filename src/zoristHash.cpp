@@ -2,11 +2,23 @@
 #include <vector>
 #include <random>
 #include <cstdint>
+#include <cstring>
 #include "gomoku.hpp"
 
-uint64_t zobristTable[19][19][2];
-std::unordered_map<uint64_t, int> transposeTable;
+#define TTABLE_SIZE (1 << 20) // 1,048,576 entries
 
+// A basic fixed-size transposition table entry
+struct TTEntry {
+    uint32_t key;        // Partial key (upper 32 bits of a 64-bit hash)
+    int heuristic;
+};
+
+static TTEntry ttable[TTABLE_SIZE];
+
+// Zobrist table as before
+uint64_t zobristTable[19][19][2];
+
+// Initialize Zobrist table
 void initializeZobristTable() {
     static bool initialized = false;
     if (!initialized) {
@@ -20,48 +32,65 @@ void initializeZobristTable() {
                 }
             }
         }
+        
+        // Optional: Clear the transposition table
+        std::memset(ttable, 0, sizeof(ttable));
+
         initialized = true;
     }
 }
 
+// Compute full 64-bit Zobrist hash
 uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board) {
     uint64_t hash = 0;
 
     for (int row = 0; row < 19; ++row) {
         uint32_t bitRow = player1Board[row];
-        for (int bit = 0; bit < 19; ++bit) {
-            if (bitRow & (1u << bit)) {
-                hash ^= zobristTable[row][bit][0];
-            }
+        while (bitRow) {
+            int bit = __builtin_ctz(bitRow);
+            hash ^= zobristTable[row][bit][0];
+            bitRow &= ~(1u << bit);
         }
     }
 
     for (int row = 0; row < 19; ++row) {
         uint32_t bitRow = player2Board[row];
-        for (int bit = 0; bit < 19; ++bit) {
-            if (bitRow & (1u << bit)) {
-                hash ^= zobristTable[row][bit][1];
-            }
+        while (bitRow) {
+            int bit = __builtin_ctz(bitRow);
+            hash ^= zobristTable[row][bit][1];
+            bitRow &= ~(1u << bit);
         }
     }
 
     return hash;
 }
 
+// Update a hash for a single move
 uint64_t updateZobristHash(uint64_t currentHash, int row, int col, int player) {
     return currentHash ^ zobristTable[row][col][player];
 }
 
+// Retrieve a heuristic from the fixed-size transposition table, if any
 bool getHeuristicFromTransposeTable(uint64_t hash, int& heuristicValue) {
-    auto it = transposeTable.find(hash);
-    if (it != transposeTable.end()) {
-        heuristicValue = it->second;
+    // Use a simple modulo index
+    const uint64_t index = hash % TTABLE_SIZE;
+    // Extract partial key (upper 32 bits)
+    const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
+
+    if (ttable[index].key == partialKey) {
+        heuristicValue = ttable[index].heuristic;
         return true;
     }
     return false;
 }
 
+// Store a heuristic value in the transposition table
 int storeHeuristicInTransposeTable(uint64_t hash, int heuristicValue) {
-    transposeTable[hash] = heuristicValue;
+    const uint64_t index = hash % TTABLE_SIZE;
+    const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
+
+    // Always replace strategy
+    ttable[index].key = partialKey;
+    ttable[index].heuristic = heuristicValue;
     return heuristicValue;
 }

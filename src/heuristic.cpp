@@ -32,7 +32,7 @@ static inline int scan_line(uint32_t bits_line, uint32_t opponent_line, int max_
     return 0;
 }
 
-static inline int scan_diagonal(uint32_t* board_turn, uint32_t* board_not_turn, 
+static inline int scan_diagonal(const uint32_t* __restrict__ board_turn, const uint32_t* __restrict__ board_not_turn, 
                         int start_row, int start_col, int length,
                         bool is_anti_diagonal, int& value)
 {
@@ -49,7 +49,7 @@ static inline int scan_diagonal(uint32_t* board_turn, uint32_t* board_not_turn,
     return scan_line(diagonal_bits, diagonal_opponent, length - WINDOW_SIZE, value);
 }
 
-int bitwise_heuristic(uint32_t* board_turn, uint32_t* board_not_turn, int capture, int capture_opponent)
+int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* __restrict__ board_not_turn, int capture, int capture_opponent)
 {
     int value = 0;
 

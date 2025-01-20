@@ -30,6 +30,7 @@ class gomoku:
         self.is_multiplayer = players
         self.thinking = False
         self.eval = 0
+        self.last_move = -1
         self.show_suggestions = False
         self.time = 0
         self.history = []
@@ -41,6 +42,7 @@ class gomoku:
         py.display.update()
         if variant:
             bit_position = 9 * 19 + 9
+            self.last_move = bit_position
             self.boards[0][0] |= (1 << bit_position)
             self.turn = WHITE_PLAYER
             if not is_white and not players:
@@ -108,7 +110,7 @@ def handle_bot_move(game):
     start = time.time()
     
     # Get and execute bot's move
-    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth)
+    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth, game.last_move)
     move = bot_result.move
     game.eval = -bot_result.evaluation
     result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
@@ -182,7 +184,7 @@ def main():
     args = parse.parse_args()
     if args.test:
         t = time.time()
-        bot_play(generate_bitboards(), 0, [0, 0], args.depth)
+        bot_play(generate_bitboards(), 0, [0, 0], args.depth, 14* 19 + 7)
         print("Time taken: ", time.time() - t)
         exit(0)
     is_white = True if args.color == "white" else False

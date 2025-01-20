@@ -1,18 +1,14 @@
 #include "gomoku.hpp"
 
-int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures, int *visited, u_int64_t hash) {
+int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures, int *visited, short* moves, int move_count, short last_move) {
     if (depth == 1) {
-        int value;
-        if (getHeuristicFromTransposeTable(hash, value)) {
-            return value * (maximizing_player ? 1 : -1);
-        }
         visited[0]++;
-        return storeHeuristicInTransposeTable(hash, bitwise_heuristic(board_turn, board_not_turn, captures[turn], captures[!turn])) * (maximizing_player ? 1 : -1);
+        return bitwise_heuristic(board_turn, board_not_turn, captures[turn], captures[!turn]) * (maximizing_player ? 1 : -1);
     }
 
-    int moves[361];  // 19x19 max possible moves
-    int move_count = 0;
-    generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
+    short new_moves[351];
+    memcpy(new_moves, moves, move_count * sizeof(short));
+    generate_legal_moves(board_turn, board_not_turn, captures[turn], new_moves, &move_count, last_move);
 
     if (maximizing_player) {
         int max_eval = -1000000;
@@ -24,8 +20,8 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
             memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
 
-            int y = moves[i] / 19;
-            int x = moves[i] % 19;
+            int y = new_moves[i] / 19;
+            int x = new_moves[i] % 19;
             CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
             new_board_turn[y] |= (1u << x);
             
@@ -44,7 +40,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                             depth - 1, alpha, beta, false, !turn, new_captures, visited, updateZobristHash(hash, y, x, turn));
+                             depth - 1, alpha, beta, false, !turn, new_captures, visited, new_moves, move_count, moves[i]);
             max_eval = std::max(max_eval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha)
@@ -61,8 +57,8 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             memcpy(new_board_turn, board_turn, ROW_SIZE * sizeof(uint32_t));
             memcpy(new_board_not_turn, board_not_turn, ROW_SIZE * sizeof(uint32_t));
 
-            int y = moves[i] / 19;
-            int x = moves[i] % 19;
+            int y = new_moves[i] / 19;
+            int x = new_moves[i] % 19;
             CaptureResult capture = check_capture(new_board_turn, new_board_not_turn, y, x);
             new_board_turn[y] |= (1u << x);
             
@@ -81,7 +77,7 @@ int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha
             }
 
             int eval = minimax(new_board_not_turn, new_board_turn,
-                             depth - 1, alpha, beta, true, !turn, new_captures, visited, updateZobristHash(hash, y, x, turn));
+                             depth - 1, alpha, beta, true, !turn, new_captures, visited, new_moves, move_count, moves[i]);
             min_eval = std::min(min_eval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha)
