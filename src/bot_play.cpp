@@ -138,7 +138,8 @@ BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, in
     // for (std::thread& thread : threads) {
     //     thread.join();
     // }
-    find_and_remove(best_move, moves, &move_count);
+    if (!search)
+        find_and_remove(best_move, moves, &move_count_bot);
     std::cout << "Total evaluated: " << total_evaluated << std::endl;
     // std::cout << "Best move: " << best_move / 19 << ", " << best_move % 19 << " with eval: " << best_eval << std::endl;
     return {best_move, best_eval};
