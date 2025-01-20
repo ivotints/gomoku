@@ -161,5 +161,5 @@ def update_board(game, sugg=False):
             pos += 1
     if (game.show_suggestions and (game.is_multiplayer or not game.is_white == game.turn)) or sugg:
         turn = game.is_white if sugg else not game.turn
-        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures), 4, game.last_move))
+        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures), 4, game.last_move, True))
     py.display.update()

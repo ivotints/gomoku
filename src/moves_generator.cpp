@@ -198,6 +198,84 @@ bool find_move(short* moves, short move, int count) {
     }
     return false;
 }
+
+void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn,
+                          int capture, short* moves, int* move_count) {
+    *move_count = 0;
+
+    uint32_t union_board[ROW_SIZE];
+    for(int i = 0; i < ROW_SIZE; i++) {
+        union_board[i] = board_turn[i] | board_not_turn[i];
+    }
+
+    int top = 0;
+    while (top < ROW_SIZE && union_board[top] == 0) top++;
+    
+    int bottom = ROW_SIZE - 1;
+    while (bottom >= 0 && union_board[bottom] == 0) bottom--;
+
+    if (top > bottom)
+    {
+        *move_count = 1;
+        moves[0] = 9 * ROW_SIZE + 9;
+        return ;
+    }
+
+    int left = 0;
+    uint32_t col_bits;
+    while (left < ROW_SIZE) {
+        col_bits = 0;
+        for (int row = 0; row < ROW_SIZE; row++) {
+            col_bits |= ((union_board[row] >> left) & 1);
+        }
+        if (col_bits != 0) break;
+        left++;
+    }
+
+    int right = ROW_SIZE - 1;
+    while (right >= 0) {
+        col_bits = 0;
+        for (int row = 0; row < ROW_SIZE; row++) {
+            col_bits |= ((union_board[row] >> right) & 1);
+        }
+        if (col_bits != 0) break;
+        right--;
+    }
+
+    int expand = 1;
+    top = (top - expand < 0) ? 0 : top - expand;
+    bottom = (bottom + expand >= ROW_SIZE) ? ROW_SIZE - 1 : bottom + expand;
+    left = (left - expand < 0) ? 0 : left - expand;
+    right = (right + expand >= ROW_SIZE) ? ROW_SIZE - 1 : right + expand;
+
+    uint32_t mask = (right - left == 1) ? 0b11 : 0b111;
+    
+    for (int row = top; row <= bottom; row++) {
+        for (int col = left; col <= right; col++) {
+            uint32_t window_mask = 0;
+            
+            for (int i = -1; i <= 1; i++) {
+                int check_row = row + i;
+                if (check_row < top || check_row > bottom) continue;
+                
+                int check_col = (col - 1 > left) ? col - 1 : left;
+                int shift_pos = check_col;
+                window_mask |= (union_board[check_row] >> shift_pos) & mask;
+            }
+
+            if (window_mask != 0) {
+                int bit_pos = row * ROW_SIZE + col;
+                if (!(union_board[row] & (1u << col))) {
+                    if (is_legal_lite(capture, board_turn, board_not_turn, row, col)) {
+                        moves[*move_count] = bit_pos;
+                        (*move_count)++;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count, short last_move) {
     int x = last_move % 19;
     int y = last_move / 19;

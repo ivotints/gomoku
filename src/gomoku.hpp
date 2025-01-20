@@ -42,7 +42,7 @@ extern std::unordered_map<uint64_t, int> transposeTable;
 
 extern "C"
 {
-    BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move);
+    BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move, bool search);
     CaptureResult check_capture(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x);
     bool is_won(uint32_t* board_turn, uint32_t* board_not_turn, int capture_opponent);
     int bitwise_heuristic(const uint32_t* __restrict__ board_turn, 
@@ -55,6 +55,7 @@ uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board);
 bool getHeuristicFromTransposeTable(uint64_t hash, int& heuristicValue);
 void find_and_remove(short move, short* moves, int* move_count);
 int storeHeuristicInTransposeTable(uint64_t hash, int heuristicValue);
+void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count);
 void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count, short last_move);
 bool has_winning_line(uint32_t* board);
 int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures, int *visited, short* moves, int move_count, short last_move);

@@ -54,20 +54,26 @@ static inline bool is_winning_move(uint32_t* board_turn, uint32_t* board_not_tur
     return is_win;
 }
 
-BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move) {
-    static short moves[361];
-    static int move_count = 0;
+BotResult bot_play(uint32_t* board_turn, uint32_t* board_not_turn, bool turn, int* captures, int depth, short last_move, bool search) {
+    static short moves_list[361];
+    short *moves = moves_list;
+    static int move_count_bot = 0;
+    int move_count = 0;
     // std::cout << "played: " << last_move / 19 << ", " << last_move % 19 << std::endl;
-    if (last_move == -1) {
+    if (search)
+        generate_all_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count);
+    else if (last_move == -1) {
         moves[0] = 9 * 19 + 9;
+        move_count_bot = 1;
         move_count = 1;
     } else{
-        find_and_remove(last_move, moves, &move_count);
-        generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count, last_move);
+        find_and_remove(last_move, moves, &move_count_bot);
+        generate_legal_moves(board_turn, board_not_turn, captures[turn], moves, &move_count_bot, last_move);
+        move_count = move_count_bot;
     }
     // Check for winning moves first
     for (int i = 0; i < move_count; i++) {
-        // std::cout << "move: " << moves[i] / 19 << ", " << moves[i] % 19 << std::endl;
+        //std::cout << "move: " << moves[i] / 19 << ", " << moves[i] % 19 << std::endl;
         if (is_winning_move(board_turn, board_not_turn, moves[i], turn, captures[turn])) {
             return {moves[i], 1000000};
         }

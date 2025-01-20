@@ -37,7 +37,8 @@ _lib.bot_play.argtypes = [
     ctypes.c_bool,
     ctypes.POINTER(ctypes.c_int),
     ctypes.c_int,
-    ctypes.c_short
+    ctypes.c_short,
+    ctypes.c_bool
 ]
 
 class BotResult(ctypes.Structure):
@@ -90,7 +91,7 @@ def is_won(board_turn, board_not_turn, capture_opponent):
         capture_opponent
     )
 
-def bot_play(boards, turn, captures, depth, last_move):
+def bot_play(boards, turn, captures, depth, last_move, search=False):
     arr_turn = convert_to_array(boards[turn][0])
     arr_not_turn = convert_to_array(boards[not turn][0])
     captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
@@ -101,7 +102,8 @@ def bot_play(boards, turn, captures, depth, last_move):
         turn,
         captures_arr,
         depth,
-        last_move
+        last_move,
+        search
     )
 
 
