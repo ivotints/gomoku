@@ -36,6 +36,8 @@ class gomoku:
         self.history = []
         self.depth = depth
         self.is_white = is_white
+        self.current_board_evaluation = 0
+
         py.init()
         py.display.set_caption("Gomoku")
         draw_board(self.win, self.captures, self.eval)
