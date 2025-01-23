@@ -57,7 +57,22 @@ uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board);
 bool getHeuristicFromTransposeTable(uint64_t hash, int& heuristicValue);
 void find_and_remove(short move, short* moves, int* move_count);
 int storeHeuristicInTransposeTable(uint64_t hash, int heuristicValue);
-void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count);
 void generate_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, short* moves, int* move_count, short last_move);
 bool has_winning_line(uint32_t* board);
 int minimax(uint32_t* board_turn, uint32_t* board_not_turn, int depth, int alpha, int beta, bool maximizing_player, bool turn,int* captures, int *visited, short* moves, int move_count, short last_move);
+
+
+
+
+void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, move_t* moves, short* move_count);
+int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19], uint8_t (&new_captures)[2]);
+
+
+typedef struct move_s 
+{
+    uint8_t     y;
+    uint8_t     x;
+    int         eval;
+    uint32_t    boards[2][19];
+    uint8_t     captures[2];
+} move_t;

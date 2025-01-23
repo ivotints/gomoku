@@ -1,8 +1,4 @@
 #include "gomoku.hpp"
-#define BLACK 0
-#define WHITE 1
-
-
 
 // takes a new boards, to which move will be made.
 inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_captures)[2], uint8_t y, uint8_t x, uint8_t &capture_dir)
@@ -65,23 +61,31 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
     }
 }
 
-inline int evaluate_line(uint32_t black_bits, uint32_t white_bits, int length) {
-    int delta = 0;
+inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, int &value) {
     for (int shift = 0; shift <= length - 5; ++shift) {
         uint32_t black_window = (black_bits >> shift) & 0b11111;
         uint32_t white_window = (white_bits >> shift) & 0b11111;
 
         if (!white_window) { // If the window has no White stones, evaluate Black stones
             int bits = __builtin_popcount(black_window);
-            if (bits > 1) delta += (1 << (3 * (bits - 2)));
+            if (bits > 1) 
+            {
+                value += (1 << (3 * (bits - 2)));
+                if (bits > 4 && value < 100'000) // not to give the reward twice.
+                    value += 1'000'000; // reward for winning move
+            }
         }
 
         if (!black_window) { // If the window has no Black stones, evaluate White stones
             int bits = __builtin_popcount(white_window);
-            if (bits > 1) delta -= (1 << (3 * (bits - 2)));
+            if (bits > 1)
+            {
+                value -= (1 << (3 * (bits - 2)));
+                if (bits > 4 && value > -100'000)
+                    value -= 1'000'000;
+            }
         }
     }
-    return delta;
 }
 
 // it will output evaluation of the segment, with the center in that coordinates.
@@ -91,12 +95,14 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     int up = std::min(4, y);
     int down = std::min(4, 18 - y);
 
+    int value = 0;
+
     // Horizontal evaluation
     int start_x = x - left;
     int length_h = left + right + 1;    
     uint32_t black_bits_h = (boards[BLACK][y] << start_x) & ((1 << length_h) - 1);
     uint32_t white_bits_h = (boards[WHITE][y] << start_x) & ((1 << length_h) - 1);
-    int value = evaluate_line(black_bits_h, white_bits_h, length_h);
+    evaluate_line(black_bits_h, white_bits_h, length_h, value);
 
     // Vertical evaluation
     int start_y = y - up;
@@ -108,7 +114,7 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
         black_bits_v |= ((boards[BLACK][start_y + i] >> x) & 1) << i;
         white_bits_v |= ((boards[WHITE][start_y + i] >> x) & 1) << i;
     }
-    value += evaluate_line(black_bits_v, white_bits_v, length_v);
+    evaluate_line(black_bits_v, white_bits_v, length_v, value);
 
     // Diagonal (Top-Left to Bottom-Right) evaluation
     int diag_up = std::min(left, up);
@@ -125,7 +131,7 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
         black_bits_d |= ((boards[BLACK][start_diag_y + i] >> (start_diag_x + i)) & 1) << i;
         white_bits_d |= ((boards[WHITE][start_diag_y + i] >> (start_diag_x + i)) & 1) << i;
     }
-    value += evaluate_line(black_bits_d, white_bits_d, length_d);
+    evaluate_line(black_bits_d, white_bits_d, length_d, value);
 
     // Anti-Diagonal
     int anti_up = std::min(right, up);
@@ -141,7 +147,7 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
         black_bits_a |= ((boards[BLACK][start_anti_y + i] >> (start_anti_x - i)) & 1) << i;
         white_bits_a |= ((boards[WHITE][start_anti_y + i] >> (start_anti_x - i)) & 1) << i;
     }
-    value += evaluate_line(black_bits_a, white_bits_a, length_d);
+    evaluate_line(black_bits_a, white_bits_a, length_d, value);
 
     return value;
 }
@@ -154,10 +160,10 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
 
 */
 
-int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval)
+int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2])
 {
-    uint32_t new_boards[2][19];
-    uint8_t new_captures[2] = {captures[0], captures[1]};
+    new_captures[0] = captures[0];
+    new_captures[1] = captures[1];
 
     // copy of boards
     for(int i = 0; i < 2; ++i) {
@@ -189,6 +195,8 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
         int old_capture_eval = 16 << captures[turn];
         int new_capture_eval = 16 << new_captures[turn];
         int delta_captures_eval = new_capture_eval - old_capture_eval; // what if now not the black turn? should we minus that?
+        if (captures[turn] <= 4 && new_captures[turn] > 4) // maybe we can delete captures[turn] <= 4 check
+            delta_captures_eval += 1'000'000; // to indicate that it is winning.
         if (turn == BLACK)
             eval += delta_captures_eval;
         else 
@@ -199,6 +207,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
     int new_eval = star_eval(new_boards, y, x);
     int delta_eval = new_eval - old_eval;
     eval += delta_eval; // this is new evaluation of the board.
+
     return (eval);
 }
 
