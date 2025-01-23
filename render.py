@@ -1,7 +1,7 @@
 import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
-from wrapper import get_board_evaluation,bot_play
+from wrapper import get_board_evaluation, bot_play
 import math
 import copy
 import time

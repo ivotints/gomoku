@@ -16,13 +16,13 @@ class CaptureResult(ctypes.Structure):
                 ("positions", ctypes.POINTER(ctypes.c_int)),
                 ("position_count", ctypes.c_int)]
 
-_lib.check_capture.argtypes = [
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_int,
-    ctypes.c_int
-]
-_lib.check_capture.restype = CaptureResult
+# _lib.check_capture.argtypes = [
+#     ctypes.POINTER(ctypes.c_uint32),
+#     ctypes.POINTER(ctypes.c_uint32),
+#     ctypes.c_int,
+#     ctypes.c_int
+# ]
+# _lib.check_capture.restype = CaptureResult
 
 _lib.is_won.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
@@ -31,21 +31,21 @@ _lib.is_won.argtypes = [
 ]
 _lib.is_won.restype = ctypes.c_bool
 
-_lib.bot_play.argtypes = [
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_int),
-    ctypes.c_int,
-    ctypes.c_short,
-    ctypes.c_bool
-]
+# _lib.bot_play.argtypes = [
+#     ctypes.POINTER(ctypes.c_uint32),
+#     ctypes.POINTER(ctypes.c_uint32),
+#     ctypes.c_bool,
+#     ctypes.POINTER(ctypes.c_int),
+#     ctypes.c_int,
+#     ctypes.c_short,
+#     ctypes.c_bool
+# ]
 
 class BotResult(ctypes.Structure):
     _fields_ = [("move", ctypes.c_int),
                 ("evaluation", ctypes.c_int)]
 
-_lib.bot_play.restype = BotResult
+# _lib.bot_play.restype = BotResult
 
 _lib.bitwise_heuristic.argtypes = [
        ctypes.POINTER(ctypes.c_uint32), 
@@ -60,6 +60,15 @@ _lib.bitwise_heuristic.restype = ctypes.c_int
 #     ctypes.c_int
 # ]
 # _lib.storeHeuristicInTransposeTable.restype = ctypes.c_int
+
+
+_lib.new_bot_play.argtypes = [
+    ctypes.POINTER(ctypes.c_uint32 * 19),  # boards[2][19]
+    ctypes.c_bool,                         # turn
+    ctypes.POINTER(ctypes.c_uint8 * 2),   # captures[2]
+    ctypes.c_int                          # depth
+]
+_lib.new_bot_play.restype = BotResult
 
 def convert_to_array(board_int):
     # Convert 19x19 board integer to array of 19 uint32
@@ -106,9 +115,6 @@ def bot_play(boards, turn, captures, depth, last_move, search=False):
         search
     )
 
-
-
-
 def get_board_evaluation(board_turn, board_not_turn, capture_turn, capture_not_turn):
    
     from wrapper import convert_to_array
@@ -120,4 +126,24 @@ def get_board_evaluation(board_turn, board_not_turn, capture_turn, capture_not_t
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         capture_turn,
         capture_not_turn
+    )
+
+def new_bot_play(boards, turn, captures, depth):
+    # Convert boards to proper C array format
+    arr_boards = ((ctypes.c_uint32 * 19) * 2)()
+    for i in range(2):
+        board_arr = convert_to_array(boards[i][0])
+        for j in range(19):
+            arr_boards[i][j] = board_arr[j]
+            
+    # Convert captures to C array
+    captures_arr = (ctypes.c_uint8 * 2)()
+    captures_arr[0] = captures[0]
+    captures_arr[1] = captures[1]
+    
+    return _lib.new_bot_play(
+        arr_boards,  # Remove ctypes.byref() here
+        turn,
+        ctypes.byref(captures_arr), 
+        depth
     )

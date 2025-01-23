@@ -2,8 +2,8 @@ CC = clang++
 CFLAGS = -Wall -g -O3 -march=native -fPIC -shared -std=c++17  -pthread
 PYTHON = python3
 TARGET = heuristic.so
-SRC_DIR = src/
-SRCS = $(addprefix $(SRC_DIR), heuristic.cpp bot_play.cpp is_won.cpp moves_generator.cpp minimax.cpp zoristHash.cpp)
+SRC_DIR = new/
+SRCS = $(addprefix $(SRC_DIR), bitwise_heuristic.cpp    new_minimax.cpp    moves_generator.cpp   star_heuristic.cpp     utils.cpp  is_won.cpp)
 BUILD_DIR = build/
 
 all: $(TARGET)

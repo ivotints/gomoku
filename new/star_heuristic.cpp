@@ -42,7 +42,7 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
         else
             directions = DIR_E | DIR_SE | DIR_S; // Top-left corner
 
-    const uint8_t dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
 
     for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
     {
@@ -71,7 +71,7 @@ inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, 
             if (bits > 1) 
             {
                 value += (1 << (3 * (bits - 2)));
-                if (bits > 4 && value < 100'000) // not to give the reward twice.
+                if (bits == 5 && value < 100'000) // not to give the reward twice.
                     value += 1'000'000; // reward for winning move
             }
         }
@@ -81,7 +81,7 @@ inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, 
             if (bits > 1)
             {
                 value -= (1 << (3 * (bits - 2)));
-                if (bits > 4 && value > -100'000)
+                if (bits == 5 && value > -100'000)
                     value -= 1'000'000;
             }
         }
@@ -135,7 +135,6 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
 
     // Anti-Diagonal
     int anti_up = std::min(right, up);
-    int anti_down = std::min(left, down);
     int start_anti_y = y - anti_up;
     int start_anti_x = x + anti_up;
 
@@ -176,7 +175,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
 
     make_a_move(new_boards, turn, new_captures, y, x, capture_dir);
 
-    const uint8_t dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
     for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
     {
         if (capture_dir & (1 << dir_index)) // check capture

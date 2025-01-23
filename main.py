@@ -8,7 +8,7 @@ import argparse
 import copy
 import time
 from test import generate_bitboards
-from wrapper import bot_play
+from wrapper import bot_play , new_bot_play
 from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
@@ -112,9 +112,10 @@ def handle_bot_move(game):
     start = time.time()
     
     # Get and execute bot's move
-    bot_result = bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth, game.last_move)
+    bot_result = new_bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth) # why deep copy? check. probably do not needed with new minimax
     move = bot_result.move
     game.eval = -bot_result.evaluation
+    print("Move eval: ", bot_result.evaluation)
     result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
 
     game.time = time.time() - start
