@@ -30,6 +30,7 @@ typedef struct move_s
     int         eval;
     uint32_t    boards[2][19];
     uint8_t     captures[2];
+    uint8_t     capture_dir;
 } move_t;
 
 struct CaptureResult {
@@ -54,6 +55,6 @@ extern "C"
 }
 
 void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, move_t* moves, short* move_count);
-int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19], uint8_t (&new_captures)[2]);
+int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19], uint8_t (&new_captures)[2], uint8_t &capture_dir);
 bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x);
 

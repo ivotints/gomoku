@@ -159,7 +159,7 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
 
 */
 
-int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2])
+int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2], uint8_t &capture_dir)
 {
     new_captures[0] = captures[0];
     new_captures[1] = captures[1];
@@ -171,7 +171,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
         }
     }
 
-    uint8_t capture_dir = 0; // each bit will represent direction of capture was made
+    capture_dir = 0; // each bit will represent direction of capture was made
 
     make_a_move(new_boards, turn, new_captures, y, x, capture_dir);
 

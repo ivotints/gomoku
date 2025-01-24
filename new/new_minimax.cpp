@@ -123,9 +123,65 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         moves[move_count].y = move.y + dir_vect[i][0];
         move_count++;
     }
+
+    // one more loop of 8 to generate moves around x and y but on the 2 level. It should fix problem with captures. Also model will be smarter, but it takes much more time.
+/*     for (uint8_t i = 0; i < 8; ++i)
+    {
+        if  (   move.x + 2 * dir_vect[i][1] > 18
+            ||  move.x + 2 * dir_vect[i][1] < 0
+            ||  move.y + 2 * dir_vect[i][0] > 18
+            ||  move.y + 2 * dir_vect[i][0] < 0)
+            continue;
+
+        if (find_move(moves,  move.x + 2 * dir_vect[i][1], move.y + 2 * dir_vect[i][0], move_count))
+            continue;
+        
+        if ((   move.boards[0][move.y + 2 * dir_vect[i][0]] >> (move.x + 2 * dir_vect[i][1]) & 1)
+            || (move.boards[1][move.y + 2 * dir_vect[i][0]] >> (move.x + 2 * dir_vect[i][1]) & 1))
+            continue;
+
+        if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn],  move.y + 2 * dir_vect[i][0], move.x + 2 * dir_vect[i][1]))
+            continue;
+        moves[move_count].x = move.x + 2 * dir_vect[i][1];
+        moves[move_count].y = move.y + 2 * dir_vect[i][0];
+        move_count++;
+    } */
+
     // later we will check if there was capture before. If so, we will generate move on capture made.
+    if (move.capture_dir)
+    { 
+        for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
+        {
+            if (move.capture_dir & (1 << dir_index)) // check capture
+            {
+                // if we had a capture, we should generate move there.
+                // it will be deffenetly not out of bounce,
+                // it will not be in list already
+                // there is obviously no piece in that place
+
+                // BUT there can be a double three!
+                if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn],  move.y + 2 * dir_vect[dir_index][0], move.x + 2 * dir_vect[dir_index][1]))
+                    continue;
+                moves[move_count].x = move.x + 2 * dir_vect[dir_index][1];
+                moves[move_count].y = move.y + 2 * dir_vect[dir_index][0];
+                move_count++;
+            }
+        }
+    }
+
+
     // and also we will run checker for double three 7x7 area with center in x and y. star pattern. 
     
+
+
+
+
+
+
+
+
+
+
     //counter
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -134,7 +190,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     for (short i = 0; i < move_count; ++i)
     {
         total_evaluated++;
-        moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures);
+        moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
         if (turn == BLACK) {
             if (moves[i].eval > 100'000) // mean that it found winning move
                 return (moves[i].eval); }
@@ -201,7 +257,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     for (short i = 0; i < move_count; ++i)
     {
         total_evaluated++;
-        moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures);
+        moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
         if (turn == BLACK) {
             if (moves[i].eval > 100'000) // mean that it found winning move
                 return {(moves[i].y * 19 + moves[i].x), moves[i].eval}; }
