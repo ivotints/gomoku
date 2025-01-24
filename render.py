@@ -1,7 +1,7 @@
 import pygame.draw as pyd
 import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
-from wrapper import get_board_evaluation, bot_play
+from wrapper import get_board_evaluation, bot_play, new_bot_play
 import math
 import copy
 import time
@@ -161,5 +161,5 @@ def update_board(game, sugg=False):
             pos += 1
     if (game.show_suggestions and (game.is_multiplayer or not game.is_white == game.turn)) or sugg:
         turn = game.is_white if sugg else not game.turn
-        draw_suggestion(game, bot_play(game.boards, turn, copy.deepcopy(game.captures), 4, game.last_move, True))
+        draw_suggestion(game, new_bot_play(game.boards, turn, game.captures, 4))
     py.display.update()

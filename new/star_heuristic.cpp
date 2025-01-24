@@ -175,7 +175,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
 
     make_a_move(new_boards, turn, new_captures, y, x, capture_dir);
 
-    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x //TODO can we put it into header? we hawve 3 copies of it. Repeating code...
     for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
     {
         if (capture_dir & (1 << dir_index)) // check capture

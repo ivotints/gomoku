@@ -137,7 +137,7 @@ bool check_double_three(uint32_t* board_turn, uint32_t* board_not_turn, int y, i
 }
 
 bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
-    if (x < 0 || x >= 19 || y < 0 || y >= 19 || (board_turn[y] & (1U << x)) || (board_not_turn[y] & (1U << x))) return false;
+    // if (x < 0 || x >= 19 || y < 0 || y >= 19 || (board_turn[y] & (1U << x)) || (board_not_turn[y] & (1U << x))) return false; // makes code slower. unnesesary for old moves generator
     if (!is_capture(board_turn, board_not_turn, y, x) && ((capture == 4 && has_winning_line(board_not_turn)) || check_double_three(board_turn, board_not_turn, y, x))) {
         return false;
     }

@@ -62,7 +62,25 @@ inline void sort_moves(move_t (&moves)[300], short move_count, bool turn)
     );
 }
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated)
+
+
+
+
+
+
+// returns true if it found move x, y in moves
+inline bool find_move(move_t* moves, uint8_t x, uint8_t y, short move_count) {
+    for (short i = 0; i < move_count; i++) {
+        if (moves[i].x == x && moves[i].y == y) return true;
+    }
+    return false;
+}
+
+
+
+
+
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, double &total_time, move_t *moves_last, short move_count_last)
 {
     if (depth == 1 || move.eval < -100'000 || move.eval > 100'000) // means that it is a winning move
         return (move.eval);
@@ -70,8 +88,49 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     move_t moves[300];
     short move_count = 0;
 
-    generate_all_legal_moves(move.boards[turn], move.boards[!turn], move.captures[turn], moves, &move_count); // at first i will implement old moves generator to test work of heuristic. then i will add new approach, whch will be fixed, without double threes bug.
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (short i = 0; i < move_count_last; ++i) // rewrite all possible moves from last generation of moves.
+    {
+        if (moves_last[i].x == move.x && moves_last[i].y == move.y) // not to add current move
+            continue;
+        moves[i].x = moves_last[i].x;
+        moves[i].y = moves_last[i].y;
+        move_count++;
+    }
+    // now we need to generate 8 moves around current move
+
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x //TODO can we put it into header? we have 3 copies of it. Repeating code...
+
+    for (uint8_t i = 0; i < 8; ++i)
+    {
+        if  (   move.x + dir_vect[i][1] > 18
+            ||  move.x + dir_vect[i][1] < 0
+            ||  move.y + dir_vect[i][0] > 18
+            ||  move.y + dir_vect[i][0] < 0) // if move is not possible because it is out of bounce, we do not add it.
+            continue;
+
+        if (find_move(moves,  move.x + dir_vect[i][1], move.y + dir_vect[i][0], move_count)) // if move is in the list already, we do not add it.
+            continue;
+        
+        if ((   move.boards[0][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)
+            || (move.boards[1][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)) // if move is already on board
+            continue;
+
+        if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn],  move.y + dir_vect[i][0], move.x + dir_vect[i][1])) // if this move is illegal we do not add it
+            continue;
+        moves[move_count].x = move.x + dir_vect[i][1];
+        moves[move_count].y = move.y + dir_vect[i][0];
+        move_count++;
+    }
+    // later we will check if there was capture before. If so, we will generate move on capture made.
+    // and also we will run checker for double three 7x7 area with center in x and y. star pattern. 
     
+    //counter
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    total_time += duration.count();
+
     for (short i = 0; i < move_count; ++i)
     {
         total_evaluated++;
@@ -91,7 +150,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated);
+            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
             if (eval > best_eval)
             {
                 alpha = std::max(alpha, eval);
@@ -108,12 +167,12 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated);
+            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
             if (eval < best_eval)
             {
                 beta = std::min(beta, eval);
                 best_eval = eval;
-                if (best_eval < -1'000'000)
+                if (best_eval < -100'000)
                     break;
             }
             if (beta <= alpha)
@@ -127,13 +186,17 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 {
     move_t moves[300];
     short move_count = 0;
+    double total_time = 0.0;
 
     int current_board_eval = bitwise_heuristic(boards[0], boards[1], captures[0], captures[1]); // easier to get initial eval from it, and later to use star_heuristic. But we also can pass this value from gomoku class in python.
 
-    std::cout << "current_board_eval: " << current_board_eval << std::endl;
+    //std::cout << "current_board_eval: " << current_board_eval << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     generate_all_legal_moves(boards[turn], boards[!turn], captures[turn], moves, &move_count);
-    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     int total_evaluated = 0; // to count amount of boards evaluated.
+    total_time += duration.count();
 
     for (short i = 0; i < move_count; ++i)
     {
@@ -156,7 +219,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated);
+            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count);
             if (eval > best_eval)
             {
                 best_move = moves[i].y * 19 + moves[i].x;
@@ -171,7 +234,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated);
+            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count);
             if (eval < best_eval)
             {
                 best_move = moves[i].y * 19 + moves[i].x;
@@ -181,6 +244,8 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
             }
         }
     }
-    std::cout << "Total evaluated: " << total_evaluated << std::endl;
+    std::cout << "-----------------------------\n";
+    std::cout << "Generate moves took: " << total_time / 1000'000 << " seconds\n";
+    std::cout << "Total evaluated: " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << std::endl;
     return {best_move, best_eval};
 }
