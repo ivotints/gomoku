@@ -25,7 +25,7 @@ thread_local uint32_t* thread_local_table = nullptr;
 // Initialize table for each thread before search
 void init_thread_local_table() {
     if (!thread_local_table) {
-        thread_local_table = new uint32_t[100000000]();
+        thread_local_table = new uint32_t[1000000]();
     }
 }
 

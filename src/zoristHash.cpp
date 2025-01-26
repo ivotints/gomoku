@@ -60,7 +60,7 @@ uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int p
 }
 
 bool isPositionVisited(uint32_t* table, uint64_t hash) {
-    const uint64_t index = hash % 300000000;
+    const uint64_t index = hash % 1000000;
     const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
     if (table[index] == partialKey) {
         return true;
