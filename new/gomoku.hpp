@@ -31,6 +31,7 @@ typedef struct move_s
     uint32_t    boards[2][19];
     uint8_t     captures[2];
     uint8_t     capture_dir;
+    u_int32_t  hash;
 } move_t;
 
 struct CaptureResult {
@@ -53,7 +54,10 @@ extern "C"
                      const uint32_t* __restrict__ board_not_turn,
                      int capture, int capture_opponent);
 }
-
+void initializeZobristTable();
+uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int depth);
+uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth);
+bool isPositionVisited(uint32_t* table, uint64_t hash);
 void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, move_t* moves, short* move_count);
 int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19], uint8_t (&new_captures)[2], uint8_t &capture_dir);
 bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x);

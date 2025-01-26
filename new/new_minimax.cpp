@@ -22,7 +22,7 @@ inline bool find_move(move_t* moves, uint8_t x, uint8_t y, short move_count) {
 
 
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, double &total_time, move_t *moves_last, short move_count_last)
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, double &total_time, move_t *moves_last, short move_count_last, u_int32_t *TTable)
 {
     if (depth == 1 || move.eval < -100'000 || move.eval > 100'000) // means that it is a winning move
         return (move.eval);
@@ -126,6 +126,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
+        moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
         if (turn == BLACK) {
             if (moves[i].eval > 100'000) // mean that it found winning move
                 return (moves[i].eval); }
@@ -141,9 +142,9 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
                 continue;
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
+            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count, TTable);
             if (eval > best_eval)
             {
                 alpha = std::max(alpha, eval);
@@ -160,9 +161,9 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
                 continue;
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
+            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count, TTable);
             if (eval < best_eval)
             {
                 beta = std::min(beta, eval);
@@ -179,6 +180,8 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
 
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
+    initializeZobristTable();
+    uint32_t *TTable = new uint32_t[300'000'000];
     move_t moves[300];
     short move_count = 0;
     double total_time = 0.0;
@@ -196,12 +199,17 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
+        moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
         if (turn == BLACK) {
-            if (moves[i].eval > 100'000) // mean that it found winning move
+            if (moves[i].eval > 100'000) {
+                delete[] TTable;
                 return {(moves[i].y * 19 + moves[i].x), moves[i].eval}; }
+            }
         else {
-            if (moves[i].eval < -100'000)
+            if (moves[i].eval < -100'000) {
+                delete[] TTable;
                 return {(moves[i].y * 19 + moves[i].x), moves[i].eval}; }
+            }
     }
     sort_moves(moves, move_count, turn);
 
@@ -213,7 +221,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count);
+            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count, TTable);
             if (eval > best_eval)
             {
                 best_move = moves[i].y * 19 + moves[i].x;
@@ -228,7 +236,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count);
+            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count, TTable);
             if (eval < best_eval)
             {
                 best_move = moves[i].y * 19 + moves[i].x;
@@ -238,6 +246,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
             }
         }
     }
+    delete[] TTable;
     std::cout << "-----------------------------\n";
     std::cout << "Generate moves took: " << total_time / 1000'000 << " seconds\n";
     std::cout << "Total evaluated: " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << std::endl;
