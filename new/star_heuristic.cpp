@@ -100,8 +100,8 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     // Horizontal evaluation
     int start_x = x - left;
     int length_h = left + right + 1;    
-    uint32_t black_bits_h = (boards[BLACK][y] << start_x) & ((1 << length_h) - 1);
-    uint32_t white_bits_h = (boards[WHITE][y] << start_x) & ((1 << length_h) - 1);
+    uint32_t black_bits_h = (boards[BLACK][y] >> start_x) & ((1 << length_h) - 1);
+    uint32_t white_bits_h = (boards[WHITE][y] >> start_x) & ((1 << length_h) - 1);
     evaluate_line(black_bits_h, white_bits_h, length_h, value);
 
     // Vertical evaluation
@@ -135,18 +135,20 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
 
     // Anti-Diagonal
     int anti_up = std::min(right, up);
+    int anti_down = std::min(left, down);
     int start_anti_y = y - anti_up;
     int start_anti_x = x + anti_up;
+    int length_a = anti_up + anti_down + 1;
 
     int black_bits_a = 0;
     int white_bits_a = 0;
 
-    for(int i = 0; i < length_d; ++i)
+    for(int i = 0; i < length_a; ++i)
     {
         black_bits_a |= ((boards[BLACK][start_anti_y + i] >> (start_anti_x - i)) & 1) << i;
         white_bits_a |= ((boards[WHITE][start_anti_y + i] >> (start_anti_x - i)) & 1) << i;
     }
-    evaluate_line(black_bits_a, white_bits_a, length_d, value);
+    evaluate_line(black_bits_a, white_bits_a, length_a, value);
 
     return value;
 }
@@ -175,12 +177,13 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
 
     make_a_move(new_boards, turn, new_captures, y, x, capture_dir);
 
-    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x //TODO can we put it into header? we hawve 3 copies of it. Repeating code...
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
     for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
     {
         if (capture_dir & (1 << dir_index)) // check capture
         {
             // if we have a capture, we will run an additional star heuristics on each capture_pos.
+            //this is worng logic. REWRITE!
             int old_eval = star_eval(boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
             old_eval += star_eval(boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
             int new_eval = star_eval(new_boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
@@ -194,20 +197,17 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
         int old_capture_eval = 16 << captures[turn];
         int new_capture_eval = 16 << new_captures[turn];
         int delta_captures_eval = new_capture_eval - old_capture_eval; // what if now not the black turn? should we minus that?
-        if (captures[turn] <= 4 && new_captures[turn] > 4) // maybe we can delete captures[turn] <= 4 check
+        if (new_captures[turn] > 4) // maybe we can delete captures[turn] <= 4 check
             delta_captures_eval += 1'000'000; // to indicate that it is winning.
         if (turn == BLACK)
             eval += delta_captures_eval;
         else 
             eval -= delta_captures_eval;
     }
-    // now we need function to evaluate old board
-    int old_eval = star_eval(boards, y, x);
-    int new_eval = star_eval(new_boards, y, x);
-    int delta_eval = new_eval - old_eval;
-    eval += delta_eval; // this is new evaluation of the board.
 
-    return (eval);
+    return (eval + 
+    star_eval(new_boards, y, x) - // should return 0
+    star_eval(boards, y, x)); // should return 1
 }
 
 

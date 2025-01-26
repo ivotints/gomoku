@@ -1,57 +1,4 @@
 #include "gomoku.hpp"
-/* 
-int minimax(position, depth, alpha, beta, maximizingPlayer)
-	if depth == 0 or game over in position
-		return static evaluation of position
- 
-	if maximizingPlayer
-		maxEval = -infinity
-		for each child of position
-			eval = minimax(child, depth - 1, alpha, beta false)
-			maxEval = max(maxEval, eval)
-			alpha = max(alpha, eval)
-			if beta <= alpha
-				break
-		return maxEval
- 
-	else
-		minEval = +infinity
-		for each child of position
-			eval = minimax(child, depth - 1, alpha, beta true)
-			minEval = min(minEval, eval)
-			beta = min(beta, eval)
-			if beta <= alpha
-				break
-		return minEval */
-
-// other possibilities to sort.
-/* inline void sift_up(move_t* moves, int pos, bool turn) {
-    while (pos > 0) {
-        int parent = (pos - 1) / 2;
-        if (turn == BLACK) {
-            if (moves[parent].eval >= moves[pos].eval) break;
-        } else {
-            if (moves[parent].eval <= moves[pos].eval) break;
-        }
-        std::swap(moves[parent], moves[pos]);
-        pos = parent;
-    }
-} */
-/* 
-inline void sort_moves_insertion(move_t (&moves)[300], short move_count, bool turn)
-{
-    for (short i = 1; i < move_count; ++i) {
-        move_t key = moves[i];
-        short j = i - 1;
-        while (j >= 0 && ((turn == BLACK && moves[j].eval < key.eval) || 
-                          (turn == WHITE && moves[j].eval > key.eval))) {
-            moves[j + 1] = moves[j];
-            --j;
-        }
-        moves[j + 1] = key;
-    }
-} */
-
 
 inline void sort_moves(move_t (&moves)[300], short move_count, bool turn)
 {
@@ -61,11 +8,6 @@ inline void sort_moves(move_t (&moves)[300], short move_count, bool turn)
         }
     );
 }
-
-
-
-
-
 
 
 // returns true if it found move x, y in moves
@@ -94,8 +36,8 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     {
         if (moves_last[i].x == move.x && moves_last[i].y == move.y) // not to add current move
             continue;
-        moves[i].x = moves_last[i].x;
-        moves[i].y = moves_last[i].y;
+        moves[move_count].x = moves_last[i].x;
+        moves[move_count].y = moves_last[i].y;
         move_count++;
     }
     // now we need to generate 8 moves around current move
@@ -115,9 +57,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         
         if ((   move.boards[0][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)
             || (move.boards[1][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)) // if move is already on board
-            continue;
-
-        if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn],  move.y + dir_vect[i][0], move.x + dir_vect[i][1])) // if this move is illegal we do not add it
             continue;
         moves[move_count].x = move.x + dir_vect[i][1];
         moves[move_count].y = move.y + dir_vect[i][0];
@@ -158,10 +97,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
                 // it will be deffenetly not out of bounce,
                 // it will not be in list already
                 // there is obviously no piece in that place
-
-                // BUT there can be a double three!
-                if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn],  move.y + 2 * dir_vect[dir_index][0], move.x + 2 * dir_vect[dir_index][1]))
-                    continue;
                 moves[move_count].x = move.x + 2 * dir_vect[dir_index][1];
                 moves[move_count].y = move.y + 2 * dir_vect[dir_index][0];
                 move_count++;
@@ -206,6 +141,8 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+                continue;
             int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
             if (eval > best_eval)
             {
@@ -223,6 +160,8 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+                continue;
             int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count);
             if (eval < best_eval)
             {
@@ -246,7 +185,6 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
     int current_board_eval = bitwise_heuristic(boards[0], boards[1], captures[0], captures[1]); // easier to get initial eval from it, and later to use star_heuristic. But we also can pass this value from gomoku class in python.
 
-    //std::cout << "current_board_eval: " << current_board_eval << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     generate_all_legal_moves(boards[turn], boards[!turn], captures[turn], moves, &move_count);
     auto end = std::chrono::high_resolution_clock::now();
