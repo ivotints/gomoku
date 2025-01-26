@@ -142,7 +142,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash))
                 continue;
             int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count, TTable);
             if (eval > best_eval)
@@ -161,7 +161,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash))
                 continue;
             int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, total_time, moves, move_count, TTable);
             if (eval < best_eval)
