@@ -5,7 +5,7 @@ namespace {
     bool initialized = false;
 }
 
-uint64_t zobristTable[19][19][2] = {{{0}}};  // Zero initialize
+uint64_t zobristTable[19][19][2] = {{{0}}};
 uint64_t zobristDepth[11] = {0};
 void initializeZobristTable() {
     if (!initialized) {
@@ -59,18 +59,12 @@ uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int p
     return currentHash;
 }
 
-void markPositionVisited(uint32_t* table, uint64_t hash) {
-    const uint64_t index = hash % 300000000;
-    const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
-    table[index] = partialKey;
-}
-
 bool isPositionVisited(uint32_t* table, uint64_t hash) {
     const uint64_t index = hash % 300000000;
     const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
     if (table[index] == partialKey) {
         return true;
     }
-    markPositionVisited(table, hash);
+    table[index] = partialKey;
     return false;
 }

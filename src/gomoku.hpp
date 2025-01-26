@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <unordered_map>
+#include <shared_mutex>
 
 #define ROW_SIZE 19
 #define WINDOW_SIZE 5

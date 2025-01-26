@@ -104,7 +104,6 @@ def bot_play(boards, turn, captures, depth, last_move, search=False):
     arr_turn = convert_to_array(boards[turn][0])
     arr_not_turn = convert_to_array(boards[not turn][0])
     captures_arr = (ctypes.c_int * 2)(captures[0], captures[1])
-    
     return _lib.bot_play(
         arr_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
         arr_not_turn.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32)),
@@ -140,7 +139,6 @@ def new_bot_play(boards, turn, captures, depth):
     captures_arr = (ctypes.c_uint8 * 2)()
     captures_arr[0] = captures[0]
     captures_arr[1] = captures[1]
-    
     return _lib.new_bot_play(
         arr_boards,  # Remove ctypes.byref() here
         turn,
