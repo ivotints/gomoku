@@ -137,6 +137,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
     // std::cout << "Moves amount: " << move_count << std::endl;
+    // std::cout << "Move: x = " << (int)move.x << "\t" << "y = " << (int)move.y << "\n";
     // std::cout << "Board eval: " << move.eval << std::endl;
     // for (int i = 0; i < move_count; ++i)
     //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
@@ -185,6 +186,102 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     return (best_eval);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void generate_all_legal_moves_2(uint32_t* board_turn, uint32_t* board_not_turn, move_t* moves, short* move_count)
+{
+    *move_count = 0;
+    // first rewrite the board to union board.
+    uint32_t union_board[19];
+    uint32_t is_map_not_empty = 0;
+    for(int i = 0; i < 19; i++) {
+        union_board[i] = board_turn[i] | board_not_turn[i];
+        is_map_not_empty |= union_board[i];
+    }
+    // check that map is not empty
+    if (is_map_not_empty == 0)
+    {
+        *move_count = 1;
+        moves[0].y = 9;
+        moves[0].x = 9;
+        return ;
+    }
+
+    // we will now search for piece in the board, if it is here, we generate moves around and add them to the list.
+
+    const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}};
+
+    for (int y = 0; y < 19; ++y) {
+        for (int x = 0; x < 19; ++x) {
+            if ((union_board[y] >> x) & 1)  // if there is a stone, generate moves around (y, x)
+            {
+                for (int d = 0; d < 8; ++d)
+                {
+                    int ny = y + dir_vect[d][0];
+                    int nx = x + dir_vect[d][1];
+                    if (nx < 0 || nx > 18 || ny < 0 || ny > 18) // out of map
+                        continue;
+                    if (((union_board[ny] >> nx) & 1)) // already on the map
+                        continue; 
+                    if (find_move(moves, nx, ny, *move_count)) // if move is in the list already
+                        continue;
+
+                    moves[*move_count].y = ny;
+                    moves[*move_count].x = nx;
+                    (*move_count)++;
+                }
+            }
+        }
+    }
+    // we do not check for legality of move here, because later same move can become legal. We will check for legality before minimax call.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
     initializeZobristTable();
@@ -196,7 +293,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     int current_board_eval = bitwise_heuristic(boards[0], boards[1], captures[0], captures[1]); // easier to get initial eval from it, and later to use star_heuristic. But we also can pass this value from gomoku class in python.
 
     auto start = std::chrono::high_resolution_clock::now();
-    generate_all_legal_moves(boards[turn], boards[!turn], captures[turn], moves, &move_count);
+    generate_all_legal_moves_2(boards[turn], boards[!turn], moves, &move_count);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     int total_evaluated = 0; // to count amount of boards evaluated.
@@ -220,6 +317,13 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     }
     sort_moves(moves, move_count, turn);
 
+    std::cout << "Bot_play, white turn\n";
+    std::cout << "Moves amount: " << move_count << std::endl;
+    std::cout << "Board eval: " << current_board_eval << std::endl;
+    for (int i = 0; i < move_count; ++i)
+        std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
+    std::cout << std::endl;
+
     short best_move = moves[0].x + moves[0].y * 19;
 
     int best_eval;
@@ -228,6 +332,8 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+                continue ;
             int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count, TTable);
             if (eval > best_eval)
             {
@@ -243,6 +349,8 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
+            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+                continue ;
             int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, total_time, moves, move_count, TTable);
             if (eval < best_eval)
             {

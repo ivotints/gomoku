@@ -7,7 +7,13 @@
     Move eval:  -1000000 # he made a diagonal move creating 4 in a row, and he thinks that I will not prevent it.
     Time taken:  0.014428853988647461
 
-FIX: USE -O2 flag for compilation
+FIX: We still do not know what causes the bug: -O3 optimization? Hash table? even after they are deletet thith bug rearly appears. 
+
+BUG: AI looses simple combinatiion by do not preventing players 3 in D7. In D6 all good. Heuristic issue? reward for winning/loosing issue?
+
+
+
+
 
 
 Try to reduce calls of minimax, by checking before call..
