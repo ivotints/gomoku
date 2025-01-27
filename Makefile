@@ -4,7 +4,7 @@ CFLAGS = -Wall -O2 -march=native -flto -fPIC -shared -std=c++20  -pthread -Werro
 PYTHON = python3
 TARGET = heuristic.so
 SRC_DIR = src/
-SRCS = $(addprefix $(SRC_DIR), bitwise_heuristic.cpp    new_minimax.cpp    moves_generator.cpp   star_heuristic.cpp   zoristHash.cpp  utils.cpp  is_won.cpp)
+SRCS = $(addprefix $(SRC_DIR), bitwise_heuristic.cpp    new_minimax.cpp    moves_generator.cpp  move_generator.cpp   star_heuristic.cpp   zoristHash.cpp  utils.cpp  is_won.cpp)
 BUILD_DIR = build/
 
 all: $(TARGET)

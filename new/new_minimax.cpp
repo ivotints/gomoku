@@ -20,12 +20,12 @@ inline bool find_move(move_t* moves, uint8_t x, uint8_t y, short move_count) {
 
 
 
-thread_local uint32_t* thread_local_table = nullptr;
+thread_local uint64_t* thread_local_table = nullptr;
 
 // Initialize table for each thread before search
 void init_thread_local_table() {
     if (!thread_local_table) {
-        thread_local_table = new uint32_t[1000000]();
+        thread_local_table = new uint64_t[300'000'000]();
     }
 }
 

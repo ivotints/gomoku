@@ -9,7 +9,7 @@ uint64_t zobristTable[19][19][2] = {{{0}}};
 uint64_t zobristDepth[11] = {0};
 void initializeZobristTable() {
     if (!initialized) {
-        std::mt19937_64 rng(std::random_device{}());
+        std::mt19937_64 rng(0);
         std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
 
         for (int d = 0; d < 11; ++d) {

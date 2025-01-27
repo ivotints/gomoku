@@ -168,7 +168,7 @@ def handle_events(game):
                 t = time.time()
                 if not game.is_multiplayer:
                     handle_bot_move(game)
-                print("Time taken: ", time.time() - t)
+                print(f"Time taken: {time.time() - t:.3f}")
                 return True
     return True
 
