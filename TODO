@@ -1,0 +1,10 @@
+    theory : When white has 4 in line, he thinks that he will defenetly win, because black will not put stone to prevent it. 
+        maybe this move is not generated
+        maybe something wrong with search
+
+    Generate moves took: 1.1e-05 seconds
+    Total evaluated: 75'810
+    Move eval:  -1000000 # he made a diagonal move creating 4 in a row, and he thinks that I will not prevent it.
+    Time taken:  0.014428853988647461
+
+FIX: USE -O2 flag for compilation

@@ -136,6 +136,13 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
+    // std::cout << "Moves amount: " << move_count << std::endl;
+    // std::cout << "Board eval: " << move.eval << std::endl;
+    // for (int i = 0; i < move_count; ++i)
+    //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
+    // std::cout << std::endl;
+
+
     int best_eval;
     if (turn == BLACK) // maximizing player
     {
