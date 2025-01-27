@@ -22,7 +22,7 @@ inline bool find_move(move_t* moves, uint8_t x, uint8_t y, short move_count) {
 
 
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, double &total_time, move_t *moves_last, short move_count_last, u_int32_t *TTable)
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, double &total_time, move_t *moves_last, short move_count_last, u_int64_t *TTable)
 {
     if (depth == 1 || move.eval < -100'000 || move.eval > 100'000) // means that it is a winning move
         return (move.eval);
@@ -188,7 +188,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
     initializeZobristTable();
-    uint32_t *TTable = new uint32_t[300'000'000];
+    uint64_t *TTable = new uint64_t[300'000'000];
     move_t moves[300];
     short move_count = 0;
     double total_time = 0.0;
