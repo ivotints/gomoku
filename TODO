@@ -8,3 +8,7 @@
     Time taken:  0.014428853988647461
 
 FIX: USE -O2 flag for compilation
+
+
+Try to reduce calls of minimax, by checking before call..
+What is profile-guided optimization (PGO)...
