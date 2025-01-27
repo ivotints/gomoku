@@ -55,8 +55,8 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         if (find_move(moves,  move.x + dir_vect[i][1], move.y + dir_vect[i][0], move_count)) // if move is in the list already, we do not add it.
             continue;
         
-        if ((   move.boards[0][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)
-            || (move.boards[1][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1]) & 1)) // if move is already on board
+        if ((   (move.boards[0][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1])) & 1)
+            || ((move.boards[1][move.y + dir_vect[i][0]] >> (move.x + dir_vect[i][1])) & 1)) // if move is already on board
             continue;
         moves[move_count].x = move.x + dir_vect[i][1];
         moves[move_count].y = move.y + dir_vect[i][0];
@@ -231,7 +231,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
             }
         }
     }
-    else
+    else // WHITE playes first
     {
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
