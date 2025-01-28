@@ -88,7 +88,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -112,7 +112,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))//|| isPositionVisited(TTable, moves[i].hash))  //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)|| isPositionVisited(TTable, moves[i].hash))  //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -138,6 +138,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
 
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
+    auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
     uint64_t *TTable = new uint64_t[300'000'000];
     move_t moves[300];
@@ -197,6 +198,8 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         }
     }
     delete[] TTable;
-    std::cout << "\nTotal evaluated: " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << std::endl;
+    std::cout << "Total evaluated:   " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << "\t";
+    double duration = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count();
+    std::cout << "Time taken: " <<  std::fixed << std::setprecision(3) << duration << "\t" << "Best eval: " << best_eval << "  \t" << "Move(y, x) " <<  best_move / 19 <<" "<< best_move % 19 << "\n";
     return {best_move, best_eval};
 }

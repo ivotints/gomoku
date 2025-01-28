@@ -9,11 +9,4 @@
 
 FIX: We still do not know what causes the bug: -O3 optimization? Hash table? even after they are deletet thith bug rearly appears. 
 
-BUG: AI looses simple combinatiion by do not preventing players 3 in D7. In D6 all good. Heuristic issue? reward for winning/loosing issue?
-
-
-
-
-
-
 What is profile-guided optimization (PGO)...

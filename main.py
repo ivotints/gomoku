@@ -115,7 +115,7 @@ def handle_bot_move(game):
     bot_result = new_bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth) # why deep copy? check. probably do not needed with new minimax
     move = bot_result.move
     game.eval = -bot_result.evaluation
-    print("Move eval: ", bot_result.evaluation)
+    # print("Move eval: ", bot_result.evaluation)
     result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
 
     game.time = time.time() - start
@@ -168,7 +168,7 @@ def handle_events(game):
                 t = time.time()
                 if not game.is_multiplayer:
                     handle_bot_move(game)
-                print(f"Time taken: {time.time() - t:.3f}")
+                # print(f" Time taken: {time.time() - t:.3f}")
                 return True
     return True
 
@@ -188,7 +188,7 @@ def main():
     if args.test:
         t = time.time()
         bot_play(generate_bitboards(), 0, [0, 0], args.depth, 14* 19 + 7)
-        print("Time taken: ", time.time() - t)
+        # print("Time taken: ", time.time() - t)
         exit(0)
     is_white = True if args.color == "white" else False
     game = gomoku(args.player - 1, args.variant, args.depth, is_white)
