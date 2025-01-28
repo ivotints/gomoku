@@ -205,5 +205,6 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
             eval -= delta_captures_eval;
     }
     // eval of last board - old eval of segment + new eval of segment
+    //return (bitwise_heuristic(new_boards[0], new_boards[1], new_captures[0], new_captures[1]));
     return (eval + star_eval(new_boards, y, x) - star_eval(boards, y, x));
 }

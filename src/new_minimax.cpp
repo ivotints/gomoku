@@ -48,6 +48,10 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     }
 }
 
+
+
+
+
 int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, u_int64_t *TTable)
 {
     move_t moves[300];
