@@ -5,16 +5,18 @@ static inline int scan_window(uint32_t window_turn, uint32_t window_opponent, in
     if (window_opponent == 0) {
         int bits_count = __builtin_popcount(window_turn);
         if (bits_count > 1) {
-            if (bits_count == 5) return 1'000'000;
             value += 1 << (3 * (bits_count - 2));
+            if (bits_count == 5 && value < 100'000) // not to give the reward twice.
+                value += 1'000'000; // reward for winning move
         }
     }
     
     if (window_turn == 0) {
         int bits_count = __builtin_popcount(window_opponent);
         if (bits_count > 1) {
-            if (bits_count == 5) return -1'000'000;
             value -= 1 << (3 * (bits_count - 2));
+            if (bits_count == 5 && value > -100'000)
+                value += -1'000'000;
         }
     }
     return 0;

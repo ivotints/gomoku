@@ -73,6 +73,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
+    // std::cout << (turn ? "White" : "Black") << " turn, depth: "<< depth << "\n"; 
     // std::cout << "Moves amount: " << move_count << std::endl;
     // std::cout << "Move: x = " << (int)move.x << "\t" << "y = " << (int)move.y << "\n";
     // std::cout << "Board eval: " << move.eval << std::endl;
@@ -87,7 +88,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -111,7 +112,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))//|| isPositionVisited(TTable, moves[i].hash))  //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -132,52 +133,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     return (best_eval);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -211,12 +166,19 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     }
     sort_moves(moves, move_count, turn);
 
+    // std::cout << "White_turn: " << move_count << std::endl;
+    // std::cout << "Moves amount: " << move_count << std::endl;
+    // std::cout << "Board eval: " << current_board_eval << std::endl;
+    // for (int i = 0; i < move_count; ++i)
+    //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
+    // std::cout << std::endl;
+
     short best_move = moves[0].x + moves[0].y * 19;
     int best_eval = turn ? 1'000'000 : -1'000'000;
 
     for (short i = 0; i < move_count; ++i)
     {
-        if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+        if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x)) // it is not working we need to pass old boards here
             continue ;
 
         int eval = moves[i].eval;

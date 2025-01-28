@@ -153,13 +153,6 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     return value;
 }
 
-/*
-    i have heuristic. Now i should implement minimax algorithm, write a bot_play function.
-    Bot_play will return (best_move, evaluation_of_best_move)
-    after we got the move, we will have to make it and to rewrite current_board_evaluation.
-    then player makes a move. We run star heuristic on it just to get current_board_evaluatio for the bot_play.
-
-*/
 
 int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2], uint8_t &capture_dir)
 {
