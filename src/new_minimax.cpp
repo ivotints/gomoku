@@ -236,48 +236,23 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     }
     sort_moves(moves, move_count, turn);
 
-    // std::cout << "Bot_play, white turn\n";
-    // std::cout << "Moves amount: " << move_count << std::endl;
-    // std::cout << "Board eval: " << current_board_eval << std::endl;
-    // for (int i = 0; i < move_count; ++i)
-    //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
-    // std::cout << std::endl;
-
     short best_move = moves[0].x + moves[0].y * 19;
+    int best_eval = turn ? 1'000'000 : -1'000'000;
 
-    int best_eval;
-    if (turn == BLACK) // maximizing player
+    for (short i = 0; i < move_count; ++i)
     {
-        best_eval = -1'000'000;
-        for (short i = 0; i < move_count; ++i) // for move in moves
+        if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
+            continue ;
+        
+        int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
+        bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
+
+        if (better_eval)
         {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
-                continue ;
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
-            if (eval > best_eval)
-            {
-                best_move = moves[i].y * 19 + moves[i].x;
-                best_eval = eval;
-                if (best_eval > 100'000)
-                    break;
-            }
-        }
-    }
-    else // WHITE playes first
-    {
-        best_eval = 1'000'000;
-        for (short i = 0; i < move_count; ++i)
-        {
-            if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
-                continue ;
-            int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
-            if (eval < best_eval)
-            {
-                best_move = moves[i].y * 19 + moves[i].x;
-                best_eval = eval;
-                if (best_eval < -100'000)
-                    break;
-            }
+            best_move = moves[i].y * 19 + moves[i].x;
+            best_eval = eval;
+            if ((turn && best_eval < -100'000) || (!turn && best_eval > 100'000))
+                break;
         }
     }
     delete[] TTable;

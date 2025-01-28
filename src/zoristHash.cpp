@@ -7,6 +7,7 @@ namespace {
 
 uint64_t zobristTable[19][19][2] = {{{0}}};
 uint64_t zobristDepth[11] = {0};
+
 void initializeZobristTable() {
     if (!initialized) {
         std::mt19937_64 rng(0);
