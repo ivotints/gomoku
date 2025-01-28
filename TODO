@@ -16,5 +16,4 @@ BUG: AI looses simple combinatiion by do not preventing players 3 in D7. In D6 a
 
 
 
-Try to reduce calls of minimax, by checking before call..
 What is profile-guided optimization (PGO)...

@@ -2,9 +2,6 @@
 
 int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, u_int64_t *TTable)
 {
-    if (depth == 1 || move.eval < -100'000 || move.eval > 100'000) // means that it is a winning move
-        return (move.eval);
-
     move_t moves[300];
     short move_count = 0;
 
@@ -124,7 +121,12 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         {
             if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash))
                 continue;
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+
+            int eval = moves[i].eval;
+            if (depth > 2 && eval > -100'000 && eval < 100'000) {
+                eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+            }
+
             if (eval > best_eval)
             {
                 alpha = std::max(alpha, eval);
@@ -143,7 +145,12 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         {
             if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash))
                 continue;
-            int eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+
+            int eval = moves[i].eval;
+            if (depth > 2 && eval > -100'000 && eval < 100'000) {
+                eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+            }
+
             if (eval < best_eval)
             {
                 beta = std::min(beta, eval);
@@ -243,8 +250,12 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     {
         if (!is_legal_lite(moves[i].captures[turn], moves[i].boards[turn], moves[i].boards[!turn], moves[i].y, moves[i].x))
             continue ;
+
+        int eval = moves[i].eval;
+        if (depth > 1) {
+            eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
+        }
         
-        int eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
         bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
 
         if (better_eval)
