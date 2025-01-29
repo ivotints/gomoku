@@ -22,7 +22,7 @@ class Move:
 
 class gomoku:
     def __init__(self, players, variant, depth=4, is_white=False, test=False):
-        self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
+        self.boards = [[803469788377996324321679460443490890850999462308312906727424], [842498333348457515505868781432907231606433253948638184873475964928]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
@@ -112,9 +112,10 @@ def handle_bot_move(game):
     start = time.time()
     
     # Get and execute bot's move
-    bot_result = new_bot_play(game.boards, game.turn, copy.deepcopy(game.captures), game.depth) # why deep copy? check. probably do not needed with new minimax
+    bot_result = new_bot_play(game.boards, game.turn, game.captures, game.depth) # why deep copy? check. probably do not needed with new minimax
+    
     move = bot_result.move
-    game.eval = -bot_result.evaluation
+    game.eval = bot_result.evaluation
     # print("Move eval: ", bot_result.evaluation)
     result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
 
@@ -168,6 +169,8 @@ def handle_events(game):
                 t = time.time()
                 if not game.is_multiplayer:
                     handle_bot_move(game)
+                    print("Board black: ", game.boards[0])
+                    print("Board white: ", game.boards[1])
                 # print(f" Time taken: {time.time() - t:.3f}")
                 return True
     return True

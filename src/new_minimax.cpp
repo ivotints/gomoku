@@ -16,7 +16,6 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     // now we need to generate 8 moves around current move
     for (uint8_t i = 0; i < 8; ++i)
     {
-
         int ny = move.y + dir_vect[i][0];
         int nx = move.x + dir_vect[i][1];
         if (nx < 0 || nx > 18 || ny < 0 || ny > 18) // out of map
@@ -28,8 +27,25 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
         // we do not check for legality of move here, because later same move can become legal. We will check for legality before minimax call.
         moves[move_count].y = ny;
         moves[move_count].x = nx;
-        (move_count)++;
+        move_count++;
     }
+
+    // // 8 more moves around instead of capture check
+    // for (uint8_t i = 0; i < 8; ++i)
+    // {
+    //     int ny = move.y + 2 * dir_vect[i][0];
+    //     int nx = move.x + 2 * dir_vect[i][1];
+    //     if (nx < 0 || nx > 18 || ny < 0 || ny > 18) // out of map
+    //         continue;
+    //     if (((move.boards[0][ny] >> nx) & 1) || ((move.boards[1][ny] >> nx) & 1)) // if move is already on board
+    //         continue;
+    //     if (find_move(moves, nx, ny, move_count)) // if move is in the list already
+    //         continue;
+    //     // we do not check for legality of move here, because later same move can become legal. We will check for legality before minimax call.
+    //     moves[move_count].y = ny;
+    //     moves[move_count].x = nx;
+    //     move_count++;
+    // }
 
     if (move.capture_dir) // if we had a capture, we should generate move
     { 
@@ -88,7 +104,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = -1'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x) || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)/*  || isPositionVisited(TTable, moves[i].hash) */) //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -112,7 +128,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         best_eval = 1'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)|| isPositionVisited(TTable, moves[i].hash))  //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)/*  || isPositionVisited(TTable, moves[i].hash) */)  //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -179,7 +195,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
     for (short i = 0; i < move_count; ++i)
     {
-        if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x)) // it is not working we need to pass old boards here
+        if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x))
             continue ;
 
         int eval = moves[i].eval;

@@ -1,40 +1,33 @@
 #include "gomoku.hpp"
 
-static inline int scan_window(uint32_t window_turn, uint32_t window_opponent, int& value)
-{
-    if (window_opponent == 0) {
-        int bits_count = __builtin_popcount(window_turn);
-        if (bits_count > 1) {
-            value += 1 << (3 * (bits_count - 2));
-            if (bits_count == 5 && value < 100'000) // not to give the reward twice.
-                value += 1'000'000; // reward for winning move
+inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, int &value) {
+    for (int shift = 0; shift <= length - 5; ++shift) {
+        uint32_t black_window = (black_bits >> shift) & 0b11111;
+        uint32_t white_window = (white_bits >> shift) & 0b11111;
+
+        if (!white_window) { // If the window has no White stones, evaluate Black stones
+            int bits = __builtin_popcount(black_window);
+            if (bits > 1) 
+            {
+                value += (1 << (3 * (bits - 2)));
+                if (bits == 5 && value < 100'000) // not to give the reward twice.
+                    value += 1'000'000; // reward for winning move
+            }
+        }
+
+        if (!black_window) { // If the window has no Black stones, evaluate White stones
+            int bits = __builtin_popcount(white_window);
+            if (bits > 1)
+            {
+                value -= (1 << (3 * (bits - 2)));
+                if (bits == 5 && value > -100'000)
+                    value -= 1'000'000;
+            }
         }
     }
-    
-    if (window_turn == 0) {
-        int bits_count = __builtin_popcount(window_opponent);
-        if (bits_count > 1) {
-            value -= 1 << (3 * (bits_count - 2));
-            if (bits_count == 5 && value > -100'000)
-                value += -1'000'000;
-        }
-    }
-    return 0;
 }
 
-static inline int scan_line(uint32_t bits_line, uint32_t opponent_line, int max_shift, int& value)
-{
-    for (int window_shift = 0; window_shift <= max_shift; window_shift++) {
-        uint32_t window_turn = (bits_line >> window_shift) & WINDOW_MASK;
-        uint32_t window_opponent = (opponent_line >> window_shift) & WINDOW_MASK;
-        
-        int result = scan_window(window_turn, window_opponent, value);
-        if (result != 0) return result;
-    }
-    return 0;
-}
-
-static inline int scan_diagonal(const uint32_t* __restrict__ board_turn, const uint32_t* __restrict__ board_not_turn, 
+static inline void scan_diagonal(const uint32_t* __restrict__ board_turn, const uint32_t* __restrict__ board_not_turn, 
                         int start_row, int start_col, int length,
                         bool is_anti_diagonal, int& value)
 {
@@ -47,8 +40,7 @@ static inline int scan_diagonal(const uint32_t* __restrict__ board_turn, const u
         diagonal_bits |= ((board_turn[row] >> col) & 1) << i;
         diagonal_opponent |= ((board_not_turn[row] >> col) & 1) << i;
     }
-    
-    return scan_line(diagonal_bits, diagonal_opponent, length - WINDOW_SIZE, value);
+    evaluate_line(diagonal_bits, diagonal_opponent, length, value);
 }
 
 int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* __restrict__ board_not_turn, int capture, int capture_opponent)
@@ -100,11 +92,7 @@ int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* _
 
     // Horizontal scan
     for (int row = top; row <= bottom; row++) {
-        int result = scan_line(board_turn[row], 
-                             board_not_turn[row], 
-                             ROW_SIZE - WINDOW_SIZE,
-                             value);
-        if (result != 0) return result;
+        evaluate_line(board_turn[row], board_not_turn[row], ROW_SIZE, value);
     }
 
      // Vertical scan
@@ -116,11 +104,8 @@ int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* _
             vertical_opponent |= ((board_not_turn[row] >> col) & 1) << (row - top_exp);
         }
         
-        int result = scan_line(vertical_bits,
-                             vertical_opponent,
-                             bottom_exp - top_exp - WINDOW_SIZE + 1,
-                             value);
-        if (result != 0) return result;
+        evaluate_line(vertical_bits, vertical_opponent, bottom_exp - top_exp + 1, value);
+
     }
 
     // Main diagonal scan (↘)
@@ -133,10 +118,7 @@ int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* _
         int length = std::min(bottom_exp - start_row + 1, right_exp - start_col + 1);
 
         if (length >= WINDOW_SIZE) {
-            int result = scan_diagonal(board_turn, board_not_turn, 
-                                     start_row, start_col, length, 
-                                     false, value);
-            if (result != 0) return result;
+            scan_diagonal(board_turn, board_not_turn, start_row, start_col, length, false, value);
         }
     }
 
@@ -147,10 +129,7 @@ int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* _
         int length = std::min(bottom_exp - start_row + 1, start_col - left_exp + 1);
 
         if (length >= WINDOW_SIZE) {
-            int result = scan_diagonal(board_turn, board_not_turn,
-                                     start_row, start_col, length,
-                                     true, value);
-            if (result != 0) return result;
+            scan_diagonal(board_turn, board_not_turn, start_row, start_col, length, true, value);
         }
     }
 
