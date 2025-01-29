@@ -3,20 +3,20 @@
 bool has_winning_line(uint32_t* board) {
     const int BOARD_SIZE = 19;
     const int directions[4][2] = {{0,1}, {1,1}, {1,0}, {1,-1}};
-    
+
     for (int i = 0; i < BOARD_SIZE - 4; i++) {
         for (int j = 0; j < BOARD_SIZE; j++) {
-            if (!(board[i] & (1u << j))) 
+            if (!(board[i] & (1u << j)))
                 continue;
-                
+
             for (const auto& dir : directions) {
                 int end_y = i + 4*dir[0];
                 int end_x = j + 4*dir[1];
-                
-                if (end_y >= BOARD_SIZE || end_y < 0 || 
+
+                if (end_y >= BOARD_SIZE || end_y < 0 ||
                     end_x >= BOARD_SIZE || end_x < 0)
                     continue;
-                
+
                 bool valid = true;
                 for (int k = 1; k < 5; k++) {
                     int next_y = i + k*dir[0];
@@ -34,12 +34,12 @@ bool has_winning_line(uint32_t* board) {
     return false;
 }
 
-static inline bool check_pattern(uint32_t self_bits, uint32_t opp_bits, int space, int pattern_len, 
+static inline bool check_pattern(uint32_t self_bits, uint32_t opp_bits, int space, int pattern_len,
                         const uint32_t* PATTERNS, const uint32_t* MASKS) {
     uint32_t pattern = pattern_len == 5 ? PATTERNS[0] : PATTERNS[1];
     uint32_t pattern2 = pattern_len == 6 ? PATTERNS[2] : 0;
     uint32_t mask = MASKS[pattern_len - 5];
-    
+
     for (int shift = 0; shift <= space - pattern_len; shift++) {
         if ((opp_bits >> shift) & mask) continue;
         uint32_t chunk = (self_bits >> shift) & mask;
@@ -56,7 +56,7 @@ static inline std::pair<int, int> compute_spaces(int coord, int pattern_len, int
 }
 
 bool check_double_three(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
-    
+
     const int BOARD_SIZE = 19;
     const uint32_t PATTERNS[3] = {0b01110, 0b010110, 0b011010};
     const uint32_t MASKS[2] = {0b11111, 0b111111};

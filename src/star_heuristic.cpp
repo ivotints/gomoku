@@ -15,13 +15,13 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
     const uint8_t DIR_W =  1 << 7; // West
 
     uint8_t directions = 0;  // We will assign here directions that we will explore for capture
-    
+
     if (y >= 3)
         if (y <= 15)
             if (x >= 3)
                 if (x <= 15)
                     directions = DIR_NW | DIR_N | DIR_NE | DIR_E | DIR_SE | DIR_S | DIR_SW | DIR_W; // Center area
-                else 
+                else
                     directions = DIR_NW | DIR_N | DIR_SW | DIR_S | DIR_W; // Right edge
             else
                 directions = DIR_N | DIR_NE | DIR_E | DIR_SE | DIR_S; // Left edge
@@ -37,7 +37,7 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
         if (x >= 3)
             if (x <= 15)
                 directions = DIR_E | DIR_SE | DIR_S | DIR_SW | DIR_W; // Top edge, middle x
-            else 
+            else
                 directions = DIR_SW | DIR_S | DIR_W; // Top-right corner
         else
             directions = DIR_E | DIR_SE | DIR_S; // Top-left corner
@@ -48,8 +48,8 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
     {
         if (directions & (1 << dir_index)) // check if that direction exist
         {
-            if (((new_boards[ turn][y + 3 * dir_vect[dir_index][0]] >> (x + 3 * dir_vect[dir_index][1])) & 1) && 
-                ((new_boards[!turn][y + 2 * dir_vect[dir_index][0]] >> (x + 2 * dir_vect[dir_index][1])) & 1) && 
+            if (((new_boards[ turn][y + 3 * dir_vect[dir_index][0]] >> (x + 3 * dir_vect[dir_index][1])) & 1) &&
+                ((new_boards[!turn][y + 2 * dir_vect[dir_index][0]] >> (x + 2 * dir_vect[dir_index][1])) & 1) &&
                 ((new_boards[!turn][y +     dir_vect[dir_index][0]] >> (x +     dir_vect[dir_index][1])) & 1))
             {
                 new_boards[!turn][y + 2 * dir_vect[dir_index][0]] &= ~(1 << (x + 2 * dir_vect[dir_index][1])); // if we here, mean that it is a capture.
@@ -68,7 +68,7 @@ inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, 
 
         if (!white_window) { // If the window has no White stones, evaluate Black stones
             int bits = __builtin_popcount(black_window);
-            if (bits > 1) 
+            if (bits > 1)
             {
                 value += (1 << (3 * (bits - 2)));
                 if (bits == 5 && value < 100'000) // not to give the reward twice.
@@ -99,7 +99,7 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
 
     // Horizontal evaluation
     int start_x = x - left;
-    int length_h = left + right + 1;    
+    int length_h = left + right + 1;
     uint32_t black_bits_h = (boards[BLACK][y] >> start_x) & ((1 << length_h) - 1);
     uint32_t white_bits_h = (boards[WHITE][y] >> start_x) & ((1 << length_h) - 1);
     evaluate_line(black_bits_h, white_bits_h, length_h, value);
@@ -150,8 +150,14 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     }
     evaluate_line(black_bits_a, white_bits_a, length_a, value);
 
+    // here we will evaluate possible captures, not actual.
+    //if ()
+
     return value;
 }
+
+
+
 
 
 int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2], uint8_t &capture_dir)
@@ -194,7 +200,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
             delta_captures_eval += 1'000'000; // to indicate that it is winning.
         if (turn == BLACK)
             eval += delta_captures_eval;
-        else 
+        else
             eval -= delta_captures_eval;
     }
     // eval of last board - old eval of segment + new eval of segment

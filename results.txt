@@ -1,14 +1,9 @@
-# old is_capture, special map. not hash table,
+# result witout inline get_bit function.
+Total evaluated:   699894'436	Time taken: 101.727	Best eval: 85  	Move(y, x) 9 6
 
-c1r1s5% p main.py -D 10
-Total evaluated:   699894'436   Time taken: 109.206     Best eval: 85   Move(y, x) 9 6
+# tried with get_bit(). bad. deleted.
+Total evaluated:   699894'436	Time taken: 109.950	Best eval: 85  	Move(y, x) 9 6
 
-# no is_capture function.      not hash table
+#hash table comletly turend off
+Total evaluated:   699894'436	Time taken: 100.281	Best eval: 85  	Move(y, x) 9 6
 
-c1r1s5% p main.py -D 10
-Total evaluated:   699894'436   Time taken: 105.179     Best eval: 85   Move(y, x) 9 6
-
-# -O2 => -Ofast                not hash table
-
-c1r1s5% p main.py -D 10
-Total evaluated:   699894'436   Time taken: 83.855      Best eval: 85   Move(y, x) 9 6

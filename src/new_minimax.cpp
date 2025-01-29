@@ -12,7 +12,7 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     }
 
     const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x //TODO can we put it into header? we have 3 copies of it. Repeating code...
-    
+
     // now we need to generate 8 moves around current move
     for (uint8_t i = 0; i < 8; ++i)
     {
@@ -48,7 +48,7 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     // }
 
     if (move.capture_dir) // if we had a capture, we should generate move
-    { 
+    {
         for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
         {
             if (move.capture_dir & (1 << dir_index)) // check capture
@@ -79,7 +79,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
-        moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
+        //moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
         // if (turn == BLACK) {
         //     if (moves[i].eval > 100'000) // mean that it found winning move
         //         return (moves[i].eval); }
@@ -89,7 +89,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
-    // std::cout << (turn ? "White" : "Black") << " turn, depth: "<< depth << "\n"; 
+    // std::cout << (turn ? "White" : "Black") << " turn, depth: "<< depth << "\n";
     // std::cout << "Moves amount: " << move_count << std::endl;
     // std::cout << "Move: x = " << (int)move.x << "\t" << "y = " << (int)move.y << "\n";
     // std::cout << "Board eval: " << move.eval << std::endl;
@@ -117,7 +117,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
                 if (best_eval < -100'000)
                     break;
             }
-        }   
+        }
         else
         {
             if (eval > best_eval)
@@ -186,7 +186,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000))) {
             eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
         }
-        
+
         bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
 
         if (better_eval)
