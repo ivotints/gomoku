@@ -48,9 +48,9 @@ int bitwise_heuristic(const uint32_t* __restrict__ board_turn, const uint32_t* _
     int value = 0;
 
     if (capture > 4)
-        return 1000000;
+        value += 1000000;
     if (capture_opponent > 4)
-        return -1000000;
+        value -= 1000000;
 
     int top = 0;
     while (top < ROW_SIZE && board_turn[top] == 0 && board_not_turn[top] == 0)

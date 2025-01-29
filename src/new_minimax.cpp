@@ -101,10 +101,10 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     int best_eval;
     if (turn == BLACK) // maximizing player
     {
-        best_eval = -1'000'000;
+        best_eval = -2'000'000;
         for (short i = 0; i < move_count; ++i) // for move in moves
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)/*  || isPositionVisited(TTable, moves[i].hash) */) //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -125,10 +125,10 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     else
     {
-        best_eval = 1'000'000;
+        best_eval = 2'000'000;
         for (short i = 0; i < move_count; ++i)
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x)/*  || isPositionVisited(TTable, moves[i].hash) */)  //changed to old boards
+            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))  //changed to old boards
                 continue;
 
             int eval = moves[i].eval;
@@ -191,7 +191,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     // std::cout << std::endl;
 
     short best_move = moves[0].x + moves[0].y * 19;
-    int best_eval = turn ? 1'000'000 : -1'000'000;
+    int best_eval = turn ? 2'000'000 : -2'000'000;
 
     for (short i = 0; i < move_count; ++i)
     {
@@ -199,7 +199,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
             continue ;
 
         int eval = moves[i].eval;
-        if (depth > 1) {
+        if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000))) {
             eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
         }
         
