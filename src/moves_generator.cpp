@@ -1,27 +1,5 @@
 #include "gomoku.hpp"
 
-bool is_capture(uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
-    const int BOARD_SIZE = 19;
-    const int directions[8][2] = {
-        {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}, {-1,-1}, {-1,0}, {-1,1}
-    };
-
-    for (const auto& dir : directions) {
-        int y3 = y + dir[0]*3;
-        int x3 = x + dir[1]*3;
-        
-        if (x3 < 0 || x3 >= BOARD_SIZE || y3 < 0 || y3 >= BOARD_SIZE)
-            continue;
-
-        if (((board_turn[y3] >> x3) & 1) && 
-            ((board_not_turn[y + dir[0]*2] >> (x + dir[1]*2)) & 1) && 
-            ((board_not_turn[y + dir[0]] >> (x + dir[1])) & 1)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool has_winning_line(uint32_t* board) {
     const int BOARD_SIZE = 19;
     const int directions[4][2] = {{0,1}, {1,1}, {1,0}, {1,-1}};
@@ -136,86 +114,9 @@ bool check_double_three(uint32_t* board_turn, uint32_t* board_not_turn, int y, i
     return count > 1;
 }
 
-bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x) {
-    if (!is_capture(board_turn, board_not_turn, y, x) && ((capture == 4 && has_winning_line(board_not_turn)) || check_double_three(board_turn, board_not_turn, y, x))) {
+bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x, uint8_t capture_dir) {
+    if (!capture_dir && ((capture == 4 && has_winning_line(board_not_turn)) || check_double_three(board_turn, board_not_turn, y, x))) {
         return false;
     }
     return true;
-}
-
-void generate_all_legal_moves(uint32_t* board_turn, uint32_t* board_not_turn, int capture, move_t* moves, short* move_count) {
-    *move_count = 0;
-
-    uint32_t union_board[ROW_SIZE];
-    for(int i = 0; i < ROW_SIZE; i++) {
-        union_board[i] = board_turn[i] | board_not_turn[i];
-    }
-
-    int top = 0;
-    while (top < ROW_SIZE && union_board[top] == 0) top++;
-    
-    int bottom = ROW_SIZE - 1;
-    while (bottom >= 0 && union_board[bottom] == 0) bottom--;
-
-    if (top > bottom)
-    {
-        *move_count = 1;
-        moves[0].y = 9;
-        moves[0].x = 9;
-        return ;
-    }
-
-    int left = 0;
-    uint32_t col_bits;
-    while (left < ROW_SIZE) {
-        col_bits = 0;
-        for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((union_board[row] >> left) & 1);
-        }
-        if (col_bits != 0) break;
-        left++;
-    }
-
-    int right = ROW_SIZE - 1;
-    while (right >= 0) {
-        col_bits = 0;
-        for (int row = 0; row < ROW_SIZE; row++) {
-            col_bits |= ((union_board[row] >> right) & 1);
-        }
-        if (col_bits != 0) break;
-        right--;
-    }
-
-    int expand = 1;
-    top = (top - expand < 0) ? 0 : top - expand;
-    bottom = (bottom + expand >= ROW_SIZE) ? ROW_SIZE - 1 : bottom + expand;
-    left = (left - expand < 0) ? 0 : left - expand;
-    right = (right + expand >= ROW_SIZE) ? ROW_SIZE - 1 : right + expand;
-
-    uint32_t mask = (right - left == 1) ? 0b11 : 0b111;
-    
-    for (int row = top; row <= bottom; row++) {
-        for (int col = left; col <= right; col++) {
-            uint32_t window_mask = 0;
-            
-            for (int i = -1; i <= 1; i++) {
-                int check_row = row + i;
-                if (check_row < top || check_row > bottom) continue;
-                
-                int check_col = (col - 1 > left) ? col - 1 : left;
-                int shift_pos = check_col;
-                window_mask |= (union_board[check_row] >> shift_pos) & mask;
-            }
-
-            if (window_mask != 0) {
-                if (!(union_board[row] & (1u << col))) {
-                    if (is_legal_lite(capture, board_turn, board_not_turn, row, col)) {
-                        moves[*move_count].y = row;
-                        moves[*move_count].x = col;
-                        (*move_count)++;
-                    }
-                }
-            }
-        }
-    }
 }

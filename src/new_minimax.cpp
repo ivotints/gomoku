@@ -98,44 +98,18 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     // std::cout << std::endl;
 
 
-    int best_eval;
-    if (turn == BLACK) // maximizing player
+    int best_eval = turn ? 2'000'000 : -2'000'000;
+
+    for (short i = 0; i < move_count; ++i) // for move in moves+
     {
-        best_eval = -2'000'000;
-        for (short i = 0; i < move_count; ++i) // for move in moves
+        if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
+            continue;
+        int eval = moves[i].eval;
+        if (depth > 2 && eval > -100'000 && eval < 100'000)
+            eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+
+        if (turn) // minimizig white
         {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
-                continue;
-
-            int eval = moves[i].eval;
-            if (depth > 2 && eval > -100'000 && eval < 100'000) {
-                eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
-            }
-
-            if (eval > best_eval)
-            {
-                alpha = std::max(alpha, eval);
-                best_eval = eval;
-                if (best_eval > 100'000)
-                    break;
-            }
-            if (beta <= alpha)
-                break;
-        }
-    }
-    else
-    {
-        best_eval = 2'000'000;
-        for (short i = 0; i < move_count; ++i)
-        {
-            if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x))// || isPositionVisited(TTable, moves[i].hash))  //changed to old boards
-                continue;
-
-            int eval = moves[i].eval;
-            if (depth > 2 && eval > -100'000 && eval < 100'000) {
-                eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
-            }
-
             if (eval < best_eval)
             {
                 beta = std::min(beta, eval);
@@ -143,9 +117,19 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
                 if (best_eval < -100'000)
                     break;
             }
-            if (beta <= alpha)
-                break;
+        }   
+        else
+        {
+            if (eval > best_eval)
+            {
+                alpha = std::max(alpha, eval);
+                best_eval = eval;
+                if (best_eval > 100'000)
+                    break;
+            }
         }
+        if (beta <= alpha)
+            break;
     }
     return (best_eval);
 }
@@ -156,7 +140,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 {
     auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
-    uint64_t *TTable = new uint64_t[300'000'000];
+    uint64_t *TTable = new uint64_t[900'000'000];
     move_t moves[300];
     short move_count = 0;
 
@@ -169,7 +153,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
-        moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
+        //moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
         // if (turn == BLACK) {
         //     if (moves[i].eval > 100'000) {
         //         delete[] TTable;
@@ -195,7 +179,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
     for (short i = 0; i < move_count; ++i)
     {
-        if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x))
+        if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))
             continue ;
 
         int eval = moves[i].eval;

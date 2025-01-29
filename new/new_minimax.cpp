@@ -163,7 +163,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     int current_board_eval = bitwise_heuristic(boards[0], boards[1], captures[0], captures[1]); // easier to get initial eval from it, and later to use star_heuristic. But we also can pass this value from gomoku class in python.
 
     auto start = std::chrono::high_resolution_clock::now();
-    generate_all_legal_moves(boards[turn], boards[!turn], captures[turn], moves, &move_count);
+    //generate_all_legal_moves(boards[turn], boards[!turn], captures[turn], moves, &move_count);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     int total_evaluated = 0;
