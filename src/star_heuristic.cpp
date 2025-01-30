@@ -94,27 +94,31 @@ inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, 
 
 inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint8_t length, uint8_t center)
 {
-    // basic guard: need at least 4 bits to check captures
-    if (length < 4) return 0;
-
     int value = 0;
-    const int potential_capture_value = 4;
 
     // check which color is in the center
     bool black_center = (bits_black >> center) & 1;
     bool white_center = (bits_white >> center) & 1;
 
+    const int potential_capture_value = white_center ? -4 : 4;
+
+    if (white_center) //logic for black or white is same, so, not to repeat yourself, i do this
+    {
+        uint8_t tmp = bits_black;
+        bits_black = bits_white;
+        bits_white = tmp;
+    }
 
 
 
 
     // now take a look at that. Here dispalyed all the possible combinations of length and center and all the possible patterns of white and balck.
-    // ? mean that we do not care what is there. this bit exist and can be measured, but we dont cere
-    // B mean black bit
-    // W mean white bit
+    // ? means that we do not care what is there. this bit exist and can be measured, but we dont care
+    // B means black bit
+    // W means white bit
     // 0 means that here is no white, neither black bit.
 
-    if (black_center && !white_center)
+    if (black_center || white_center)
     {
         // length 7, center 3 ???B???   ?0BbW??  ?WBb0??  ??0BBW?  ??WBB0?  0WWB???  ???BWW0  0WWBWW0
 
@@ -130,29 +134,17 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
         if (length == 7)
         {
             if (((bits_black >> 2) & 0b01111) == 0b0110) // apply mask for black  ?0BbW??  ?WBb0??
-            {
                 if (((bits_white >> 2) & 0b1111) == 0b1000 || ((bits_white >> 2) & 0b1111) == 0b0001) // we found ?0BbW??  ?WBb0??
                     return (-potential_capture_value);
-            }
             if (((bits_black >> 1) & 0b01111) == 0b0110) // apply mask for black  ??0BBW?  ??WBB0?
-            {
                 if (((bits_white >> 1) & 0b1111) == 0b1000 || ((bits_white >> 1) & 0b1111) == 0b0001) // we found ??0BBW?  ??WBB0?
                     return (-potential_capture_value);
-            }
             if (((bits_black >> 3) & 0b1111) == 0b0001) // 0WWB???
-            {
                 if (((bits_white >> 3) & 0b1111) == 0b0110) // we found 0WWB???
-                {
                     value += potential_capture_value;
-                }
-            }
             if ((bits_black & 0b1111) == 0b1000) // ???BWW0
-            {
                 if ((bits_white & 0b1111) == 0b0110) // we found ???BWW0
-                {
                     value += potential_capture_value;
-                }
-            }
             return (value);
         }
 
@@ -163,40 +155,28 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
             if (center == 2)
             {
                 if (((bits_black >> 1) & 0b1111) == 0b0110) // ?0BBW?, ?WBB0?
-                {
                     if (((bits_white >> 1) & 0b1111) == 0b1000 || ((bits_white >> 1) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if (((bits_black) & 0b1111) == 0b0110) // ??0BBW, ??WBB0
-                {
                     if (((bits_white) & 0b1111) == 0b1000 || ((bits_white) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if (((bits_black >> 2) & 0b1111) == 0b0001) // 0WWB??
-                {
                     if (((bits_white >> 2) & 0b1111) == 0b0110)
                         return (potential_capture_value);
-                }
                 return (0);
             }
             // length 6, center 3 ??B???    0BBW??  WBB0??  ?0BBW?  ?WBB0?  ??BWW0
             else // length == 6 and center == 3
             {
                 if (((bits_black >> 2) & 0b1111) == 0b0110) // 0BBW??, WBB0??
-                {
                     if (((bits_white >> 2) & 0b1111) == 0b1000 || ((bits_white >> 2) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if (((bits_black >> 1) & 0b1111) == 0b0110) // ?0BBW?  ?WBB0?
-                {
                     if (((bits_white >> 1) & 0b1111) == 0b1000 || ((bits_white >> 1) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if ((bits_black & 0b1111) == 0b1000) // ??BWW0
-                {
                     if ((bits_white & 0b1111) == 0b0110)
                         return (potential_capture_value);
-                }
                 return (0);
             }
         }
@@ -208,15 +188,11 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
             if (center == 1)
             {
                 if (((bits_black) & 0b1111) == 0b0110) // ?0BBW, ?WBB0
-                {
                     if (((bits_white) & 0b1111) == 0b1000 || ((bits_white) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if (((bits_black >> 1) & 0b1111) == 0b0001) // 0WWB?
-                {
                     if (((bits_white >> 1) & 0b1111) == 0b0110)
                         return (potential_capture_value);
-                }
                 return (0);
             }
 
@@ -225,15 +201,11 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
             else // center == 3
             {
                 if (((bits_black >> 1) & 0b1111) == 0b0110) // 0BBW?, WBB0?
-                {
                     if (((bits_white >> 1) & 0b1111) == 0b1000 || ((bits_white >> 1) & 0b1111) == 0b0001)
                         return (-potential_capture_value);
-                }
                 if ((bits_black & 0b1111) == 0b1000) // ?BWW0
-                {
                     if ((bits_white & 0b1111) == 0b0110)
                         return (potential_capture_value);
-                }
                 return (0);
             }
         }
@@ -241,148 +213,28 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
         // length 4, center 0 ???B      0WWB
         // length 4, center 3 B???      BWW0
 
-        if (length == 4) // it is obvious, no need to check for it
-        {
-            if (bits_white == 0b0110)
-                if (bits_black == 0b0001 || bits_black == 0b1000)
-                    return (potential_capture_value);
-        }
-    }
-    else if (!black_center && white_center)
-    {
-        if (length == 7)
-        {
-            if (((bits_white >> 2) & 0b01111) == 0b0110)
-            {
-                if (((bits_black >> 2) & 0b1111) == 0b1000 || ((bits_black >> 2) & 0b1111) == 0b0001)
-                    return (potential_capture_value);
-            }
-            if (((bits_white >> 1) & 0b01111) == 0b0110)
-            {
-                if (((bits_black >> 1) & 0b1111) == 0b1000 || ((bits_black >> 1) & 0b1111) == 0b0001)
-                    return (potential_capture_value);
-            }
-            if (((bits_white >> 3) & 0b1111) == 0b0001)
-            {
-                if (((bits_black >> 3) & 0b1111) == 0b0110)
-                {
-                    value += -potential_capture_value;
-                }
-            }
-            if ((bits_white & 0b1111) == 0b1000)
-            {
-                if ((bits_black & 0b1111) == 0b0110)
-                {
-                    value += -potential_capture_value;
-                }
-            }
-            return (value);
-        }
-        if (length == 6)
-        {
-            if (center == 2)
-            {
-                if (((bits_white >> 1) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black >> 1) & 0b1111) == 0b1000 || ((bits_black >> 1) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if (((bits_white) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black) & 0b1111) == 0b1000 || ((bits_black) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if (((bits_white >> 2) & 0b1111) == 0b0001)
-                {
-                    if (((bits_black >> 2) & 0b1111) == 0b0110)
-                        return (-potential_capture_value);
-                }
-                return (0);
-            }
-            else
-            {
-                if (((bits_white >> 2) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black >> 2) & 0b1111) == 0b1000 || ((bits_black >> 2) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if (((bits_white >> 1) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black >> 1) & 0b1111) == 0b1000 || ((bits_black >> 1) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if ((bits_white & 0b1111) == 0b1000)
-                {
-                    if ((bits_black & 0b1111) == 0b0110)
-                        return (-potential_capture_value);
-                }
-                return (0);
-            }
-        }
-        if (length == 5)
-        {
-            if (center == 1)
-            {
-                if (((bits_white) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black) & 0b1111) == 0b1000 || ((bits_black) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if (((bits_white >> 1) & 0b1111) == 0b0001)
-                {
-                    if (((bits_black >> 1) & 0b1111) == 0b0110)
-                        return (-potential_capture_value);
-                }
-                return (0);
-            }
-            else
-            {
-                if (((bits_white >> 1) & 0b1111) == 0b0110)
-                {
-                    if (((bits_black >> 1) & 0b1111) == 0b1000 || ((bits_black >> 1) & 0b1111) == 0b0001)
-                        return (potential_capture_value);
-                }
-                if ((bits_white & 0b1111) == 0b1000)
-                {
-                    if ((bits_black & 0b1111) == 0b0110)
-                        return (-potential_capture_value);
-                }
-                return (0);
-            }
-        }
-        if (length == 4) // it is obvious, no need to check for it
-        {
-            if (bits_black == 0b0110)
-                if (bits_white == 0b0001 || bits_white == 0b1000)
-                    return (-potential_capture_value);
-        }
+        if (bits_white == 0b0110)
+            if (bits_black == 0b0001 || bits_black == 0b1000)
+                return (potential_capture_value);
     }
     else // center is 0
     {
         if (center + 3 < length) // BWW0
-        {
             if (((bits_black >> center) & 0b1111) == 0b1000)
                 if (((bits_white >> center) & 0b1111) == 0b0110)
                     return (potential_capture_value);
-        }
         if (center + 3 < length) // WBB0
-        {
             if (((bits_white >> center) & 0b1111) == 0b1000)
                 if (((bits_black >> center) & 0b1111) == 0b0110)
                     return (-potential_capture_value);
-        }
         if (center >= 3) // 0WWB
-        {
             if (((bits_black >> (center - 3)) & 0b1111) == 0b0001)
                 if (((bits_white >> (center - 3)) & 0b1111) == 0b0110)
                     return (potential_capture_value);
-        }
         if (center >= 3) // 0BBW
-        {
             if (((bits_white >> (center - 3)) & 0b1111) == 0b0001)
                 if (((bits_black >> (center - 3)) & 0b1111) == 0b0110)
                     return (-potential_capture_value);
-        }
     }
     return (0);
 }
@@ -484,7 +336,8 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
         uint8_t bits_black_h = (boards[BLACK][y] >> (x - left_h)) & ((1 << length_h) - 1);
         uint8_t bits_white_h = (boards[WHITE][y] >> (x - left_h)) & ((1 << length_h) - 1);
 
-        capture_value += check_potential_captures(bits_black_h, bits_white_h, length_h, left_h);
+        if (length_h > 3)
+            capture_value += check_potential_captures(bits_black_h, bits_white_h, length_h, left_h);
     }
 
     // Vertical
@@ -500,7 +353,8 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
             bits_black_v |= ((boards[BLACK][y - up_v + i] >> x) & 1) << i;
             bits_white_v |= ((boards[WHITE][y - up_v + i] >> x) & 1) << i;
         }
-        capture_value += check_potential_captures(bits_black_v, bits_white_v, length_v, center_v);
+        if (length_v > 3)
+            capture_value += check_potential_captures(bits_black_v, bits_white_v, length_v, center_v);
     }
 
     // Diagonal
@@ -516,7 +370,8 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
             bits_black_d |= ((boards[BLACK][y - up_d + i] >> (x - up_d + i)) & 1) << i;
             bits_white_d |= ((boards[WHITE][y - up_d + i] >> (x - up_d + i)) & 1) << i;
         }
-        capture_value += check_potential_captures(bits_black_d, bits_white_d, length_d, center_d);
+        if (length_d > 3)
+            capture_value += check_potential_captures(bits_black_d, bits_white_d, length_d, center_d);
     }
 
     // Anti-diagonal
@@ -532,7 +387,8 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
             bits_black_a |= ((boards[BLACK][y - up_a + i] >> (x + up_a - i)) & 1) << i;
             bits_white_a |= ((boards[WHITE][y - up_a + i] >> (x + up_a - i)) & 1) << i;
         }
-        capture_value += check_potential_captures(bits_black_a, bits_white_a, length_a, center_a);
+        if (length_a > 3)
+            capture_value += check_potential_captures(bits_black_a, bits_white_a, length_a, center_a);
     }
 
     value += capture_value;
@@ -566,7 +422,7 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
         if (capture_dir & (1 << dir_index)) // check capture
         {
             // if we have a capture, we will run an additional star heuristics on each capture_pos.
-            //this is worng logic. REWRITE!
+            //this is worng logic. REWRITE! becaise same 5 bits will be evaluated 3 times.
             int old_eval = star_eval(boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
             old_eval += star_eval(boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
             int new_eval = star_eval(new_boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);

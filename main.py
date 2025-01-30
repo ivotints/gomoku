@@ -38,6 +38,7 @@ class gomoku:
         self.depth = depth
         self.is_white = is_white
         self.current_board_evaluation = 0
+        self.history.append(Move(self))
 
         py.init()
         py.display.set_caption("Gomoku")
