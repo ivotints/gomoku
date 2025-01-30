@@ -22,8 +22,8 @@ class Move:
 
 class gomoku:
     def __init__(self, players, variant, depth=4, is_white=False, test=False):
-        self.boards = [[803469788377996324321679460443490890850999462308312906727424], [842498333348457515505868781432907231606433253948638184873475964928]]
-        # self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
+        # self.boards = [[803469788377996324321679460443490890850999462308312906727424], [842498333348457515505868781432907231606433253948638184873475964928]]
+        self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]
@@ -64,15 +64,15 @@ class gomoku:
         """Restore previous game state from history"""
         if not self.history or len(self.history) == 1:
             return False
-        
+
         previous = self.history.pop()
-        
+
         self.boards = [previous.boards[0].copy(), previous.boards[1].copy()]
         self.captures = previous.captures.copy()
         self.eval = previous.eval
         self.time = previous.time
         self.turn = not self.turn  # This line might be the issue - double turn change
-        
+
         update_board(self)
         return True
 
@@ -91,7 +91,7 @@ def handle_turn(game, result):
         return False
     update_board(game)
     game.turn = not game.turn
-    
+
     if result:
         show_winning_message(game)
     return True
@@ -100,7 +100,7 @@ def handle_user_move(game, pos):
     """Handle a user's mouse click to make a move"""
     if pos is None:
         return False
-        
+
     move = pos[1] * 19 + pos[0]
     if not is_occupied(game.boards[0], move) and not is_occupied(game.boards[1], move):
         result, _ = handle_move(game, game.boards, game.turn, move, game.captures)
@@ -111,10 +111,10 @@ def handle_bot_move(game):
     """Handle the bot's turn"""
     game.thinking = True
     start = time.time()
-    
+
     # Get and execute bot's move
     bot_result = new_bot_play(game.boards, game.turn, game.captures, game.depth) # why deep copy? check. probably do not needed with new minimax
-    
+
     move = bot_result.move
     game.eval = bot_result.evaluation
     # print("Move eval: ", bot_result.evaluation)
@@ -158,10 +158,10 @@ def handle_events(game):
                 continue
             game.running = False
             return False
-        
+
         if event.type == py.MOUSEBUTTONDOWN:
             click_pos = py.mouse.get_pos()
-            
+
             if handle_suggestion(game, click_pos) or handle_undo(game, click_pos):
                 return True
 
@@ -178,15 +178,15 @@ def handle_events(game):
 
 def main():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--player", "-p", type=int, choices=[1, 2], 
+    parse.add_argument("--player", "-p", type=int, choices=[1, 2],
                       help="Choose amount of player 1 or 2", nargs='?', default=1)
     parse.add_argument("--color", "-c", type=str, choices=["black", "white"],
                       help="Choose color", default="black")
-    parse.add_argument("--variant", "-v", action="store_true", 
+    parse.add_argument("--variant", "-v", action="store_true",
                       help="Activate variant", default=False)
-    parse.add_argument("--depth", "-D", type=int, 
+    parse.add_argument("--depth", "-D", type=int,
                       help="Algo search depth", default=4)
-    parse.add_argument("--test", "-t", type=bool, 
+    parse.add_argument("--test", "-t", type=bool,
                       help="test position")
     args = parse.parse_args()
     if args.test:

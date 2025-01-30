@@ -7,3 +7,5 @@ Total evaluated:   699894'436	Time taken: 109.950	Best eval: 85  	Move(y, x) 9 6
 #hash table comletly turend off
 Total evaluated:   699894'436	Time taken: 100.281	Best eval: 85  	Move(y, x) 9 6
 
+# new heuristic with potential captures
+Total evaluated:   198395'885   Time taken: 44.884      Best eval: 83   Move(y, x) 9 6
