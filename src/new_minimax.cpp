@@ -66,8 +66,6 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
 
 
 
-
-
 int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, u_int64_t *TTable)
 {
     move_t moves[300];
@@ -80,27 +78,13 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         total_evaluated++;
         moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
         //moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
-        // if (turn == BLACK) {
-        //     if (moves[i].eval > 100'000) // mean that it found winning move
-        //         return (moves[i].eval); }
-        // else {
-        //     if (moves[i].eval < -100'000)
-        //         return (moves[i].eval); }
+
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
-    // std::cout << (turn ? "White" : "Black") << " turn, depth: "<< depth << "\n";
-    // std::cout << "Moves amount: " << move_count << std::endl;
-    // std::cout << "Move: x = " << (int)move.x << "\t" << "y = " << (int)move.y << "\n";
-    // std::cout << "Board eval: " << move.eval << std::endl;
-    // for (int i = 0; i < move_count; ++i)
-    //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
-    // std::cout << std::endl;
-
-
     int best_eval = turn ? 2'000'000 : -2'000'000;
 
-    for (short i = 0; i < move_count; ++i) // for move in moves+
+    for (short i = 0; i < move_count; ++i)
     {
         if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
             continue;
@@ -134,8 +118,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     return (best_eval);
 }
 
-
-
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
     auto start = std::chrono::high_resolution_clock::now();
@@ -154,25 +136,9 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         total_evaluated++;
         moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
         //moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
-        // if (turn == BLACK) {
-        //     if (moves[i].eval > 100'000) {
-        //         delete[] TTable;
-        //         return {(moves[i].y * 19 + moves[i].x), moves[i].eval}; }
-        //     }
-        // else {
-        //     if (moves[i].eval < -100'000) {
-        //         delete[] TTable;
-        //         return {(moves[i].y * 19 + moves[i].x), moves[i].eval}; }
-        //     }
+
     }
     sort_moves(moves, move_count, turn);
-
-    // std::cout << "White_turn: " << move_count << std::endl;
-    // std::cout << "Moves amount: " << move_count << std::endl;
-    // std::cout << "Board eval: " << current_board_eval << std::endl;
-    // for (int i = 0; i < move_count; ++i)
-    //     std::cout << "y = " << (int)moves[i].y << "\tx = " << (int)moves[i].x << "\tEval : " << moves[i].eval <<"\n";
-    // std::cout << std::endl;
 
     short best_move = moves[0].x + moves[0].y * 19;
     int best_eval = turn ? 2'000'000 : -2'000'000;

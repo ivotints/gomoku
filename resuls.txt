@@ -1,0 +1,11 @@
+# old
+Total evaluated:   272143'767	Time taken: 47.511	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.476	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.352	Best eval: 81  	Move(y, x) 9 6
+
+# PopCountTable[]
+Total evaluated:   272143'767	Time taken: 47.553	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.192	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.418	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.250	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   272143'767	Time taken: 47.550	Best eval: 81  	Move(y, x) 9 6

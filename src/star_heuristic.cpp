@@ -73,25 +73,30 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
     }
 }
 
+
+// Replace multiple __builtin_popcount calls with lookup table
+static const uint8_t PopCountTable[32] = {
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5
+};
+
 inline void evaluate_line(uint32_t black_bits, uint32_t white_bits, int length, int &value) {
     for (int shift = 0; shift <= length - 5; ++shift) {
         uint32_t black_window = (black_bits >> shift) & 0b11111;
         uint32_t white_window = (white_bits >> shift) & 0b11111;
 
-        if (!white_window) { // If the window has no White stones, evaluate Black stones
-            int bits = __builtin_popcount(black_window);
-            if (bits > 1)
-            {
+        if (!white_window) {
+            int bits = PopCountTable[black_window];
+            if (bits > 1) {
                 value += (1 << (3 * (bits - 2)));
-                if (bits == 5 && value < 100'000) // not to give the reward twice.
-                    value += 1'000'000; // reward for winning move
+                if (bits == 5 && value < 100'000)
+                    value += 1'000'000;
             }
         }
 
-        if (!black_window) { // If the window has no Black stones, evaluate White stones
-            int bits = __builtin_popcount(white_window);
-            if (bits > 1)
-            {
+        if (!black_window) {
+            int bits = PopCountTable[white_window];
+            if (bits > 1) {
                 value -= (1 << (3 * (bits - 2)));
                 if (bits == 5 && value > -100'000)
                     value -= 1'000'000;
