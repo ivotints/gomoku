@@ -1,4 +1,0 @@
-c1r1s5% p main.py -D 10
-*** stack smashing detected ***: terminated
-zsh: IOT instruction (core dumped)  python3 main.py -D 10
-

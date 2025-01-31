@@ -1,46 +1,58 @@
+// old star_heuristic
+
 #include "gomoku.hpp"
+
+#define DIR_NW 1 << 0  // North-West
+#define DIR_N  1 << 1  // North
+#define DIR_NE 1 << 2  // North-East
+#define DIR_E  1 << 3  // East
+#define DIR_SE 1 << 4  // South-East
+#define DIR_S  1 << 5  // South
+#define DIR_SW 1 << 6  // South-West
+#define DIR_W  1 << 7  // West
+
+#define ALL_DIRS 0xFF        // All directions (255)
+#define RIGHT_EDGE 0xE3      // DIR_NW | DIR_N | DIR_SW | DIR_S | DIR_W (227)
+#define LEFT_EDGE 0x3C       // DIR_N | DIR_NE | DIR_E | DIR_SE | DIR_S (60)
+#define BOTTOM_MIDDLE 0x8F   // DIR_NW | DIR_N | DIR_NE | DIR_E | DIR_W (143)
+#define BOTTOM_RIGHT 0x83    // DIR_NW | DIR_N | DIR_W (131)
+#define BOTTOM_LEFT 0x0E     // DIR_N | DIR_NE | DIR_E (14)
+#define TOP_MIDDLE 0xFC      // DIR_E | DIR_SE | DIR_S | DIR_SW | DIR_W (252)
+#define TOP_RIGHT 0xC0       // DIR_SW | DIR_S | DIR_W (192)
+#define TOP_LEFT 0x38        // DIR_E | DIR_SE | DIR_S (56)
 
 // takes a new boards, to which move will be made.
 inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_captures)[2], uint8_t y, uint8_t x, uint8_t &capture_dir)
 {
     new_boards[turn][y] |= 1 << x; // set bit
 
-    const uint8_t DIR_NW = 1 << 0; // North-West
-    const uint8_t DIR_N =  1 << 1; // North
-    const uint8_t DIR_NE = 1 << 2; // North-East
-    const uint8_t DIR_E =  1 << 3; // East
-    const uint8_t DIR_SE = 1 << 4; // South-East
-    const uint8_t DIR_S =  1 << 5; // South
-    const uint8_t DIR_SW = 1 << 6; // South-West
-    const uint8_t DIR_W =  1 << 7; // West
-
-    uint8_t directions = 0;  // We will assign here directions that we will explore for capture
+    uint8_t directions;  // We will assign here directions that we will explore for capture
 
     if (y >= 3)
         if (y <= 15)
             if (x >= 3)
                 if (x <= 15)
-                    directions = DIR_NW | DIR_N | DIR_NE | DIR_E | DIR_SE | DIR_S | DIR_SW | DIR_W; // Center area
+                    directions = ALL_DIRS; // Center area
                 else
-                    directions = DIR_NW | DIR_N | DIR_SW | DIR_S | DIR_W; // Right edge
+                    directions = RIGHT_EDGE; // Right edge
             else
-                directions = DIR_N | DIR_NE | DIR_E | DIR_SE | DIR_S; // Left edge
+                directions = LEFT_EDGE; // Left edge
         else
             if (x >= 3)
                 if (x <= 15)
-                    directions = DIR_NW | DIR_N | DIR_NE | DIR_E | DIR_W; // Bottom edge, middle x
+                    directions = BOTTOM_MIDDLE; // Bottom edge, middle x
                 else
-                    directions = DIR_NW | DIR_N | DIR_W; // Bottom-right corner
+                    directions = BOTTOM_RIGHT; // Bottom-right corner
             else
-                directions = DIR_N | DIR_NE | DIR_E; // Bottom-left corner
+                directions = BOTTOM_LEFT; // Bottom-left corner
     else
         if (x >= 3)
             if (x <= 15)
-                directions = DIR_E | DIR_SE | DIR_S | DIR_SW | DIR_W; // Top edge, middle x
+                directions = TOP_MIDDLE; // Top edge, middle x
             else
-                directions = DIR_SW | DIR_S | DIR_W; // Top-right corner
+                directions = TOP_RIGHT; // Top-right corner
         else
-            directions = DIR_E | DIR_SE | DIR_S; // Top-left corner
+            directions = TOP_LEFT; // Top-left corner
 
     const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
 
@@ -108,9 +120,6 @@ inline int check_potential_captures(uint8_t bits_black, uint8_t bits_white, uint
         bits_black = bits_white;
         bits_white = tmp;
     }
-
-
-
 
     // now take a look at that. Here dispalyed all the possible combinations of length and center and all the possible patterns of white and balck.
     // ? means that we do not care what is there. this bit exist and can be measured, but we dont care
@@ -304,8 +313,6 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     }
     evaluate_line(black_bits_a, white_bits_a, length_a, value);
 
-    // all that you can use is here : uint32_t (&boards)[2][19], int y, int x
-
     // here we will evaluate possible captures
 
     // first i need to extract 4 to 7 bits. if there not even 4 bits, capture is impossible and we skip.
@@ -320,10 +327,6 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     // bits_white;       0110
     // length;            4
     // center;            3 // signilase position from the right, count from 0
-
-
-
-
 
     int capture_value = 0;
 
@@ -396,21 +399,13 @@ inline int star_eval(uint32_t (&boards)[2][19], int y, int x) {
     return value;
 }
 
-
-
-
-
 int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19],  uint8_t (&new_captures)[2], uint8_t &capture_dir)
 {
     new_captures[0] = captures[0];
     new_captures[1] = captures[1];
 
     // copy of boards
-    for(int i = 0; i < 2; ++i) {
-        for(int j = 0; j < 19; ++j) {
-            new_boards[i][j] = boards[i][j];
-        }
-    }
+    memcpy(new_boards, boards, sizeof(uint32_t) * 2 * 19);
 
     capture_dir = 0; // each bit will represent direction of capture was made
 
