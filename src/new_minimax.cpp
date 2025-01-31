@@ -66,7 +66,7 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
 
 
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, u_int64_t *TTable)
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable)
 {
     move_t moves[300];
     short move_count = 0;
@@ -77,7 +77,10 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
-        //moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
+        if (moves[i].capture_dir == 0)
+            moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
+        else
+            moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
 
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
@@ -89,8 +92,13 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
             continue;
         int eval = moves[i].eval;
-        if (depth > 2 && eval > -100'000 && eval < 100'000)
-            eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+        if (depth > 1 && eval > -100'000 && eval < 100'000) {
+              if (!isPositionVisited(TTable, moves[i].hash, eval)) {
+                    eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+                    TTable[moves[i].hash % 100'000'000].hash = moves[i].hash;
+                    TTable[moves[i].hash % 100'000'000].value = eval;
+              }
+        }
 
         if (turn) // minimizig white
         {
@@ -122,7 +130,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 {
     auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
-    uint64_t *TTable = new uint64_t[900'000'000];
+    table_t *TTable = new table_t[100'000'000]();
     move_t moves[300];
     short move_count = 0;
 
@@ -135,7 +143,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(boards, turn, captures, moves[i].y, moves[i].x, current_board_eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
-        //moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
+        moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
 
     }
     sort_moves(moves, move_count, turn);
@@ -150,7 +158,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
         int eval = moves[i].eval;
         if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000))) {
-            eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth, total_evaluated, moves, move_count, TTable);
+            eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth - 1, total_evaluated, moves, move_count, TTable);
         }
 
         bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);

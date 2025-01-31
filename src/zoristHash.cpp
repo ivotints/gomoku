@@ -5,14 +5,13 @@ namespace {
     bool initialized = false;
 }
 
-uint64_t zobristTable[19][19][2] = {{{0}}};
-uint64_t zobristDepth[11] = {0};
+static uint64_t zobristTable[19][19][2];
+static uint64_t zobristDepth[11];
 
 void initializeZobristTable() {
     if (!initialized) {
         std::mt19937_64 rng(0);
         std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
-
         for (int d = 0; d < 11; ++d) {
             zobristDepth[d] = dist(rng);
         }
@@ -30,7 +29,6 @@ void initializeZobristTable() {
 
 uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int depth) {
     uint64_t hash = 0;
-
     for (int row = 0; row < 19; ++row) {
         uint32_t bitRow = player1Board[row];
         while (bitRow) {
@@ -48,7 +46,6 @@ uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int 
             bitRow &= ~(1u << bit);
         }
     }
-
     hash ^= zobristDepth[depth];
     return hash;
 }
@@ -60,12 +57,23 @@ uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int p
     return currentHash;
 }
 
-bool isPositionVisited(uint64_t* table, uint64_t hash) {
-    const uint64_t index = hash % 900'000'000;
-    // const uint32_t partialKey = static_cast<uint32_t>(hash >> 32);
-    if (table[index] == hash) {
-        return true;
+bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
+    static const uint64_t TABLE_SIZE = 100'000'000;
+    uint64_t startIndex = hash % TABLE_SIZE;
+    uint64_t i = startIndex;
+
+    while (true) {
+        if (table[i].hash == 0) {
+            return false;
+        }
+        if (table[i].hash == hash) {
+            value = table[i].value;
+            return true;
+        }
+        i = (i + 1) % TABLE_SIZE;
+        if (i == startIndex) {
+            std::cout << "Table full, unable to insert: " << hash << std::endl;
+            return false;
+        }
     }
-    table[index] = hash;
-    return false;
 }
