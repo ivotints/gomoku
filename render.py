@@ -8,14 +8,11 @@ import time
 
 def draw_undo_button(win):
     """Draw undo text button in right corner"""
-    font = py.font.Font(None, 20)  # Smaller font size
+    font = py.font.Font(None, 20)
     text = font.render("UNDO", True, BLACK)
     text_rect = text.get_rect()
     
-    # Position in right corner
-    text_rect.bottomright = (WIDTH - 10, WIDTH - 10)  # 10px padding from edges
-    
-    # Draw just the text
+    text_rect.bottomright = (WIDTH - 10, WIDTH - 10)
     win.blit(text, text_rect)
 
 def get_average_time(game):
@@ -48,20 +45,17 @@ def show_winning_message(game):
     is_black_winner = game.turn
     message = "Black wins!" if is_black_winner else "White wins!"
     
-    # Set colors based on winner
     text_color = (0, 0, 0) if is_black_winner else (255, 255, 255)
     border_color = (255, 255, 255) if is_black_winner else (0, 0, 0)
     
     font = py.font.Font(None, 74)
     
-    # Create border by rendering text multiple times with offset
     border_offsets = [(x, y) for x in (-2, 2) for y in (-2, 2)]
     for offset_x, offset_y in border_offsets:
         border_text = font.render(message, True, border_color)
         border_rect = border_text.get_rect(center=(WIDTH // 2 + offset_x, WIDTH // 2 + offset_y))
         game.win.blit(border_text, border_rect)
     
-    # Render main text
     text = font.render(message, True, text_color)
     text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
     game.win.blit(text, text_rect)
@@ -84,12 +78,10 @@ def draw_board(win, captures=[0, 0], evaluation=0):
     win.fill((235,173,100))
     square = WIDTH / SIZE
     
-    # Draw board grid
     for i in range(1, SIZE):
         pyd.line(win, BLACK, (i * square, square), (i * square, WIDTH - square), width=2)
         pyd.line(win, BLACK, (square, i * square), (WIDTH - square, i * square), width=2)
     
-    # Draw captures
     font = py.font.Font(None, 24)
     text = font.render(f"Captures:     {captures[0]}", True, BLACK)
     text_rect = text.get_rect(center=(80, 20))
@@ -99,34 +91,29 @@ def draw_board(win, captures=[0, 0], evaluation=0):
     win.blit(text, text_rect)
     
     draw_suggestion_button(win)
-    # Draw evaluation bar
     bar_width = 15
     bar_height = WIDTH - 2 * square
     bar_x = square/2 - bar_width/2
     bar_y = square
     
-    # Draw background bar
     pyd.rect(win, (200,200,200), (bar_x, bar_y + 1, bar_width, bar_height))
     
-    # Calculate bar fill using logarithmic scale
     if evaluation != 0:
         sign = 1 if evaluation > 0 else -1
         log_eval = sign * math.log(abs(evaluation) + 1, 10)
         fill_ratio = min(max(log_eval / 4, -1), 1)
         
-        # Center point is middle of bar
         center_y = bar_y + bar_height/2 + 1
-        if evaluation > 0:  # Black winning - fill up
+        if evaluation > 0:
             fill_WIDTH = fill_ratio * bar_height/2
             fill_y = center_y - fill_WIDTH
-        else:  # White winning - fill down
+        else:
             fill_WIDTH = -fill_ratio * bar_height/2
             fill_y = center_y
             
         color = BLACK if evaluation > 0 else WHITE
         pyd.rect(win, color, (bar_x, fill_y, bar_width, abs(fill_WIDTH)))
     
-    # Draw center line
     pyd.line(win, BLACK, (bar_x, bar_y + bar_height/2), 
              (bar_x + bar_width - 1, bar_y + bar_height/2), width=2)
 
@@ -141,7 +128,7 @@ def draw_suggestion_button(win):
 def update_board(game, sugg=False):
     draw_board(game.win, game.captures, game.eval if not game.is_multiplayer else get_board_evaluation(game.boards[0][0], game.boards[1][0], game.captures[0], game.captures[1]))
     draw_undo_button(game.win)
-
+    color = [BLACK, WHITE]
     if not game.is_multiplayer:
         display_time(game, time.time() - game.time)
 
@@ -155,8 +142,9 @@ def update_board(game, sugg=False):
 
                 px = (x + 1) * WIDTH / SIZE
                 pyy = (y + 1) * WIDTH / SIZE
-                color = (0, 0, 0) if player == 0 else (255, 255, 255)
-                pyd.circle(game.win, color, (px, pyy), WIDTH / SIZE / 3)
+                pyd.circle(game.win, color[player], (px, pyy), WIDTH / SIZE / 3)
+                if pos == game.last_move:
+                    pyd.circle(game.win, color[not player], (px, pyy), WIDTH / SIZE / 3, 3)
             b[0] >>= 1
             pos += 1
     if (game.show_suggestions and (game.is_multiplayer or not game.is_white == game.turn)) or sugg:
