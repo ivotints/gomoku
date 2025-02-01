@@ -10,3 +10,5 @@
 FIX: We still do not know what causes the bug: -O3 optimization? Hash table? even after they are deletet thith bug rearly appears. 
 
 What is profile-guided optimization (PGO)...
+
+terminate called without an active exception

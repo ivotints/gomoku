@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <shared_mutex>
 #include <iomanip>
+#include <atomic>
 
 #define ROW_SIZE 19
 #define WINDOW_SIZE 5
