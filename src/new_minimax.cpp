@@ -47,7 +47,7 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
 }
 
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable, int g_depth)
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, std::atomic<int> &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable, int g_depth)
 {
     move_t moves[300];
     short move_count = 0;
@@ -64,6 +64,7 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
     int moves_accepted = 0;
+    int topX = std::max((depth * move_count) / 30, 3);
 
     int best_eval = turn ? 2'000'000 : -2'000'000;
     for (short i = 0; i < move_count; ++i)
@@ -72,22 +73,20 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
             continue;
         int eval = moves[i].eval;
 
-        if (depth < g_depth - 3) { // we will start to cut after 4 moves ahead (10, 9, 8, 7 we skip, if depth is 10)
-            if (moves_accepted == 5) {// first 5 legal moves we always accept.
-                    break ; 
-            }
-            else { ++moves_accepted; }
+        if (depth < g_depth - 3 && moves_accepted >= topX)
+        {
+            break ;
+        }
+        else
+        {
+            moves_accepted++;
         }
 
-        // we calculate mean from all moves generated.
-        // for black we accept only values that bigger or equal than (mean - 1)
-        // for white we accept only values that less or equal than (mean + 1) 
-        // if this condition is not fulfiled, we break
         if (depth > 1 && eval > -100'000 && eval < 100'000)
-              if (!isPositionVisited(TTable, moves[i].hash, eval)) {
+               if (!isPositionVisited(TTable, moves[i].hash, eval)) {
                     eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable, g_depth);
-                    storePositionVisited(TTable, moves[i].hash, eval);
-              }
+                     storePositionVisited(TTable, moves[i].hash, eval);
+               }
 
         if (turn) // minimizig white
         {
@@ -117,7 +116,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
 
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
-    // static table_t TTable[1'000'000]; // Allocate once at program startup
     auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
 
@@ -127,7 +125,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     int current_board_eval = bitwise_heuristic(boards[0], boards[1], captures[0], captures[1]); // easier to get initial eval from it, and later to use star_heuristic. But we also can pass this value from gomoku class in python.
 
     initial_move_generation(boards, moves, &move_count);
-    int total_evaluated = 0; // to count amount of boards evaluated.
+    std::atomic<int> total_evaluated(0);
 
     for (short i = 0; i < move_count; ++i)
     {
@@ -146,7 +144,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     std::atomic<int> i(0);
     for (unsigned int t = 0; t < thread_count; t++) {
         threads.emplace_back([&, t]() {
-            table_t* thread_local_table = new table_t[1'000'000]();
+            table_t* thread_local_table = new table_t[3'000'000]();
             while (true) {
                 int current_i = i.fetch_add(1);
                 if (current_i >= move_count) break;
