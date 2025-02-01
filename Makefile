@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -march=native -flto -fPIC -shared -std=c++20  -pthread -Werror -Wextra -Ofast
+CFLAGS = -march=native -flto -fPIC -shared -std=c++20  -pthread -Ofast
 
 PYTHON = python3
 TARGET = heuristic.so

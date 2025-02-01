@@ -50,12 +50,22 @@ uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int 
     return hash;
 }
 
-uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth) {
+uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth, u_int8_t capture_dir) {
     currentHash ^= zobristDepth[depth + 1];
     currentHash ^= zobristTable[row][col][player];
+    if (capture_dir) {
+        const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}};
+        while(capture_dir) {
+            int dir_index = __builtin_ctz(capture_dir);
+            capture_dir &= ~(1 << dir_index);
+            currentHash ^= zobristTable[row + 2 * dir_vect[dir_index][0]][col + 2 * dir_vect[dir_index][1]][!player];
+            currentHash ^= zobristTable[row + dir_vect[dir_index][0]][col + dir_vect[dir_index][1]][!player];
+        }
+    }
     currentHash ^= zobristDepth[depth];
     return currentHash;
 }
+
 
 bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
     static const uint64_t TABLE_SIZE = 1'000'000;
@@ -74,6 +84,25 @@ bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
         if (i == startIndex) {
             std::cout << "Table full, unable to insert: " << hash << std::endl;
             return false;
+        }
+    }
+}
+
+void storePositionVisited(table_t* table, uint64_t hash, int eval) {
+    static const uint64_t TABLE_SIZE = 1'000'000;
+    uint64_t startIndex = hash % TABLE_SIZE;
+    uint64_t i = startIndex;
+
+    while (true) {
+        if (table[i].hash == 0) {
+            table[i].hash = hash;
+            table[i].value = eval;
+            return;
+        }
+        i = (i + 1) % TABLE_SIZE;
+        if (i == startIndex) {
+            std::cout << "Table full, unable to insert: " << hash << std::endl;
+            return;
         }
     }
 }

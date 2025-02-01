@@ -56,19 +56,18 @@ inline void make_a_move(uint32_t (&new_boards)[2][19], bool turn, uint8_t (&new_
 
     const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
 
-    for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
+    while (directions)
     {
-        if (directions & (1 << dir_index)) // check if that direction exist
+        int dir_index = __builtin_ctz(directions);
+        directions &= ~(1 << dir_index);
+        if (((new_boards[ turn][y + 3 * dir_vect[dir_index][0]] >> (x + 3 * dir_vect[dir_index][1])) & 1) &&
+            ((new_boards[!turn][y + 2 * dir_vect[dir_index][0]] >> (x + 2 * dir_vect[dir_index][1])) & 1) &&
+            ((new_boards[!turn][y +     dir_vect[dir_index][0]] >> (x +     dir_vect[dir_index][1])) & 1))
         {
-            if (((new_boards[ turn][y + 3 * dir_vect[dir_index][0]] >> (x + 3 * dir_vect[dir_index][1])) & 1) &&
-                ((new_boards[!turn][y + 2 * dir_vect[dir_index][0]] >> (x + 2 * dir_vect[dir_index][1])) & 1) &&
-                ((new_boards[!turn][y +     dir_vect[dir_index][0]] >> (x +     dir_vect[dir_index][1])) & 1))
-            {
-                new_boards[!turn][y + 2 * dir_vect[dir_index][0]] &= ~(1 << (x + 2 * dir_vect[dir_index][1])); // if we here, mean that it is a capture.
-                new_boards[!turn][y +     dir_vect[dir_index][0]] &= ~(1 << (x +     dir_vect[dir_index][1]));
-                capture_dir |= (1 << dir_index);
-                new_captures[turn]++;
-            }
+            new_boards[!turn][y + 2 * dir_vect[dir_index][0]] &= ~(1 << (x + 2 * dir_vect[dir_index][1])); // if we here, mean that it is a capture.
+            new_boards[!turn][y +     dir_vect[dir_index][0]] &= ~(1 << (x +     dir_vect[dir_index][1]));
+            capture_dir |= (1 << dir_index);
+            new_captures[turn]++;
         }
     }
 }
@@ -417,19 +416,19 @@ int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2],
     make_a_move(new_boards, turn, new_captures, y, x, capture_dir);
 
     const char dir_vect[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}; //y, x
-    for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
+    u_int8_t captures_dir_copy = capture_dir;
+    while (captures_dir_copy)
     {
-        if (capture_dir & (1 << dir_index)) // check capture
-        {
-            // if we have a capture, we will run an additional star heuristics on each capture_pos.
-            //this is worng logic. REWRITE! becaise same 5 bits will be evaluated 3 times.
-            int old_eval = star_eval(boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
-            old_eval += star_eval(boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
-            int new_eval = star_eval(new_boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
-            new_eval += star_eval(new_boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
-            int delta_eval = new_eval - old_eval;
-            eval += delta_eval;
-        }
+        uint8_t dir_index = __builtin_ctz(captures_dir_copy);
+        captures_dir_copy &= ~(1 << dir_index);
+        // if we have a capture, we will run an additional star heuristics on each capture_pos.
+        //this is worng logic. REWRITE! becaise same 5 bits will be evaluated 3 times.
+        int old_eval = star_eval(boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
+        old_eval += star_eval(boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
+        int new_eval = star_eval(new_boards, y + 2 * dir_vect[dir_index][0], x + 2 * dir_vect[dir_index][1]);
+        new_eval += star_eval(new_boards, y + dir_vect[dir_index][0], x + dir_vect[dir_index][1]);
+        int delta_eval = new_eval - old_eval;
+        eval += delta_eval;
     }
     if (capture_dir)
     {

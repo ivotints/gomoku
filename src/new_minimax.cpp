@@ -29,37 +29,19 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
         moves[move_count].x = nx;
         move_count++;
     }
-
-    // // 8 more moves around instead of capture check
-    // for (uint8_t i = 0; i < 8; ++i)
-    // {
-    //     int ny = move.y + 2 * dir_vect[i][0];
-    //     int nx = move.x + 2 * dir_vect[i][1];
-    //     if (nx < 0 || nx > 18 || ny < 0 || ny > 18) // out of map
-    //         continue;
-    //     if (((move.boards[0][ny] >> nx) & 1) || ((move.boards[1][ny] >> nx) & 1)) // if move is already on board
-    //         continue;
-    //     if (find_move(moves, nx, ny, move_count)) // if move is in the list already
-    //         continue;
-    //     // we do not check for legality of move here, because later same move can become legal. We will check for legality before minimax call.
-    //     moves[move_count].y = ny;
-    //     moves[move_count].x = nx;
-    //     move_count++;
-    // }
-
     if (move.capture_dir) // if we had a capture, we should generate move
     {
-        for (uint8_t dir_index = 0; dir_index < 8; ++dir_index)
+        int8_t capture_dir = move.capture_dir;
+        while (capture_dir)
         {
-            if (move.capture_dir & (1 << dir_index)) // check capture
-            {
-                // it will be deffenetly not out of bounce,
-                // it will not be in list already
-                // there is obviously no piece in that place
-                moves[move_count].x = move.x + 2 * dir_vect[dir_index][1];
-                moves[move_count].y = move.y + 2 * dir_vect[dir_index][0];
-                move_count++;
-            }
+            int dir_index = __builtin_ctz(capture_dir);
+            capture_dir &= ~(1 << dir_index);
+            // it will be deffenetly not out of bounce,
+            // it will not be in list already
+            // there is obviously no piece in that place
+            moves[move_count].x = move.x + 2 * dir_vect[dir_index][1];
+            moves[move_count].y = move.y + 2 * dir_vect[dir_index][0];
+            move_count++;
         }
     }
 }
@@ -76,20 +58,10 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     {
         total_evaluated++;
         moves[i].eval = star_heuristic(move.boards, turn, move.captures, moves[i].y, moves[i].x, move.eval, moves[i].boards, moves[i].captures, moves[i].capture_dir);
-        if (moves[i].capture_dir == 0)
-            moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth);
-        else
-            moves[i].hash = computeZobristHash(moves[i].boards[0], moves[i].boards[1], depth);
+        moves[i].hash = updateZobristHash(move.hash, moves[i].y, moves[i].x, turn, depth, moves[i].capture_dir);
 
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
-
-    // int sum = 0;
-    // for (short i = 0; i < move_count; ++i) {
-    //     sum += moves[i].eval;
-    // }
-    // int mean =  sum / move_count;
-    // mean += turn ? 1 : -1; // +1 for WHITE, -1 for BLACK
 
     int moves_accepted = 0;
 
@@ -102,7 +74,6 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
 
         if (depth < g_depth - 3) { // we will start to cut after 4 moves ahead (10, 9, 8, 7 we skip, if depth is 10)
             if (moves_accepted == 5) {// first 5 legal moves we always accept.
-                // if ((turn == BLACK && eval < mean) || (turn == WHITE && eval > mean))
                     break ; 
             }
             else { ++moves_accepted; }
@@ -112,13 +83,11 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
         // for black we accept only values that bigger or equal than (mean - 1)
         // for white we accept only values that less or equal than (mean + 1) 
         // if this condition is not fulfiled, we break
-        if (depth > 1 && eval > -100'000 && eval < 100'000) {
+        if (depth > 1 && eval > -100'000 && eval < 100'000)
               if (!isPositionVisited(TTable, moves[i].hash, eval)) {
                     eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable, g_depth);
-                    TTable[moves[i].hash % 1'000'000].hash = moves[i].hash;
-                    TTable[moves[i].hash % 1'000'000].value = eval;
+                    storePositionVisited(TTable, moves[i].hash, eval);
               }
-        }
 
         if (turn) // minimizig white
         {

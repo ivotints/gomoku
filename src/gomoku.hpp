@@ -64,13 +64,13 @@ extern "C"
                      const uint32_t* __restrict__ board_not_turn,
                      int capture, int capture_opponent);
 }
+void storePositionVisited(table_t* table, uint64_t hash, int eval);
 void initializeZobristTable();
 uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int depth);
-uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth);
+uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth, u_int8_t capture_dir);
 bool isPositionVisited(table_t* table, uint64_t hash, int& value);
 int star_heuristic(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], uint8_t y, uint8_t x, int eval, uint32_t (&new_boards)[2][19], uint8_t (&new_captures)[2], uint8_t &capture_dir);
 bool is_legal_lite(int capture, uint32_t* board_turn, uint32_t* board_not_turn, int y, int x, uint8_t capture_dir);
-
 void initial_move_generation(uint32_t (&boards)[2][19], move_t* moves, short* move_count);
 void sort_moves(move_t (&moves)[300], short move_count, bool turn);
 bool find_move(move_t* moves, uint8_t x, uint8_t y, short move_count);
