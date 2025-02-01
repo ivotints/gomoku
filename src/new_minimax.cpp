@@ -64,7 +64,7 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     }
 }
 
-
+static table_t TTable[100'000'000]; // Allocate once at program startup
 
 int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable)
 {
@@ -130,7 +130,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 {
     auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
-    table_t *TTable = new table_t[100'000'000]();
+
     move_t moves[300];
     short move_count = 0;
 
@@ -171,7 +171,6 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
                 break;
         }
     }
-    delete[] TTable;
     std::cout << "Total evaluated:   " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << "\t";
     double duration = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count();
     std::cout << "Time taken: " <<  std::fixed << std::setprecision(3) << duration << "\t" << "Best eval: " << best_eval << "  \t" << "Move(y, x) " <<  best_move / 19 <<" "<< best_move % 19 << "\n";

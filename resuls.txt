@@ -1,11 +1,26 @@
 # old
-Total evaluated:   272143'767	Time taken: 47.511	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.476	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.352	Best eval: 81  	Move(y, x) 9 6
-
-# PopCountTable[]
 Total evaluated:   272143'767	Time taken: 47.553	Best eval: 81  	Move(y, x) 9 6
 Total evaluated:   272143'767	Time taken: 47.192	Best eval: 81  	Move(y, x) 9 6
 Total evaluated:   272143'767	Time taken: 47.418	Best eval: 81  	Move(y, x) 9 6
 Total evaluated:   272143'767	Time taken: 47.250	Best eval: 81  	Move(y, x) 9 6
 Total evaluated:   272143'767	Time taken: 47.550	Best eval: 81  	Move(y, x) 9 6
+
+# with zobrist and new [] allocation
+-D 1 
+Total evaluated:   0'8  Time taken: 0.463       Best eval: 0    Move(y, x) 14 2        # that is too much time takes for allocation of 100mb
+-D 10
+Total evaluated:   39614'250    Time taken: 8.238       Best eval: 20   Move(y, x) 16 3
+-D 10
+Total evaluated:   39614'250    Time taken: 8.237       Best eval: 20   Move(y, x) 16 3
+-D 10
+Total evaluated:   39614'250    Time taken: 8.223       Best eval: 20   Move(y, x) 16 3
+
+# with zobrist and static allocation
+-D 1
+Total evaluated:   0'8  Time taken: 0.000       Best eval: 0    Move(y, x) 9 8
+-D 10
+Total evaluated:   39614'250    Time taken: 8.355       Best eval: 20   Move(y, x) 16 3
+-D 10
+Total evaluated:   39614'250    Time taken: 8.385       Best eval: 20   Move(y, x) 16 3
+-D 10
+Total evaluated:   39614'250    Time taken: 8.392       Best eval: 20   Move(y, x) 16 3

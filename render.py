@@ -144,7 +144,7 @@ def update_board(game, sugg=False):
                 pyy = (y + 1) * WIDTH / SIZE
                 pyd.circle(game.win, color[player], (px, pyy), WIDTH / SIZE / 3)
                 if pos == game.last_move:
-                    pyd.circle(game.win, color[not player], (px, pyy), WIDTH / SIZE / 3, 3)
+                    pyd.circle(game.win, (0, 180,0), (px, pyy), WIDTH / SIZE / 3, 2)
             b[0] >>= 1
             pos += 1
     if (game.show_suggestions and (game.is_multiplayer or not game.is_white == game.turn)) or sugg:
