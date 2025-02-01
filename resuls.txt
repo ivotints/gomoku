@@ -1,26 +1,87 @@
-# old
-Total evaluated:   272143'767	Time taken: 47.553	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.192	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.418	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.250	Best eval: 81  	Move(y, x) 9 6
-Total evaluated:   272143'767	Time taken: 47.550	Best eval: 81  	Move(y, x) 9 6
+# tests with depth 10 old, special map
+Total evaluated:   159065'407   Time taken: 29.743  Best eval: 84   Move(y, x) 9 6
+Total evaluated:   159065'407	Time taken: 29.806	Best eval: 84  	Move(y, x) 9 6
 
-# with zobrist and new [] allocation
--D 1 
-Total evaluated:   0'8  Time taken: 0.463       Best eval: 0    Move(y, x) 14 2        # that is too much time takes for allocation of 100mb
--D 10
-Total evaluated:   39614'250    Time taken: 8.238       Best eval: 20   Move(y, x) 16 3
--D 10
-Total evaluated:   39614'250    Time taken: 8.237       Best eval: 20   Move(y, x) 16 3
--D 10
-Total evaluated:   39614'250    Time taken: 8.223       Best eval: 20   Move(y, x) 16 3
 
-# with zobrist and static allocation
--D 1
-Total evaluated:   0'8  Time taken: 0.000       Best eval: 0    Move(y, x) 9 8
--D 10
-Total evaluated:   39614'250    Time taken: 8.355       Best eval: 20   Move(y, x) 16 3
--D 10
-Total evaluated:   39614'250    Time taken: 8.385       Best eval: 20   Move(y, x) 16 3
--D 10
-Total evaluated:   39614'250    Time taken: 8.392       Best eval: 20   Move(y, x) 16 3
+# cut_bad_moves
+Total evaluated:   32879'598	Time taken: 6.760	Best eval: 81  	Move(y, x) 9 6
+Total evaluated:   32879'598	Time taken: 6.838	Best eval: 81  	Move(y, x) 9 6
+
+Total evaluated:   21377'564	Time taken: 4.653	Best eval: 83  	Move(y, x) 9 6
+
+
+# old depth 10
+Total evaluated:   159065'407   Time taken: 31.148      Best eval: 84   Move(y, x) 9 6
+Total evaluated:   65155'262    Time taken: 12.211      Best eval: 101      Move(y, x) 6 5
+Total evaluated:   101327'943   Time taken: 18.771      Best eval: 91   Move(y, x) 4 11
+Total evaluated:   512884'193   Time taken: 99.561      Best eval: 54   Move(y, x) 7 7
+zsh: killed     python3 main.py -D 10 # took more than 10 minutes
+
+# new depth 10, which takes after 4 depth only 10 best moves to analyze
+Total evaluated:   21377'564    Time taken: 4.555       Best eval: 83   Move(y, x) 9 6
+Total evaluated:   13612'944    Time taken: 2.710       Best eval: 92   Move(y, x) 6 5
+Total evaluated:   5967'395     Time taken: 1.145       Best eval: 114       Move(y, x) 4 11
+Total evaluated:   29381'407    Time taken: 5.855       Best eval: 61   Move(y, x) 7 7
+Total evaluated:   457843'597   Time taken: 91.768      Best eval: 39   Move(y, x) 7 4
+Total evaluated:   714165'933   Time taken: 135.311     Best eval: -101   Move(y, x) 8 5
+
+# same, but we take only 5 best move after 4 depth
+Total evaluated:   5712'909     Time taken: 1.309       Best eval: 88   Move(y, x) 9 6
+Total evaluated:   4439'621     Time taken: 0.974       Best eval: 100          Move(y, x) 6 5
+Total evaluated:   5343'912     Time taken: 1.139       Best eval: 88   Move(y, x) 4 11
+Total evaluated:   9164'762     Time taken: 1.988       Best eval: 54   Move(y, x) 7 7
+Total evaluated:   163306'935   Time taken: 33.989      Best eval: 59   Move(y, x) 7 4
+Total evaluated:   182682'793   Time taken: 35.645      Best eval: -100         Move(y, x) 8 5
+Total evaluated:   45181'312    Time taken: 8.590       Best eval: -115         Move(y, x) 11 8
+Total evaluated:   143'960      Time taken: 0.027       Best eval: -1000512     Move(y, x) 11 6
+Total evaluated:   1250'199     Time taken: 0.236       Best eval: -1000392     Move(y, x) 7 5
+Total evaluated:   13'770       Time taken: 0.002       Best eval: -1000548     Move(y, x) 11 9
+Total evaluated:   10'638       Time taken: 0.002       Best eval: -1000544     Move(y, x) 9 5
+Total evaluated:   35'335       Time taken: 0.007       Best eval: -1000544     Move(y, x) 11 11
+Total evaluated:   187'332      Time taken: 0.031       Best eval: -1000697     Move(y, x) 9 7
+Total evaluated:   4'747        Time taken: 0.001       Best eval: -1000836     Move(y, x) 12 7
+Total evaluated:   0'67 Time taken: 0.000       Best eval: -1000848     Move(y, x) 10 7
+
+
+# depth 7
+
+c1r1s5% p main.py -D 7  # new, cut, Only first 5 best moves taken
+Total evaluated:   686'901      Time taken: 0.153       Best eval: 3    Move(y, x) 5 10
+Total evaluated:   604'263      Time taken: 0.130       Best eval: -4   Move(y, x) 10 5
+Total evaluated:   1166'277     Time taken: 0.258       Best eval: -21          Move(y, x) 6 5
+Total evaluated:   3919'853     Time taken: 0.854       Best eval: -40          Move(y, x) 7 7
+Total evaluated:   28170'594    Time taken: 5.701       Best eval: -57          Move(y, x) 7 4
+Total evaluated:   7998'157     Time taken: 1.481       Best eval: -77          Move(y, x) 11 9
+Total evaluated:   57950'847    Time taken: 10.415      Best eval: -101         Move(y, x) 5 6
+Total evaluated:   52209'781    Time taken: 9.272       Best eval: -134         Move(y, x) 10 9
+Total evaluated:   40304'622    Time taken: 6.860       Best eval: -145         Move(y, x) 10 9
+Total evaluated:   4380'83      Time taken: 0.809       Best eval: -143         Move(y, x) 7 6
+Total evaluated:   9'295        Time taken: 0.002       Best eval: -1000605     Move(y, x) 8 7
+Total evaluated:   4'297        Time taken: 0.001       Best eval: -1000644     Move(y, x) 9 8
+Total evaluated:   0'63 Time taken: 0.000       Best eval: -1000690     Move(y, x) 5 4
+c1r1s5% make re
+
+c1r1s5% p main.py -D 7 # all moves taken, do not cut.
+Total evaluated:   2568'170     Time taken: 0.551       Best eval: 3    Move(y, x) 5 10
+Total evaluated:   2889'345     Time taken: 0.567       Best eval: -6   Move(y, x) 10 5
+Total evaluated:   4879'91      Time taken: 0.960       Best eval: -22          Move(y, x) 6 5
+Total evaluated:   19430'120    Time taken: 3.523       Best eval: -37          Move(y, x) 7 7
+Total evaluated:   163917'464   Time taken: 27.580      Best eval: -51          Move(y, x) 7 4
+Total evaluated:   47767'239    Time taken: 8.109       Best eval: -50          Move(y, x) 11 9
+Total evaluated:   317885'812   Time taken: 52.662      Best eval: -101         Move(y, x) 5 6
+Total evaluated:   248822'504   Time taken: 40.423      Best eval: -134         Move(y, x) 10 9
+Total evaluated:   218816'705   Time taken: 34.792      Best eval: -145         Move(y, x) 10 9
+Total evaluated:   20508'960    Time taken: 3.443       Best eval: -135         Move(y, x) 7 6
+Total evaluated:   9'295        Time taken: 0.002       Best eval: -1000605     Move(y, x) 8 7
+Total evaluated:   4'297        Time taken: 0.001       Best eval: -1000644     Move(y, x) 9 8
+Total evaluated:   0'63 Time taken: 0.000       Best eval: -1000690     Move(y, x) 5 4
+
+Same moves, but 5 times faster.
+
+
+
+# again, Depth 10, no cutting:
+Total evaluated:   159065'407   Time taken: 30.847      Best eval: 84   Move(y, x) 9 6
+
+# depth 10 with taking only first 5.
+Total evaluated:   5712'909     Time taken: 1.306       Best eval: 88   Move(y, x) 9 6

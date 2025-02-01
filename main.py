@@ -22,8 +22,8 @@ class Move:
 
 class gomoku:
     def __init__(self, players, variant, depth=4, is_white=False, test=False):
-        # self.boards = [[803469788377996324321679460443490890850999462308312906727424], [842498333348457515505868781432907231606433253948638184873475964928]]
-        self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
+        self.boards = [[803469788377996324321679460443490890850999462308312906727424], [842498333348457515505868781432907231606433253948638184873475964928]]
+        # self.boards = [[0], [0]]  # its working in reverse direction. if our map is 3 by 3 and in pos 0, 0 is 1 than int looks like 0b000000001
         self.turn = BLACK_PLAYER
         self.win = py.display.set_mode((WIDTH, WIDTH))
         self.captures = [0, 0]

@@ -64,9 +64,8 @@ inline void    light_move_generation(move_t *moves, short &move_count, move_t *m
     }
 }
 
-static table_t TTable[100'000'000]; // Allocate once at program startup
 
-int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable)
+int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &total_evaluated, move_t *moves_last, short move_count_last, table_t *TTable, int g_depth)
 {
     move_t moves[300];
     short move_count = 0;
@@ -85,16 +84,37 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     }
     sort_moves(moves, move_count, turn); // now i need to sort them. i will call star_heuristc on every move and sort, depending on which turn is now. if turn is 0 that means we sort from biggrst to smallest.
 
-    int best_eval = turn ? 2'000'000 : -2'000'000;
+    // int sum = 0;
+    // for (short i = 0; i < move_count; ++i) {
+    //     sum += moves[i].eval;
+    // }
+    // int mean =  sum / move_count;
+    // mean += turn ? 1 : -1; // +1 for WHITE, -1 for BLACK
 
+    int moves_accepted = 0;
+
+    int best_eval = turn ? 2'000'000 : -2'000'000;
     for (short i = 0; i < move_count; ++i)
     {
         if (!is_legal_lite(move.captures[turn], move.boards[turn], move.boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))// || isPositionVisited(TTable, moves[i].hash)) //changed to old boards
             continue;
         int eval = moves[i].eval;
+
+        if (depth < g_depth - 3) { // we will start to cut after 4 moves ahead (10, 9, 8, 7 we skip, if depth is 10)
+            if (moves_accepted == 5) {// first 5 legal moves we always accept.
+                // if ((turn == BLACK && eval < mean) || (turn == WHITE && eval > mean))
+                    break ; 
+            }
+            else { ++moves_accepted; }
+        }
+
+        // we calculate mean from all moves generated.
+        // for black we accept only values that bigger or equal than (mean - 1)
+        // for white we accept only values that less or equal than (mean + 1) 
+        // if this condition is not fulfiled, we break
         if (depth > 1 && eval > -100'000 && eval < 100'000) {
               if (!isPositionVisited(TTable, moves[i].hash, eval)) {
-                    eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable);
+                    eval = new_minimax(moves[i], !turn, alpha, beta, depth - 1, total_evaluated, moves, move_count, TTable, g_depth);
                     TTable[moves[i].hash % 100'000'000].hash = moves[i].hash;
                     TTable[moves[i].hash % 100'000'000].value = eval;
               }
@@ -126,8 +146,10 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, int &to
     return (best_eval);
 }
 
+
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
+    static table_t TTable[100'000'000]; // Allocate once at program startup
     auto start = std::chrono::high_resolution_clock::now();
     initializeZobristTable();
 
@@ -158,7 +180,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
         int eval = moves[i].eval;
         if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000))) {
-            eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth - 1, total_evaluated, moves, move_count, TTable);
+            eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth - 1, total_evaluated, moves, move_count, TTable, depth);
         }
 
         bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
@@ -171,8 +193,6 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
                 break;
         }
     }
-    std::cout << "Total evaluated:   " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << "\t";
-    double duration = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count();
-    std::cout << "Time taken: " <<  std::fixed << std::setprecision(3) << duration << "\t" << "Best eval: " << best_eval << "  \t" << "Move(y, x) " <<  best_move / 19 <<" "<< best_move % 19 << "\n";
-    return {best_move, best_eval};
+    std::cout << "Total evaluated:   " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << "\t" << "Time taken: " <<  std::fixed << std::setprecision(3) << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count() << "\t" << "Best eval: " << best_eval << "  \t" << "Move(y, x) " <<  best_move / 19 <<" "<< best_move % 19 << "\n";
+        return {best_move, best_eval};
 }
