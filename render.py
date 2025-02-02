@@ -3,7 +3,6 @@ import pygame as py
 from macro import BLACK, WHITE, WIDTH, SIZE
 from wrapper import get_board_evaluation, bot_play, new_bot_play
 import math
-import copy
 import time
 
 def draw_undo_button(win):
@@ -74,7 +73,7 @@ def show_winning_message(game):
     game.win.blit(text, text_rect)
     
     py.display.update()
-    py.time.wait(2000)
+    py.time.wait(4000)
     exit(0)
 
 

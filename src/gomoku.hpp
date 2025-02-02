@@ -28,6 +28,8 @@
 #define B 0
 #define W 1
 
+static const uint64_t TABLE_SIZE = 3'000'000;
+
 typedef struct move_s
 {
     uint8_t     y;
@@ -63,9 +65,11 @@ extern "C"
     int bitwise_heuristic(const uint32_t* __restrict__ board_turn,
                      const uint32_t* __restrict__ board_not_turn,
                      int capture, int capture_opponent);
+    void initializeZobristTable();
+    void init_global_tables();
+
 }
 void storePositionVisited(table_t* table, uint64_t hash, int eval);
-void initializeZobristTable();
 uint64_t computeZobristHash(uint32_t* player1Board, uint32_t* player2Board, int depth);
 uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int player, int depth, u_int8_t capture_dir);
 bool isPositionVisited(table_t* table, uint64_t hash, int& value);

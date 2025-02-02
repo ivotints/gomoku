@@ -114,10 +114,26 @@ int new_minimax(move_t &move, bool turn, int alpha, int beta, int depth, std::at
     return (best_eval);
 }
 
+
+
+
+constexpr size_t MAX_THREADS = 19;
+
+static table_t* global_tables[MAX_THREADS] = {nullptr};
+static bool tables_initialized = false;
+
+void init_global_tables() {
+    if (!tables_initialized) {
+        for (size_t i = 0; i < MAX_THREADS; ++i) {
+            global_tables[i] = new table_t[TABLE_SIZE]();
+        }
+        tables_initialized = true;
+    }
+}
+
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
     auto start = std::chrono::high_resolution_clock::now();
-    initializeZobristTable();
 
     move_t moves[300];
     short move_count = 0;
@@ -138,13 +154,12 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
 
     short best_move = moves[0].x + moves[0].y * 19;
     int best_eval = turn ? 2'000'000 : -2'000'000;
-    unsigned int thread_count = std::thread::hardware_concurrency() - 2;
+    unsigned int thread_count = std::thread::hardware_concurrency() - 1;
     std::vector<std::thread> threads;
     std::mutex best_move_mutex;
     std::atomic<int> i(0);
     for (unsigned int t = 0; t < thread_count; t++) {
         threads.emplace_back([&, t]() {
-            table_t* thread_local_table = new table_t[3'000'000]();
             while (true) {
                 int current_i = i.fetch_add(1);
                 if (current_i >= move_count) break;
@@ -154,7 +169,7 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
                 int eval = moves[current_i].eval;
                 if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000)))
                     eval = new_minimax(moves[current_i], !turn, -1'000'000, 1'000'000,
-                                       depth - 1, total_evaluated, moves, move_count, thread_local_table, depth);
+                                       depth - 1, total_evaluated, moves, move_count, global_tables[t], depth);
                 {
                     std::lock_guard<std::mutex> lock(best_move_mutex);
                     bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
@@ -166,7 +181,6 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
                     }
                 }
             }
-            delete[] thread_local_table;
         });
     }
 

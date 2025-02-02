@@ -7,8 +7,7 @@ from game import handle_move, is_occupied
 import argparse
 import copy
 import time
-from test import generate_bitboards
-from wrapper import bot_play , new_bot_play
+from wrapper import new_bot_play, initialize_bot
 from macro import SIZE, WIDTH
 BLACK_PLAYER = 0
 WHITE_PLAYER = 1
@@ -44,6 +43,7 @@ class gomoku:
         py.display.set_caption("Gomoku")
         draw_board(self.win, self.captures, self.eval)
         py.display.update()
+        initialize_bot()
         if variant:
             bit_position = 9 * 19 + 9
             self.last_move = bit_position
@@ -185,14 +185,7 @@ def main():
                       help="Activate variant", default=False)
     parse.add_argument("--depth", "-D", type=int,
                       help="Algo search depth", default=4)
-    parse.add_argument("--test", "-t", type=bool,
-                      help="test position")
     args = parse.parse_args()
-    if args.test:
-        t = time.time()
-        bot_play(generate_bitboards(), 0, [0, 0], args.depth, 14* 19 + 7)
-        # print("Time taken: ", time.time() - t)
-        exit(0)
     is_white = True if args.color == "white" else False
     game = gomoku(args.player - 1, args.variant, args.depth, is_white)
     while game.running:

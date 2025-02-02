@@ -31,21 +31,9 @@ _lib.is_won.argtypes = [
 ]
 _lib.is_won.restype = ctypes.c_bool
 
-# _lib.bot_play.argtypes = [
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.c_bool,
-#     ctypes.POINTER(ctypes.c_int),
-#     ctypes.c_int,
-#     ctypes.c_short,
-#     ctypes.c_bool
-# ]
-
 class BotResult(ctypes.Structure):
     _fields_ = [("move", ctypes.c_int),
                 ("evaluation", ctypes.c_int)]
-
-# _lib.bot_play.restype = BotResult
 
 _lib.bitwise_heuristic.argtypes = [
        ctypes.POINTER(ctypes.c_uint32), 
@@ -55,11 +43,6 @@ _lib.bitwise_heuristic.argtypes = [
    ]
 _lib.bitwise_heuristic.restype = ctypes.c_int
 
-# _lib.storeHeuristicInTransposeTable.argtypes = [
-#     ctypes.c_uint64,
-#     ctypes.c_int
-# ]
-# _lib.storeHeuristicInTransposeTable.restype = ctypes.c_int
 
 
 _lib.new_bot_play.argtypes = [
@@ -145,3 +128,13 @@ def new_bot_play(boards, turn, captures, depth):
         ctypes.byref(captures_arr), 
         depth
     )
+
+_lib.initializeZobristTable.argtypes = []
+_lib.initializeZobristTable.restype = None
+_lib.init_global_tables.argtypes = []
+_lib.init_global_tables.restype = None
+
+def initialize_bot():
+    """Initialize bot tables before first move"""
+    _lib.initializeZobristTable()
+    _lib.init_global_tables()

@@ -68,7 +68,6 @@ uint64_t updateZobristHash(uint64_t currentHash, uint8_t row, uint8_t col, int p
 
 
 bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
-    static const uint64_t TABLE_SIZE = 3'000'000;
     uint64_t startIndex = hash % TABLE_SIZE;
     uint64_t i = startIndex;
 
@@ -89,7 +88,6 @@ bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
 }
 
 void storePositionVisited(table_t* table, uint64_t hash, int eval) {
-    static const uint64_t TABLE_SIZE = 3'000'000;
     uint64_t startIndex = hash % TABLE_SIZE;
     uint64_t i = startIndex;
 
