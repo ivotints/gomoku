@@ -169,9 +169,6 @@ def handle_events(game):
                 t = time.time()
                 if not game.is_multiplayer:
                     handle_bot_move(game)
-                    # print("Board black: ", game.boards[0])
-                    # print("Board white: ", game.boards[1])
-                # print(f" Time taken: {time.time() - t:.3f}")
                 return True
     return True
 
@@ -183,7 +180,7 @@ def main():
                       help="Choose color", default="black")
     parse.add_argument("--variant", "-v", action="store_true",
                       help="Activate variant", default=False)
-    parse.add_argument("--depth", "-D", type=int,
+    parse.add_argument("--depth", "-D", type=int, choices=range(1, 12),
                       help="Algo search depth", default=4)
     args = parse.parse_args()
     is_white = True if args.color == "white" else False

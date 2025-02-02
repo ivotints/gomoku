@@ -6,7 +6,6 @@ import math
 import time
 
 def draw_undo_button(win):
-    """Draw undo text button in right corner"""
     font = py.font.Font(None, 20)
     text = font.render("UNDO", True, BLACK)
     text_rect = text.get_rect()
@@ -15,7 +14,6 @@ def draw_undo_button(win):
     win.blit(text, text_rect)
 
 def get_average_time(game):
-    """Calculate average time from bot moves in history"""
     if not game.history:
         return 0
         
@@ -27,22 +25,18 @@ def get_average_time(game):
     return sum(bot_times) / len(bot_times)
 
 def display_time(game, current_time):
-    """Display the current and average time taken"""
     font = py.font.Font(None, 24)
     
-    # Calculate current move time
     current_elapsed = time.time() - current_time
     
-    # Current time
     time_text = f"Time: {current_elapsed:.2f}"
     text = font.render(time_text, True, BLACK)
     text_rect = text.get_rect(center=(WIDTH//2 - 60, WIDTH - 20))
     game.win.blit(text, text_rect)
     
-    # For average time, include current move if bot is thinking
     if game.thinking:
         times = [move.time for move in game.history if move.time > 0]
-        times.append(current_elapsed)  # Include current move time
+        times.append(current_elapsed)
         avg_time = sum(times) / len(times) if times else 0
     else:
         avg_time = get_average_time(game)
@@ -53,7 +47,6 @@ def display_time(game, current_time):
     game.win.blit(avg, avg_rect)
 
 def show_winning_message(game):
-    """Display the winning message with bordered text based on winner color"""
     is_black_winner = game.turn
     message = "Black wins!" if is_black_winner else "White wins!"
     

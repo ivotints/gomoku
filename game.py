@@ -54,7 +54,7 @@ def winning_line(board):
                     return ((i,j), (i+dy,j+dx), (i+2*dy,j+2*dx), (i+3*dy,j+3*dx), (i+4*dy,j+4*dx))
     return None
 
-# this is readable version. but not the fastest. 
+# this is readable version. but not the fastest.
 def check_double_three(board_turn, board_not_turn, y, x):
     PATTERNS = [(0b01110, 5), (0b010110, 6), (0b011010, 6)]
     MASKS = {5: 0b11111, 6: 0b111111}

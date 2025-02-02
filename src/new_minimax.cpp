@@ -168,8 +168,6 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     std::atomic<int> i(0);
     for (unsigned int t = 0; t < thread_count; t++) {
         threads.emplace_back([&, t]() {
-            //std::memset(global_tables[t], 0, TABLE_SIZE * sizeof(table_t));
-
             while (true) {
                 int current_i = i.fetch_add(1);
                 if (current_i >= move_count) break;
@@ -194,63 +192,9 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
         });
     }
 
-    // for (short i = 0; i < move_count; ++i)
-    // {
-    //     if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[i].y, moves[i].x, moves[i].capture_dir))
-    //         continue ;
-
-    //     int eval = moves[i].eval;
-    //     if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000))) {
-    //         eval = new_minimax(moves[i], !turn, -1'000'000, 1'000'000, depth - 1, total_evaluated, moves, move_count, TTable, depth);
-    //     }
-
-    //     bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
-
-    //     if (better_eval)
-    //     {
-    //         best_move = moves[i].y * 19 + moves[i].x;
-    //         best_eval = eval;
-    //         if ((turn && best_eval < -100'000) || (!turn && best_eval > 100'000))
-    //             break;
-    //     }
-    // }
     for (auto &t : threads) {
         t.join();
     }
     std::cout << "Total evaluated:   " << total_evaluated / 1000 << "'" << total_evaluated % 1000 << "\t" << "Time taken: " <<  std::fixed << std::setprecision(3) << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count() << "\t" << "Best eval: " << best_eval << "  \t" << "Move(y, x) " <<  best_move / 19 <<" "<< best_move % 19 << "\n";
-        return {best_move, best_eval};
+    return {best_move, best_eval};
 }
-    // unsigned int thread_count = std::min(std::thread::hardware_concurrency() - 2, (unsigned int)move_count);
-    // std::cout << "Thread count: " << thread_count << "\n";
-    // std::vector<std::thread> threads;
-    // std::mutex best_move_mutex;
-    // std::atomic<int> i(0);
-    // for (unsigned int t = 0; t < thread_count; t++) {
-    //     threads.emplace_back([&, t]() {
-    //         // init_thread_local_table();
-    //         table_t *thread_local_table = new table_t[1]();
-    //         while(true) {
-    //             int current_i = i.fetch_add(1);
-    //             if (current_i >= move_count) {
-    //                 break;
-    //             }
-    //             if (!is_legal_lite(captures[turn], boards[turn], boards[!turn], moves[current_i].y, moves[current_i].x, moves[current_i].capture_dir))
-    //                 continue;
-    //             int eval = moves[current_i].eval;
-    //             if (depth > 1 && ((turn && eval > -100'000) || (!turn && eval < 100'000)))
-    //                 eval = new_minimax(moves[current_i], !turn, -1'000'000, 1'000'000, depth - 1, total_evaluated, moves, move_count, thread_local_table, depth);
-    //             std::lock_guard<std::mutex> lock(best_move_mutex);
-    //             bool better_eval = turn ? (eval < best_eval) : (eval > best_eval);
-
-    //             if (better_eval)
-    //             {
-    //                 best_move = moves[current_i].y * 19 + moves[current_i].x;
-    //                 best_eval = eval;
-    //                 if ((turn && best_eval < -100'000) || (!turn && best_eval > 100'000))
-    //                     break;
-    //             }
-    //         }
-    //         delete[] thread_local_table;
-    //         // cleanup_thread_local_table();
-    //     });
-    // }

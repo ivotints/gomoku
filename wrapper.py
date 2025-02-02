@@ -4,26 +4,16 @@ import glob
 import numpy as np
 import atexit
 
-# Find the .so file
 lib_pattern = os.path.join(os.path.dirname(__file__), 'heuristic*.so')
 lib_paths = glob.glob(lib_pattern)
 if not lib_paths:
     raise RuntimeError("Could not find heuristic shared library")
 _lib = ctypes.CDLL(lib_paths[0])
 
-# Used by check_capture
 class CaptureResult(ctypes.Structure):
     _fields_ = [("capture_count", ctypes.c_int),
                 ("positions", ctypes.POINTER(ctypes.c_int)),
                 ("position_count", ctypes.c_int)]
-
-# _lib.check_capture.argtypes = [
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.POINTER(ctypes.c_uint32),
-#     ctypes.c_int,
-#     ctypes.c_int
-# ]
-# _lib.check_capture.restype = CaptureResult
 
 _lib.is_won.argtypes = [
     ctypes.POINTER(ctypes.c_uint32),
@@ -112,19 +102,17 @@ def get_board_evaluation(board_turn, board_not_turn, capture_turn, capture_not_t
     )
 
 def new_bot_play(boards, turn, captures, depth):
-    # Convert boards to proper C array format
     arr_boards = ((ctypes.c_uint32 * 19) * 2)()
     for i in range(2):
         board_arr = convert_to_array(boards[i][0])
         for j in range(19):
             arr_boards[i][j] = board_arr[j]
             
-    # Convert captures to C array
     captures_arr = (ctypes.c_uint8 * 2)()
     captures_arr[0] = captures[0]
     captures_arr[1] = captures[1]
     return _lib.new_bot_play(
-        arr_boards,  # Remove ctypes.byref() here
+        arr_boards,
         turn,
         ctypes.byref(captures_arr), 
         depth
@@ -142,6 +130,5 @@ _lib.cleanup_global_tables.restype = None
 atexit.register(lambda: _lib.cleanup_global_tables())
 
 def initialize_bot():
-    """Initialize bot tables before first move"""
     _lib.initializeZobristTable()
     _lib.init_global_tables()

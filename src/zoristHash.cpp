@@ -81,7 +81,6 @@ bool isPositionVisited(table_t* table, uint64_t hash, int& value) {
         }
         i = (i + 1) % TABLE_SIZE;
         if (i == startIndex) {
-            // std::cout << "Table full, unable to insert: " << hash << std::endl;
             return false;
         }
     }
@@ -99,7 +98,6 @@ void storePositionVisited(table_t* table, uint64_t hash, int eval) {
         }
         i = (i + 1) % TABLE_SIZE;
         if (i == startIndex) {
-            // std::cout << "Table full, unable to insert: " << hash << std::endl;
             return;
         }
     }
