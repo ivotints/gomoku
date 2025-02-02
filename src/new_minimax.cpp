@@ -131,6 +131,14 @@ void init_global_tables() {
     }
 }
 
+// Cleanup function to call at program exit
+void cleanup_global_tables() {
+    for (size_t i = 0; i < MAX_THREADS; ++i) {
+        delete[] global_tables[i];
+    }
+}
+
+
 BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)[2], int depth)
 {
     auto start = std::chrono::high_resolution_clock::now();
@@ -160,6 +168,8 @@ BotResult new_bot_play(uint32_t (&boards)[2][19], bool turn, uint8_t (&captures)
     std::atomic<int> i(0);
     for (unsigned int t = 0; t < thread_count; t++) {
         threads.emplace_back([&, t]() {
+            //std::memset(global_tables[t], 0, TABLE_SIZE * sizeof(table_t));
+
             while (true) {
                 int current_i = i.fetch_add(1);
                 if (current_i >= move_count) break;

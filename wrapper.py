@@ -2,6 +2,7 @@ import ctypes
 import os
 import glob
 import numpy as np
+import atexit
 
 # Find the .so file
 lib_pattern = os.path.join(os.path.dirname(__file__), 'heuristic*.so')
@@ -133,6 +134,12 @@ _lib.initializeZobristTable.argtypes = []
 _lib.initializeZobristTable.restype = None
 _lib.init_global_tables.argtypes = []
 _lib.init_global_tables.restype = None
+
+
+_lib.cleanup_global_tables.argtypes = []
+_lib.cleanup_global_tables.restype = None
+
+atexit.register(lambda: _lib.cleanup_global_tables())
 
 def initialize_bot():
     """Initialize bot tables before first move"""

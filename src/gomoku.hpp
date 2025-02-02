@@ -67,6 +67,7 @@ extern "C"
                      int capture, int capture_opponent);
     void initializeZobristTable();
     void init_global_tables();
+    void cleanup_global_tables();
 
 }
 void storePositionVisited(table_t* table, uint64_t hash, int eval);
