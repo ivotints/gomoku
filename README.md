@@ -27,6 +27,15 @@ pip install -r requirements.txt
 ```sh
 python3 main.py
 ```
+## CLI Options
+- Multiplayer: Use the flag `-p 2` to enable two-player mode.
+- Depth: Use `-D 10` to set the AI search depth to 10.
+- Color: Use `-c white` if you want to play as white.
+
+## Demo
+Below is a quick demonstration of gameplay:
+![Gameplay Showcase](assets/showcase.gif)
+
 ## Game Features
 - Single-player & Multiplayer Modes: Enjoy different modes using human players or AI.
 - Bot Player: The AI uses a minimax algorithm (new_bot_play) with advanced board evaluation.
