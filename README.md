@@ -27,13 +27,14 @@ pip install -r requirements.txt
 ```sh
 python3 main.py
 ```
-# Game Features
-Single-player & Multiplayer Modes: Enjoy different modes using human players or AI.
-Bot Player: The AI uses a minimax algorithm (new_bot_play) with advanced board evaluation.
-Heuristic Evaluations: Leverages both bitwise and star heuristics (bitwise_heuristic and star_heuristic) for move scoring.
-Undo & Suggestion: The UI provides undo options (draw_undo_button) and move suggestions (draw_suggestion_button).
-Controls
-Place a Move: Click on the board.
-Undo a Move: Click the "UNDO" button.
-Move Suggestions: Toggle suggestions using the question mark button.
+## Game Features
+- Single-player & Multiplayer Modes: Enjoy different modes using human players or AI.
+- Bot Player: The AI uses a minimax algorithm (new_bot_play) with advanced board evaluation.
+- Heuristic Evaluations: Leverages bitwise_heuristic and star_heuristic for move scoring.
+- Undo & Suggestion: The UI provides undo options (draw_undo_button) and move suggestions (draw_suggestion_button).
+
+## Controls
+- Place a Move: Click on the board.
+- Undo a Move: Click the "UNDO" button.
+- Move Suggestions: Toggle suggestions using the question mark button.
 
